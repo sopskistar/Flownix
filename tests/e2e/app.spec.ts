@@ -1,6 +1,20 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+
+async function expectPageReady(page: Page, heading: string) {
+  const main = page.getByRole("main");
+  await expect(
+    main.getByRole("heading", { level: 1, name: heading, exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", {
+      name: "Loading research workspace",
+      exact: true,
+    }),
+  ).toBeHidden();
+  await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
+}
 test.beforeEach(async ({ request }) => {
   const r = await request.get("/");
   expect(r.headers()["x-flownix-workspace"]).toBe("alpha-research");
@@ -9,9 +23,7 @@ test("private workspace renders honest states and working navigation, themes and
   page,
 }) => {
   await page.goto("/");
-  await expect(
-    page.getByRole("heading", { name: "Alpha Radar", exact: true }),
-  ).toBeVisible();
+  await expectPageReady(page, "Alpha Radar");
   await expect(
     page.getByRole("region", { name: "Scrollable Alpha token table" }),
   ).toBeVisible();
@@ -39,29 +51,28 @@ test("private workspace renders honest states and working navigation, themes and
   await page
     .getByRole("link", { name: "Accumulation Watchlist", exact: true })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "Accumulation Watchlist", exact: true }),
-  ).toBeVisible();
+  await expectPageReady(page, "Accumulation Watchlist");
   await page.getByRole("link", { name: "Data Health", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Settings & Data Health" }),
-  ).toBeVisible();
+  await expectPageReady(page, "Settings & Data Health");
   await page.screenshot({
     path: "artifacts/screenshots/screen-settings.png",
     fullPage: true,
     caret: "initial",
   });
-  for (const path of [
-    "/signals",
-    "/journal",
-    "/research",
-    "/paper",
-    "/clusters",
-    "/rotation",
-    "/wallet/56/0xa4856e07d14045014b2c3fece5460bd37b310f10",
+  for (const [path, heading] of [
+    ["/signals", "Alerts & evidence"],
+    ["/journal", "Research Journal"],
+    ["/research", "Historical Runner Lab"],
+    ["/paper", "Performance Lab"],
+    ["/clusters", "Wallet Intelligence"],
+    ["/rotation", "Exchange Rotation"],
+    [
+      "/wallet/56/0xa4856e07d14045014b2c3fece5460bd37b310f10",
+      "Wallet Detective",
+    ],
   ]) {
-    await page.goto(path);
-    await expect(page.locator("h1")).toBeVisible();
+    await page.goto(path, { waitUntil: "commit" });
+    await expectPageReady(page, heading);
     await page.screenshot({
       path: `artifacts/screenshots/screen-${path.split("/")[1]}.png`,
       fullPage: true,
@@ -84,7 +95,7 @@ test("phone, tablet and reduced motion layouts have no page overflow", async ({
   ] as const) {
     await page.setViewportSize({ width, height });
     await page.goto("/");
-    await expect(page.locator("h1")).toBeVisible();
+    await expectPageReady(page, "Alpha Radar");
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -126,6 +137,7 @@ test("in-app notification and journal persist without external credentials", asy
     "Requires documented local PostgreSQL configuration",
   );
   await page.goto("/signals");
+  await expectPageReady(page, "Alerts & evidence");
   await page.getByRole("button", { name: "Test in-app notification" }).click();
   await expect(
     page.getByText("In-app test recorded. View Alerts."),
@@ -139,6 +151,7 @@ test("in-app notification and journal persist without external credentials", asy
       .first(),
   ).toBeVisible();
   await page.goto("/journal");
+  await expectPageReady(page, "Research Journal");
   const note = `Browser smoke test ${randomUUID()} — manual setup note, no market claim.`;
   await page
     .getByRole("textbox", { name: "Research note or hypothesis" })

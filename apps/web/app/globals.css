@@ -189,7 +189,8 @@ h3,
 p {
   margin-top: 0;
 }
-h1 {
+h1,
+.loading-title {
   font-size: 28px;
   font-weight: 600;
   line-height: 1.2;
@@ -197,6 +198,9 @@ h1 {
   margin-bottom: 9px;
   overflow-wrap: break-word;
   min-width: 0;
+}
+.loading-title {
+  color: var(--text);
 }
 h1,
 h2 {
@@ -938,7 +942,8 @@ footer {
     gap: var(--space-4);
     margin-bottom: 20px;
   }
-  h1 {
+  h1,
+  .loading-title {
     font-size: 25px;
   }
   .head-actions {
