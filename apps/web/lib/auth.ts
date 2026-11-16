@@ -3,15 +3,16 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getServerSession, type NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
-import { localAccessAllowed } from "@flownix/core";
-const configured = () =>
-  !!(
-    process.env.GITHUB_CLIENT_ID &&
-    process.env.GITHUB_CLIENT_SECRET &&
-    process.env.NEXTAUTH_SECRET &&
-    process.env.GITHUB_ALLOWED_LOGIN
-  );
+import {
+  localAccessAllowed,
+  oauthConfiguration,
+  githubLoginAllowed,
+} from "@flownix/core";
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies:
+    process.env.NODE_ENV === "production" ||
+    process.env.NEXTAUTH_URL?.startsWith("https://"),
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID ?? "unconfigured",
@@ -33,12 +34,7 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ profile }) {
       const p = profile as { login?: string } | undefined;
-      return (
-        configured() &&
-        process.env.ACCESS_MODE === "oauth" &&
-        p?.login?.toLowerCase() ===
-          process.env.GITHUB_ALLOWED_LOGIN?.toLowerCase()
-      );
+      return githubLoginAllowed(p?.login);
     },
   },
 };
@@ -65,7 +61,7 @@ export async function accessAllowed() {
     )
   )
     return true;
-  if (process.env.ACCESS_MODE !== "oauth" || !configured()) return false;
+  if (!oauthConfiguration().ready) return false;
   const session = await getServerSession(authOptions);
   return (
     !!session?.user &&

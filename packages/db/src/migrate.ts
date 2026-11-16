@@ -22,6 +22,11 @@ try {
       console.log(`Applied ${name}`);
     });
   }
+} catch {
+  console.error(
+    "Migration failed. Check direct database connectivity and migration state securely; no reset was attempted.",
+  );
+  process.exitCode = 1;
 } finally {
   await closeDb();
 }

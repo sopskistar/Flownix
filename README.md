@@ -4,6 +4,8 @@ Private, evidence-first **long-term Binance Alpha accumulation research**. Monit
 
 This is an implemented foundation with provider-aware degraded mode. **The live-data acceptance gate has not passed in this environment:** the Binance runtime endpoint failed DNS resolution and RPC checks failed. No live Alpha count, observed tx proof, verified buys or profitable backtest is claimed. See [current coverage](docs/DATA_COVERAGE.md).
 
+Production dashboard: **https://flownix.xyz**, protected by GitHub OAuth for the configured owner. Existing Neon persistence and owner sign-in/logout are verified; the continuous production worker has not been deployed. Settings is included in **Data Health** (`/settings`). See [deployment](docs/DEPLOYMENT.md), [authentication](docs/AUTH_SETUP.md), and [remaining work](docs/NEXT_STEPS.md).
+
 ## Local setup
 
 Requires Node 22.12+ (22.x), pnpm 11.21, Docker (or an existing PostgreSQL/Neon database). From the repository root:

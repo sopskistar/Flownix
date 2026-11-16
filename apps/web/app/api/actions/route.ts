@@ -6,6 +6,7 @@ import { accessAllowed } from "../../../lib/auth";
 import { jsonParam, sqlClient, setSetting } from "@flownix/db";
 import {
   config,
+  oauthConfiguration,
   quoteUsable,
   isEvmAddress,
   evmChains,
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
   const origin = request.headers.get("origin");
   const expected =
     process.env.ACCESS_MODE === "oauth"
-      ? process.env.NEXTAUTH_URL
+      ? oauthConfiguration().origin
       : `http://${request.headers.get("host")}`;
   if (!origin || origin !== expected)
     return NextResponse.json({ error: "Origin rejected" }, { status: 403 });

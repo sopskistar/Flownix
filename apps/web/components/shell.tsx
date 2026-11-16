@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthButton } from "./auth-controls";
 import { Navigation } from "./nav";
 import { ThemeToggle, SearchShortcut } from "./controls";
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <span>Flownix / private research workspace</span>
         <span>Evidence before inference. Simulation only.</span>
         <Link href="/privacy">Privacy</Link>
+        {process.env.ACCESS_MODE === "oauth" ? (
+          <AuthButton kind="signout" />
+        ) : null}
       </footer>
     </>
   );

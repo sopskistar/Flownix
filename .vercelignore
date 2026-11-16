@@ -1,0 +1,13 @@
+.git
+.vercel
+.env
+.env.*
+**/.env
+**/.env.*
+node_modules
+**/node_modules
+.next
+**/.next
+artifacts
+test-results
+playwright-report

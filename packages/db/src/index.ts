@@ -11,7 +11,8 @@ export function sqlClient() {
     client = postgres(url, {
       max: 4,
       prepare: false,
-      connect_timeout: 5,
+      // Neon Free may need to resume compute before accepting a connection.
+      connect_timeout: 20,
       idle_timeout: 20,
       transform: { undefined: null },
     });

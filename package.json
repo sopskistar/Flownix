@@ -13,6 +13,7 @@
     "worker:dev": "tsx --env-file-if-exists=.env apps/worker/src/index.ts",
     "worker:once": "tsx --env-file-if-exists=.env apps/worker/src/index.ts --once",
     "db:migrate": "tsx --env-file-if-exists=.env packages/db/src/migrate.ts",
+    "db:verify": "tsx --env-file-if-exists=.env.deploy.local scripts/db-verify.ts",
     "doctor": "tsx --env-file-if-exists=.env scripts/doctor.ts",
     "providers:smoke": "node --env-file-if-exists=.env scripts/provider-smoke.mjs",
     "test": "node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run",
