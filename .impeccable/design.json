@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-15T21:37:35.172918+00:00",
+  "title": "Design System: Flownix",
+  "extensions": {
+    "colorMeta": {
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Dark Bg",
+        "canonical": "#101316"
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "#171b20"
+      },
+      "dark-raised": {
+        "role": "neutral",
+        "displayName": "Dark Raised",
+        "canonical": "#20262d"
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Dark Line",
+        "canonical": "#303942"
+      },
+      "dark-text": {
+        "role": "neutral",
+        "displayName": "Dark Text",
+        "canonical": "#edf0f3"
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "canonical": "#b4bec8"
+      },
+      "dark-subtle": {
+        "role": "neutral",
+        "displayName": "Dark Subtle",
+        "canonical": "#82909e"
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark Accent",
+        "canonical": "#a7cae2"
+      },
+      "dark-positive": {
+        "role": "semantic",
+        "displayName": "Dark Positive",
+        "canonical": "#8dcbb3"
+      },
+      "dark-warning": {
+        "role": "semantic",
+        "displayName": "Dark Warning",
+        "canonical": "#e1be82"
+      },
+      "dark-negative": {
+        "role": "semantic",
+        "displayName": "Dark Negative",
+        "canonical": "#e39b9d"
+      },
+      "dark-on-accent": {
+        "role": "primary",
+        "displayName": "Dark On Accent",
+        "canonical": "#101316"
+      },
+      "dark-focus": {
+        "role": "primary",
+        "displayName": "Dark Focus",
+        "canonical": "#a7cae2"
+      },
+      "dark-chart-volume": {
+        "role": "neutral",
+        "displayName": "Dark Chart Volume",
+        "canonical": "#303942"
+      },
+      "light-bg": {
+        "role": "neutral",
+        "displayName": "Light Bg",
+        "canonical": "#f2f4f5"
+      },
+      "light-surface": {
+        "role": "neutral",
+        "displayName": "Light Surface",
+        "canonical": "#fbfcfd"
+      },
+      "light-raised": {
+        "role": "neutral",
+        "displayName": "Light Raised",
+        "canonical": "#e6ebef"
+      },
+      "light-line": {
+        "role": "neutral",
+        "displayName": "Light Line",
+        "canonical": "#a4b0ba"
+      },
+      "light-text": {
+        "role": "neutral",
+        "displayName": "Light Text",
+        "canonical": "#17212b"
+      },
+      "light-muted": {
+        "role": "neutral",
+        "displayName": "Light Muted",
+        "canonical": "#465564"
+      },
+      "light-subtle": {
+        "role": "neutral",
+        "displayName": "Light Subtle",
+        "canonical": "#596979"
+      },
+      "light-accent": {
+        "role": "primary",
+        "displayName": "Light Accent",
+        "canonical": "#285f83"
+      },
+      "light-positive": {
+        "role": "semantic",
+        "displayName": "Light Positive",
+        "canonical": "#22654e"
+      },
+      "light-warning": {
+        "role": "semantic",
+        "displayName": "Light Warning",
+        "canonical": "#805815"
+      },
+      "light-negative": {
+        "role": "semantic",
+        "displayName": "Light Negative",
+        "canonical": "#a7353b"
+      },
+      "light-on-accent": {
+        "role": "primary",
+        "displayName": "Light On Accent",
+        "canonical": "#fbfcfd"
+      },
+      "light-focus": {
+        "role": "primary",
+        "displayName": "Light Focus",
+        "canonical": "#285f83"
+      },
+      "light-chart-volume": {
+        "role": "neutral",
+        "displayName": "Light Chart Volume",
+        "canonical": "#a4b0ba"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page headings."
+      },
+      "headline-mobile": {
+        "displayName": "Headline Mobile",
+        "purpose": "Page headings at 700px and below."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "General interface text."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Action controls."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Labels, navigation and table cells."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Source annotations and small supporting text."
+      },
+      "tag": {
+        "displayName": "Tag",
+        "purpose": "Passive tags."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Contract addresses and code."
+      }
+    },
+    "shadows": [
+      {
+        "name": "active-navigation-indicator",
+        "value": "inset 0 -2px var(--accent)",
+        "purpose": "Current navigation indicator; no surface elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "feedback-duration",
+        "value": "140ms",
+        "purpose": "Button color, background-color and opacity feedback."
+      },
+      {
+        "name": "feedback-easing",
+        "value": "ease",
+        "purpose": "Unspecified transition timing uses CSS default ease."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation: none !important; transition: none !important; scroll-behavior: auto !important;",
+        "purpose": "Applied to all elements and pseudo-elements when reduced motion is requested."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-min",
+        "value": "1600px"
+      },
+      {
+        "name": "compact-max",
+        "value": "1100px"
+      },
+      {
+        "name": "phone-max",
+        "value": "700px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Current default action control.",
+      "html": "<button class=\"ds-button-default\">Inspect evidence</button>",
+      "css": ".ds-button-default{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;min-height:44px;border:1px solid var(--line, #303942);border-radius:6px;padding:9px 14px;font-size:13px;font-weight:550;line-height:1.5;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;white-space:nowrap;transition:background-color 140ms,color 140ms,opacity 140ms;background:var(--raised, #20262d);color:var(--text, #edf0f3);}.ds-button-default:hover{background:var(--line, #303942);}.ds-button-default:focus-visible { outline:2px solid var(--focus, #a7cae2); outline-offset:3px; }.ds-button-default:active{opacity:.8;}.ds-button-default:disabled{opacity:.45;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-default{transition:none;}}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Current primary action control.",
+      "html": "<button class=\"ds-button-primary\">Inspect evidence</button>",
+      "css": ".ds-button-primary{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;min-height:44px;border:1px solid var(--line, #303942);border-radius:6px;padding:9px 14px;font-size:13px;font-weight:550;line-height:1.5;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;white-space:nowrap;transition:background-color 140ms,color 140ms,opacity 140ms;background:var(--accent, #a7cae2);color:var(--on-accent, #101316);border-color:var(--accent, #a7cae2);}.ds-button-primary:hover{background:var(--text, #edf0f3);border-color:var(--text, #edf0f3);color:var(--bg, #101316);}.ds-button-primary:focus-visible { outline:2px solid var(--focus, #a7cae2); outline-offset:3px; }.ds-button-primary:active{opacity:.8;}.ds-button-primary:disabled{opacity:.45;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none;}}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Current quiet action control.",
+      "html": "<button class=\"ds-button-quiet\">Inspect evidence</button>",
+      "css": ".ds-button-quiet{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;min-height:44px;border:1px solid var(--line, #303942);border-radius:6px;padding:9px 14px;font-size:13px;font-weight:550;line-height:1.5;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;white-space:nowrap;transition:background-color 140ms,color 140ms,opacity 140ms;background:var(--surface, #171b20);color:var(--text, #edf0f3);}.ds-button-quiet:hover{background:var(--line, #303942);}.ds-button-quiet:focus-visible { outline:2px solid var(--focus, #a7cae2); outline-offset:3px; }.ds-button-quiet:active{opacity:.8;}.ds-button-quiet:disabled{opacity:.45;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-quiet{transition:none;}}"
+    },
+    {
+      "name": "Research Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled contract or token search field.",
+      "html": "<label class=\"ds-field\">Token or contract<input class=\"ds-input\" placeholder=\"Search registry\" /></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;color:var(--muted, #b4bec8);font-size:12px;font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;}.ds-input{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;min-height:44px;border:1px solid var(--line, #303942);background:var(--bg, #101316);color:var(--text, #edf0f3);border-radius:6px;padding:10px 12px;font-size:14px;width:100%;caret-color:var(--accent, #a7cae2);}.ds-input:hover{border-color:var(--subtle, #82909e);}.ds-input::placeholder{color:var(--subtle, #82909e);}.ds-input:focus-visible { outline:2px solid var(--focus, #a7cae2); outline-offset:3px; }"
+    },
+    {
+      "name": "Research Navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Scrollable navigation with explicit current-page state.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Research\"><a href=\"#registry\" aria-current=\"page\">Alpha registry</a><a href=\"#research\">Research</a></nav>",
+      "css": ".ds-nav{display:flex;gap:6px;overflow-x:auto;background:var(--surface, #171b20);font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;}.ds-nav a{display:inline-flex;align-items:center;min-height:48px;padding:14px 12px;white-space:nowrap;color:var(--muted, #b4bec8);text-decoration:none;font-size:12px;}.ds-nav a[aria-current=\"page\"]{color:var(--accent, #a7cae2);box-shadow:inset 0 -2px var(--accent, #a7cae2);}.ds-nav a:hover{background:var(--raised, #20262d);color:var(--text, #edf0f3);}.ds-nav a:focus-visible { outline:2px solid var(--focus, #a7cae2); outline-offset:3px; }"
+    },
+    {
+      "name": "Evidence Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Passive evidence label; it has no invented action or selection state.",
+      "html": "<span class=\"ds-tag\">Provider unavailable</span>",
+      "css": ".ds-tag{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;display:inline-flex;background:var(--raised, #20262d);color:var(--muted, #b4bec8);padding:3px 7px;border-radius:4px;font-size:10px;white-space:nowrap;}"
+    },
+    {
+      "name": "Evidence Workbench",
+      "kind": "card",
+      "refersTo": "workbench",
+      "description": "Flat bordered container with an explicit unavailable-evidence state.",
+      "html": "<section class=\"ds-workbench\"><header class=\"ds-section\"><h2>Source evidence</h2></header><div class=\"ds-panel\"><p>Provider unavailable. No observations loaded.</p></div></section>",
+      "css": ".ds-workbench{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;background:var(--surface, #171b20);color:var(--text, #edf0f3);border:1px solid var(--line, #303942);border-radius:8px;min-width:0;}.ds-section{display:flex;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line, #303942);}.ds-section h2{margin:0;font-size:15px;font-weight:600;}.ds-panel{padding:20px;}.ds-panel p{margin:0;color:var(--muted, #b4bec8);font-size:13px;max-width:72ch;}"
+    },
+    {
+      "name": "Source-and-Freshness Ledger",
+      "kind": "custom",
+      "description": "Textual availability and observation provenance in a flat strip.",
+      "html": "<div class=\"ds-ledger\"><span>Source <strong>Provider unavailable</strong></span><span>Observation <strong>Not observed</strong></span></div>",
+      "css": ".ds-ledger{font-family:var(--font-sans, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;display:flex;align-items:center;flex-wrap:wrap;gap:16px 28px;padding:16px 0;border-top:1px solid var(--line, #303942);border-bottom:1px solid var(--line, #303942);font-size:12px;color:var(--muted, #b4bec8);font-variant-numeric:tabular-nums;}.ds-ledger strong{color:var(--text, #edf0f3);font-weight:550;}"
+    },
+    {
+      "name": "Original Flow Mark",
+      "kind": "custom",
+      "description": "Actual shell geometry: three observations converge on the open F anchor.",
+      "html": "<svg class=\"ds-flow-mark\" viewBox=\"0 0 40 40\" role=\"img\" aria-label=\"Flownix flow mark\"><path d=\"M6 9h11c8 0 8 11 16 11M6 20h27M6 31h11c8 0 8-11 16-11\"/><path d=\"M12 9v22\"/></svg>",
+      "css": ".ds-flow-mark{width:34px;height:34px;fill:none;stroke:var(--accent, #a7cae2);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Source-and-freshness ledger",
+    "overview": "Flownix is a restrained, dense private financial research terminal. Neutral graphite surfaces keep source evidence, timestamps and availability legible during long sessions. The observation-blue accent identifies interaction and focus; semantic status colors describe observed facts without predicting returns.",
+    "keyCharacteristics": [
+      "Evidence and source freshness remain inspectable beside observations.",
+      "Flat, table-first workbench with compact typography and generous control targets.",
+      "Explicit dark and light themes; text accompanies every status.",
+      "Original flow mark, system typography and no decorative motion."
+    ],
+    "rules": [
+      {
+        "name": "Evidence Color",
+        "body": "Status color describes an observed change or availability state; it never predicts an outcome. Always retain the text label.",
+        "section": "colors"
+      },
+      {
+        "name": "Flat Workbench",
+        "body": "Use tonal surfaces and thin separators for structure. The active-navigation inset line is an indicator, not floating elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep source identity, UTC observation times and availability visible.",
+      "Do use the existing semantic variables so light and dark states remain consistent.",
+      "Do preserve keyboard focus, reduced-motion support and labelled table scrolling.",
+      "Do preserve the flow mark paths, proportions and independent identity."
+    ],
+    "donts": [
+      "Don't invent provider coverage, metrics, profit probabilities or live chart data.",
+      "Don't use status colors to imply returns or Binance endorsement.",
+      "Don't add decorative motion, marketing heroes or unsupported performance charts."
+    ]
+  }
+}

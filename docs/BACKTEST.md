@@ -1,0 +1,17 @@
+# Point-in-time research and simulation
+
+There is no profitable backtest or historical Alpha membership archive bundled in Flownix. Current membership and provider listingTime do not establish past inclusion. Earliest admissible Alpha signal is after a locally proven membership snapshot with the required evidence baseline. Old candles can be context without becoming evidence of an old signal.
+
+Outcome worker evaluates eligible stored transfer signals at 1/4/24/72h and 7/14/30/60/90d only with independently stored order-book snapshots. Entry is the first observed ask after signal +60 seconds, within 15 minutes; exit is the first observed bid at the horizon, within 15 minutes. Both sides require enough displayed quantity. Missing book quotes never fall back to future candle opens/closes. Full raw depth response hashes identify each side. Candles strictly within the fill times provide descriptive MFE/MAE only; gaps suppress those results and unavailable extrema remain null. Reorg-invalidated signals are excluded from new evaluation. A fetched historical candle cannot generate an old signal or an executable quote.
+
+Decimal scenario model: default budget 10,000 quote units, position 100, fee 30bps each side, adverse slippage 100bps each side, gas 2 quote units each side, minimum reported liquidity 100,000, max position 10bps of displayed ask notional and 10% budget. All assumptions are stored. USDT and USDC are not silently combined as USD. Observed Alpha bid/ask captures spread and displayed top-level size. Quotes may disappear, and transfer tax, gas volatility, MEV and pool routing remain unknown, so these are **scenario estimates**, not validated realizable fills or expected returns.
+
+Manual paper entries require a current observed Alpha ask and sufficient displayed size, with a current bid required for exit. They use a quote available at recording time, frozen source snapshot and forward recording time; stale/missing quotes are refused. Per-trade 10% and total 50% quote-budget exposure caps are enforced under a transaction lock. Manual exits require a current quote and charge stated costs. Entries are not backdated to old signals. No trading keys, capital transfers or real orders.
+
+Core tests exercise deterministic returns, cost drag, timestamp constraints, membership timing, liquidity and chronological splitting. `chronologicalSplit` yields explicitly ordered train/test sets; it does not train a model. Avoid thresholds fitted only to winners. Store removed/offline candidates and negative/no-movement outcomes as they become available.
+
+MFE/MAE are descriptive candle extrema, never assumed fills. Win rate, mean/median returns, drawdown, profit factor, target-event precision/recall, lead time and matched Alpha control baselines remain unimplemented/unavailable until enough genuine signal history and a predeclared target exist. No chart or dummy ROI stands in for those statistics. CSV exports support external reproducible analysis.
+
+Before capital use, the highest priority is a verified swap/pool adapter plus longitudinal retention measurement and independent executable-cost validation. Do not interpret this release as demonstrated trading efficacy.
+
+Registry liquidity is an eligibility metadata screen, not a quote-currency conversion. Position-size fractions use displayed ask price × quantity in the actual quote asset; no USD/stablecoin parity is assumed.

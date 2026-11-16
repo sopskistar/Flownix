@@ -1,0 +1,9 @@
+{
+  "name": "@flownix/worker",
+  "private": true,
+  "dependencies": {
+    "@flownix/core": "workspace:*",
+    "@flownix/db": "workspace:*",
+    "zod": "^4.1.12"
+  }
+}

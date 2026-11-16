@@ -1,0 +1,42 @@
+{
+  "provenance": {
+    "kind": "official_documentation_example_not_live",
+    "checkedAt": "2026-11-15",
+    "url": "https://developers.binance.com/en/docs/catalog/advanced-trading-alpha-trading/api/rest-api/market-data"
+  },
+  "registry": {
+    "code": "000000",
+    "success": true,
+    "data": [
+      {
+        "tokenId": "3F350C8B3621770A673159B7A19BC034",
+        "chainId": "56",
+        "chainName": "BSC",
+        "contractAddress": "0xcf640fdf9b3d9e45cbd69fda91d7e22579c14444",
+        "name": "gorilla",
+        "symbol": "gorilla",
+        "alphaId": "ALPHA_175",
+        "offline": false,
+        "decimals": 18,
+        "listingCex": false,
+        "listingTime": 1746686700000
+      }
+    ]
+  },
+  "exchange": {
+    "symbols": [
+      {
+        "symbol": "ALPHA_175USDT",
+        "baseAsset": "ALPHA_175",
+        "quoteAsset": "USDT",
+        "status": "TRADING"
+      },
+      {
+        "symbol": "ALPHA_175USDC",
+        "baseAsset": "ALPHA_175",
+        "quoteAsset": "USDC",
+        "status": "TRADING"
+      }
+    ]
+  }
+}

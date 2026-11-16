@@ -1,0 +1,270 @@
+import { z } from "zod";
+import { depthSchema } from "./quotes";
+import { hashResponse, contractIdentity, tokenKey } from "./identity";
+export type Observation<T> = {
+  data: T;
+  source: string;
+  observedAt: string;
+  hash: string;
+  raw: string;
+  serverDate: string | null;
+};
+export type RequestAudit = {
+  provider: string;
+  at: string;
+  status: number | null;
+  ok: boolean;
+  error: string | null;
+  latencyMs: number;
+};
+export class ProviderError extends Error {
+  constructor(
+    public code: string,
+    public status: number | null = null,
+  ) {
+    super(code);
+  }
+}
+export type Fetcher = typeof fetch;
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export class HttpClient {
+  private nextAt = 0;
+  constructor(
+    public provider: string,
+    private rpm = 30,
+    private audit: (a: RequestAudit) => Promise<void> = async () => {},
+    private fetcher: Fetcher = fetch,
+    private sleep = wait,
+  ) {}
+  async json<T>(
+    url: string,
+    parse: (data: unknown) => T,
+    init: RequestInit = {},
+  ): Promise<Observation<T>> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const reservedAt = Math.max(Date.now(), this.nextAt);
+      this.nextAt = reservedAt + 60000 / this.rpm;
+      await this.sleep(Math.max(0, reservedAt - Date.now()));
+      const at = new Date().toISOString();
+      const start = Date.now();
+      let status: number | null = null;
+      try {
+        const r = await this.fetcher(url, {
+          ...init,
+          redirect: "error",
+          signal: AbortSignal.timeout(15000),
+          headers: { Accept: "application/json", ...init.headers },
+        });
+        status = r.status;
+        if (!r.ok) {
+          const retry = Number(r.headers.get("retry-after"));
+          if (r.status === 429 && retry > 0)
+            this.nextAt = Math.max(
+              this.nextAt,
+              Date.now() + Math.min(retry, 120) * 1000,
+            );
+          throw new ProviderError(`HTTP_${r.status}`, r.status);
+        }
+        const raw = await r.text();
+        if (raw.length > 20_000_000)
+          throw new ProviderError("RESPONSE_TOO_LARGE");
+        const data = parse(JSON.parse(raw));
+        await this.audit({
+          provider: this.provider,
+          at,
+          status,
+          ok: true,
+          error: null,
+          latencyMs: Date.now() - start,
+        });
+        return {
+          data,
+          raw,
+          source: url,
+          hash: hashResponse(raw),
+          observedAt: new Date().toISOString(),
+          serverDate: r.headers.get("date"),
+        };
+      } catch (error) {
+        // Never log URL or native fetch message: RPC URLs/Telegram paths can contain secrets.
+        const code =
+          error instanceof ProviderError
+            ? error.code
+            : error instanceof z.ZodError
+              ? "SCHEMA_MISMATCH"
+              : "NETWORK_OR_PARSE_ERROR";
+        await this.audit({
+          provider: this.provider,
+          at,
+          status,
+          ok: false,
+          error: code,
+          latencyMs: Date.now() - start,
+        });
+        if (
+          attempt === 2 ||
+          (status !== null && status < 500 && status !== 429)
+        )
+          throw new ProviderError(code, status);
+        await this.sleep(
+          Math.min(8000, 500 * 2 ** attempt + Math.random() * 300),
+        );
+      }
+    }
+    throw new ProviderError("RETRY_EXHAUSTED");
+  }
+}
+const numericText = z
+  .union([z.string(), z.number()])
+  .transform(String)
+  .nullable()
+  .optional();
+export const registryEntry = z
+  .object({
+    tokenId: z.string().min(1),
+    alphaId: z
+      .string()
+      .regex(/^ALPHA_\d+$/)
+      .nullish(),
+    chainId: z.union([z.string(), z.number()]).transform(String),
+    chainName: z.string(),
+    contractAddress: z.string().min(1),
+    symbol: z.string().min(1),
+    name: z.string(),
+    offline: z.boolean().optional(),
+    decimals: z.coerce.number().int().min(0).max(255).optional(),
+    listingTime: numericText,
+    listingCex: z.boolean().optional(),
+    price: numericText,
+    percentChange24h: numericText,
+    volume24h: numericText,
+    marketCap: numericText,
+    fdv: numericText,
+    liquidity: numericText,
+    holders: numericText,
+  })
+  .passthrough();
+export type RegistryEntry = z.infer<typeof registryEntry>;
+export const envelope =
+  <T extends z.ZodType>(schema: T) =>
+  (body: unknown): z.output<T> => {
+    const e = z
+      .object({ code: z.literal("000000"), success: z.boolean().optional() })
+      .passthrough()
+      .parse(body);
+    if (e.success === false) throw new ProviderError("PROVIDER_REJECTED");
+    return schema.parse(e.data);
+  };
+export const parseRegistry = envelope(z.array(registryEntry).min(1));
+export const symbolSchema = z
+  .object({
+    symbol: z.string(),
+    baseAsset: z.string(),
+    quoteAsset: z.string(),
+    status: z.string().optional(),
+  })
+  .passthrough();
+export type MarketSymbol = z.infer<typeof symbolSchema>;
+export const exchangeSchema = z
+  .object({
+    symbols: z.array(symbolSchema),
+    rateLimits: z.array(z.unknown()).optional(),
+    timezone: z.string().optional(),
+    serverTime: z.number().optional(),
+  })
+  .passthrough();
+export const tickerSchema = z
+  .object({
+    symbol: z.string(),
+    lastPrice: z.string(),
+    priceChangePercent: z.string(),
+    volume: z.string(),
+    quoteVolume: z.string(),
+    closeTime: z.coerce.number(),
+  })
+  .passthrough();
+export const klineSchema = z.array(
+  z.array(z.union([z.string(), z.number()])).min(7),
+);
+export const ALPHA_BASE = "https://www.binance.com";
+export const REGISTRY_PATH =
+  "/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list";
+export class AlphaProvider {
+  constructor(private http: HttpClient) {}
+  registry() {
+    return this.http.json(ALPHA_BASE + REGISTRY_PATH, parseRegistry);
+  }
+  exchange() {
+    return this.http.json(
+      ALPHA_BASE + "/bapi/defi/v1/public/alpha-trade/get-exchange-info",
+      envelope(exchangeSchema),
+    );
+  }
+  depth(symbol: string) {
+    return this.http.json(
+      this.url("fullDepth", { symbol, limit: "5" }),
+      envelope(depthSchema),
+    );
+  }
+  ticker(symbol: string) {
+    return this.http.json(
+      this.url("ticker", { symbol }),
+      envelope(tickerSchema),
+    );
+  }
+  klines(symbol: string, endTime?: number) {
+    return this.http.json(
+      this.url("klines", {
+        symbol,
+        interval: "1h",
+        limit: "1500",
+        ...(endTime ? { endTime: String(endTime) } : {}),
+      }),
+      envelope(klineSchema),
+    );
+  }
+  private url(route: string, q: Record<string, string>) {
+    if (!/^ALPHA_\d+[A-Z0-9]+$/.test(q.symbol))
+      throw new ProviderError("INVALID_SYMBOL");
+    return `${ALPHA_BASE}/bapi/defi/v1/public/alpha-trade/${route}?${new URLSearchParams(q)}`;
+  }
+}
+export function normalizeRegistry(entries: RegistryEntry[]) {
+  const out = new Map<
+    string,
+    RegistryEntry & { id: string; status: "current" | "offline" | "unknown" }
+  >();
+  for (const e of entries) {
+    const i = contractIdentity(e.chainId, e.contractAddress);
+    const id = tokenKey(i.chain, i.contract);
+    const prior = out.get(id);
+    if (prior && prior.alphaId !== e.alphaId)
+      throw new ProviderError("CONFLICTING_ALPHA_ID");
+    out.set(id, {
+      ...e,
+      chainId: i.chain,
+      contractAddress: i.contract,
+      id,
+      status:
+        e.offline === true
+          ? "offline"
+          : e.offline === false
+            ? "current"
+            : "unknown",
+    });
+  }
+  return [...out.values()];
+}
+export function eligiblePairs(
+  alphaId: string | null | undefined,
+  symbols: MarketSymbol[],
+) {
+  return !alphaId
+    ? []
+    : symbols.filter(
+        (s) =>
+          s.baseAsset === alphaId &&
+          s.symbol === `${alphaId}${s.quoteAsset}` &&
+          (!s.status || ["TRADING", "1"].includes(s.status)),
+      );
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@flownix/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "zod": "^4.1.12"
+  }
+}
