@@ -1,4 +1,20 @@
-# Next steps after the deployment repair
+# Next steps — Phase 2, hosting undecided
+
+Current priorities, superseding the archived deployment notes below:
+
+1. Configure reliable permitted historical/log RPC access for ETH/BSC and Base. Current public heads work, historical replay gets 403/timeouts and Base logs 429. Store keys only in ignored worker configuration. No paid plan without approval.
+2. Complete real replay/duplicate preservation and cursor advancement after process restart. Never reset cursors to the head to hide catch-up failures. Gate remains incomplete despite 180 canonical transfers and three verified receipts.
+3. Re-profile a healthy 15-token cycle including successful scans, writes, catch-up and restart; then validate quota capacity before 50/100 live workloads. Current estimates and measurements are explicitly separated in WORKER_HOSTING_COMPARISON.md. Review Neon compute/storage usage, not just worker hosting price.
+4. Owner chooses/approves a host after Oracle support review and cost comparison. No host is assumed; no cloud collector is active. Use WORKER_DEPLOYMENT.md for portable Docker/systemd or managed container deployment, same Neon and single-worker lock.
+5. Continue the original full wallet-intelligence scope: monitored-address balance history, verified entity labels, exchange flows excluding internal routing, project/MM provenance, passive swap coverage, cross-token relationships, conservative retained purchases and supply concentration exclusions. Unknown ownership/history remains unknown.
+6. Accumulate actual longitudinal 7/14/30/60/90/180-day evidence, evaluate quiet/persistent accumulation and contradictory distribution evidence, then validate with chronological negative controls and realistic fills. Current zero accumulation signals is an honest result.
+7. Finish JCT/BTW historical transaction/date/label proof and other candidate/failed-runner cases. Keep historical Alpha membership separate from today's registry. Public introduction remains secondary to working core data.
+
+No new dashboard credentials are needed. Real second-account OAuth denial remains a manual security check; existing owner sign-in/Journal verification and protected endpoints are preserved.
+
+## Archived deployment-repair next steps
+
+The following recorded the earlier pre-ingestion state and no longer describes current token counts:
 
 1. Optionally complete the documented **real second-GitHub-account rejection test** in a separate browser profile. Exact allowlist policy and anonymous API denial are already tested; do not report the second-account browser flow as tested until performed.
 2. Preserve the working Vercel project, permanent `https://flownix.xyz` OAuth callback, production session secret, and existing Neon database. Keep backups and check provider/storage quotas. No additional setup credentials are currently required for the dashboard.

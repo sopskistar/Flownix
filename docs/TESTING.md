@@ -1,5 +1,33 @@
 # Verification
 
+## Phase 2 verification update (2026-11-16–17 UTC)
+
+- **64 tests across six files pass** with existing local PostgreSQL: prior coverage plus exact Pancake event/receipt/settlement, router ambiguity, atomic retention, incomplete/future ledger, time-valid labels, round-trip deduplication, DNS/error redaction, bounded streamed responses, ORM serializer isolation, actual interval-union accounting, retained invalidation, real dated fixture and long-term stale/quiet/farming/distribution/expansion rules. No synthetic production observations.
+- Typecheck, lint and production Next build passed. The sandbox denied localhost during the first database test attempt and Next's spawned TypeScript configuration during the first build; approved reruns outside it passed.
+- **Four unchanged browser journeys passed** using installed Chromium via CHROME_PATH. First browser attempt failed because the new default Playwright binary was absent; reused the installed executable instead of reinstalling. No UI redesign or new visual-QA claim. Tests cover responsive/reduced-motion navigation, authorization, notes/in-app persistence.
+- AMD64 Docker worker build succeeded; no exposed ports. Initial Docker build failed WSL DNS resolution of official npm; a local DNS-resolved `--add-host` retry preserved TLS. Native ARM64 execution remains untested. Linux host/service scripts are prepared, not remotely deployed.
+- Live official registry/actual market observations, ETH/BSC canonical transfers, three independent receipt/log/block matches, source timestamps and persisted suppression traces verified. **Live gate remains incomplete**: replay historical RPC403, Base log429, no post-restart cursor advancement. No real reorg observed. Do not replace this failure with passing mock tests.
+- Single-worker contention rejected a second collector with COLLECTOR_BUSY; separate local run wrote actual heartbeat and clean stopped state. Existing evidence/cursors survived termination/restart; failure retries resumed, but successful historical catch-up is not proven. Local 15-token profiling had provider failures; 50/100 workloads are modeled only. See WORKER_RESOURCE_MEASUREMENTS.json.
+
+Reproduce live checks using the intended existing worker configuration:
+
+```sh
+pnpm providers:production
+pnpm collection:status
+pnpm worker:diagnostics
+pnpm live:gate verify
+pnpm live:gate replay
+pnpm research:refresh
+node --env-file=.env.worker.local --import tsx scripts/rpc-diagnose.ts 8453
+pnpm worker:profile:report
+```
+
+Never run parallel collectors or increase token/API load to benchmark beyond free quotas. `artifacts/live/acceptance.json` is a timestamped last-run report, not an enduring live-health certificate. A dated minimal real fixture is stored in tests/fixtures/alpha-live-2026-11-16.json with parent-response hash and fixtureOnly=true; it never substitutes for the production universe. Hosted CI result must be checked on the pushed SHA; local results alone are not CI verification.
+
+## Archived deployment-repair checks
+
+Earlier 46-test/six-migration/zero-token numbers and unsuccessful-provider statements below describe the prior repair and are superseded above. Authentication architecture remains unchanged.
+
 Updated for production deployment/security repair on 2026-11-16. All claims distinguish code/fixture checks, actual production checks, owner-confirmed authenticated behavior, and live provider acceptance.
 
 ## Reproduce

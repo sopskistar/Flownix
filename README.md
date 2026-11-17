@@ -2,9 +2,11 @@
 
 Private, evidence-first **long-term Binance Alpha accumulation research**. Monitor chain/contract identities across days, weeks and months; preserve observations, investigate transfers and record conservative paper experiments. Independent of Binance. No live execution, trading keys, wallet signing, paid calls or fabricated performance.
 
-This is an implemented foundation with provider-aware degraded mode. **The live-data acceptance gate has not passed in this environment:** the Binance runtime endpoint failed DNS resolution and RPC checks failed. No live Alpha count, observed tx proof, verified buys or profitable backtest is claimed. See [current coverage](docs/DATA_COVERAGE.md).
+Phase 2 has real persisted observations: **686 official Alpha identities (378 online), 20 tokens with Alpha market quotes and 180 canonical ETH/BSC transfers**. Three receipt samples were independently checked. **The full live-data gate remains incomplete:** historical RPC replay/resume fails and Base logs are rate-limited. No genuine long-term accumulation signal or profitable strategy is claimed. See [current coverage](docs/DATA_COVERAGE.md).
 
 Production dashboard: **https://flownix.xyz**, protected by GitHub OAuth for the configured owner. Existing Neon persistence and owner sign-in/logout are verified; the continuous production worker has not been deployed. Settings is included in **Data Health** (`/settings`). See [deployment](docs/DEPLOYMENT.md), [authentication](docs/AUTH_SETUP.md), and [remaining work](docs/NEXT_STEPS.md).
+
+Worker hosting is **undecided**. No paid hosting was activated. Compare [measured consumption and hosting costs](docs/WORKER_HOSTING_COMPARISON.md) and [portable deployment procedures](docs/WORKER_DEPLOYMENT.md). Vercel hosts the web app; Neon remains the only production database.
 
 ## Local setup
 

@@ -1,4 +1,29 @@
-# Delivery report
+# Delivery report — Phase 2 progress, hosting deferred
+
+Updated 2026-11-17 UTC (November 16 in New York). **No persistent cloud worker is deployed. No paid plan was activated. Live-data acceptance remains incomplete.** Existing production: https://flownix.xyz; OAuth/Neon/UI/brand architecture preserved. Git/hosted-CI identifiers belong in the final delivery message and `git log -1`.
+
+Current live evidence in the existing Neon database:
+
+- Official registry: **686 chain/contract identities, 378 current and 308 offline**, spanning ten chain IDs. Source responses/hashes and membership snapshots retained. `tokenId` is opaque; `alphaId` maps to 1,467 actual market symbols across U, USDT and USDC quotes.
+- **20 tokens have Alpha market observations**; registry metadata covers the full returned universe. Market data is aged when collection stops. **60,543 completed hourly candles** at last count; some symbols reach ~187 days. Backfilled prices became available locally at fetch time and do not establish past Alpha membership or contemporaneous signals.
+- **15 selected deep tokens, 12 with completed 100-block windows:** eight BSC and four Ethereum; three Base tokens have no completed scan. **180 canonical Transfer events** (139 BSC, 41 Ethereum), 33 observed balance snapshots. These are short samples, not complete ownership history.
+- Three actual transaction receipts, log identities/quantities/times and block hashes independently matched the stored events. References are in DATA_COVERAGE.md. **18 Pancake V3 pool interpretations**: one direct-settlement attributed buy, one attributed sell, sixteen unattributed pool-side swaps. No beneficial owner inferred.
+- Eight persisted wallet-research reports from the available monitored-address sample; requested 1/3/7/14/30/60/90/180-day windows show unknown where opening balances/continuous ledger are missing. No 30-day holder history was obtained. **Zero genuine accumulation signals or proven profitable trades.**
+- Immutable transfer-rule suppression traces persisted. Receipt gate passed its three samples, but replay/resume hit RPC 403/timeouts; Base confirmed block/code/decimals pass while even ten-block logs return 429. Real cursor-advancement/replay acceptance remains pending. Existing observations/checkpoints were preserved.
+
+Implemented: process-local optional DNS repair with normal hostname/TLS, precise safe provider errors/audits; batched registry/candle/transfer writes; incremental candles and six-hour backfill-page spacing; dedicated ORM serializer isolation; canonical receipt evidence and reorg invalidation; known-factory passive Pancake V3 settlement classification; conservative balance-reconciled retained-purchase lower bounds; time-valid reviewed exchange-flow rules; possible round-trip turnover warnings; long-term thesis rules/state history with stale/farming suppression and no flat-price expiry; bounded wallet materialization; single-worker lock/leases/heartbeat/shutdown, storage guard and local profiling. New migrations 0007–0009 are additive and applied; existing Journal data retained.
+
+The Section 5 requirements remain in scope. Current depth is deliberately partial: no independently verified exchange/market-maker/team ownership registry, top-holder census, comprehensive operational supply exclusions, complete relationships/hops, automated team vesting/catalyst attribution, or validated distribution/invalidation pipeline. The thesis engine's distribution path has deterministic tests, while the current materializer supplies no verified distribution evidence; it must not be advertised as an operational distribution detector. Cross-token ownership, supply lock and baselines need genuine longitudinal evidence before strong conclusions. These are remaining engineering/data work, not removed requirements.
+
+Historical research: 29 matching official identities from the user candidate list recorded for investigation; PAAL remains unverified. JCT/BTW current contract balances observed for the supplied address. Claimed historical 338.84M JCT transfer/163.96M BTW holding and pre-rally timing remain unverified; third-party Bitget attribution stays possible_exchange. No historical positive/negative result series is fabricated. Public homepage work remains secondary and unstarted.
+
+Verification: **64 unit/database tests and four browser journeys pass**, lint/typecheck/production build pass; AMD64 worker image built, no exposed ports. ARM64 execution and cloud worker operation remain unverified. Local profiles measured ~103 MiB mean idle RSS, ~118 MiB restart mean, ~163 MiB sampled incomplete market peak. Healthy full-cycle/catch-up/50/100-token benchmarks remain pending because providers reject history and the first run stalled. Exact measurements and priced assumptions: [WORKER_HOSTING_COMPARISON.md](WORKER_HOSTING_COMPARISON.md). All test fixtures are isolated; live acceptance is reported separately from CI.
+
+**Highest-leverage next improvement:** verify a reliable permitted RPC with required historical/log access, then finish real replay/cursor recovery and healthy-cycle profiling before declaring continuous intelligence operational. Hosting selection is independent and remains the owner's decision.
+
+## Archived deployment-repair report (before Phase 2)
+
+Everything below records the earlier foundation/deployment repair; its zero/unverified data counts and six-migration status are historical and superseded above.
 
 Status: implemented, tested private research **foundation**, now securely deployed at **https://flownix.xyz**. **Live research v1 acceptance is not complete.** This release repairs CI and production deployment; it does not begin Phase2 live ingestion. Git commit/push and final hosted-CI identifiers are reported in the delivery message and `git log -1`.
 

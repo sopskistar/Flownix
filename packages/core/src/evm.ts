@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { HttpClient, ProviderError } from "./providers";
 import { isEvmAddress } from "./identity";
+import { countMetric } from "./telemetry";
 export const TRANSFER_TOPIC =
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 const hex = z.string().regex(/^0x[0-9a-fA-F]+$/);
@@ -8,7 +9,7 @@ const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
 export const logSchema = z.object({
   address: z.string(),
   topics: z.array(hash),
-  data: hex,
+  data: z.string().regex(/^0x([0-9a-fA-F]{2})*$/),
   blockNumber: hex,
   blockHash: hash,
   transactionHash: hash,
@@ -100,6 +101,7 @@ export class EvmProvider {
       throw Error("Invalid configured RPC");
   }
   async rpc<T>(method: string, params: unknown[], schema: z.ZodType<T>) {
+    countMetric(`rpcMethod:${this.chain}:${method}`);
     const r = await this.http.json(
       this.url,
       (body) => {
@@ -130,16 +132,52 @@ export class EvmProvider {
     return parseInt(r.data, 16);
   }
   async block(n: number) {
-    return this.rpc(
+    const result = await this.rpc(
       "eth_getBlockByNumber",
       ["0x" + n.toString(16), false],
       z.object({ hash, timestamp: hex, number: hex }),
     );
+    if (Number(BigInt(result.data.number)) !== n)
+      throw new ProviderError("BLOCK_NUMBER_MISMATCH");
+    return result;
   }
-  async decimals(address: string) {
+  async code(address: string, block: number) {
+    if (!isEvmAddress(address)) throw new ProviderError("INVALID_ADDRESS");
+    return this.rpc(
+      "eth_getCode",
+      [address, "0x" + block.toString(16)],
+      z.string().regex(/^0x([0-9a-fA-F]{2})*$/),
+    );
+  }
+  async receipt(txHash: string) {
+    hash.parse(txHash);
+    const result = await this.rpc(
+      "eth_getTransactionReceipt",
+      [txHash],
+      z.object({
+        transactionHash: hash,
+        blockHash: hash,
+        blockNumber: hex,
+        status: hex,
+        from: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+        to: z.string().nullable(),
+        logs: z.array(logSchema),
+      }),
+    );
+    if (
+      result.data.transactionHash.toLowerCase() !== txHash.toLowerCase() ||
+      BigInt(result.data.status) !== 1n
+    )
+      throw new ProviderError("RECEIPT_MISMATCH_OR_FAILED");
+    return result;
+  }
+  async decimals(address: string, block?: number) {
     const r = await this.rpc(
       "eth_call",
-      [{ to: address, data: "0x313ce567" }, "latest"],
+      [
+        { to: address, data: "0x313ce567" },
+        block === undefined ? "latest" : "0x" + block.toString(16),
+      ],
       hex,
     );
     const d = Number(BigInt(r.data));
@@ -147,6 +185,23 @@ export class EvmProvider {
     return d;
   }
   logs(address: string, from: number, to: number) {
+    return this.eventLogs(address, from, to, [TRANSFER_TOPIC]);
+  }
+  async callWord(address: string, data: string, block: number) {
+    if (!isEvmAddress(address) || !/^0x[0-9a-fA-F]+$/.test(data))
+      throw new ProviderError("INVALID_READ_CALL");
+    return this.rpc(
+      "eth_call",
+      [{ to: address, data }, "0x" + block.toString(16)],
+      z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+    );
+  }
+  eventLogs(
+    address: string,
+    from: number,
+    to: number,
+    topics: (string | string[] | null)[],
+  ) {
     if (!isEvmAddress(address) || to < from || to - from > 1000)
       throw new ProviderError("INVALID_LOG_RANGE");
     return this.rpc(
@@ -156,7 +211,7 @@ export class EvmProvider {
           address,
           fromBlock: "0x" + from.toString(16),
           toBlock: "0x" + to.toString(16),
-          topics: [TRANSFER_TOPIC],
+          topics,
         },
       ],
       z.array(logSchema),

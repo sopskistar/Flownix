@@ -1,5 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { config } from "@flownix/core";
+import { startWorkerProfile } from "./profile";
+import {
+  config,
+  ProviderError,
+  networkErrorCode,
+  closeProviderNetwork,
+  stopProviderRequests,
+} from "@flownix/core";
 import { jsonParam, sqlClient, closeDb, setSetting } from "@flownix/db";
 import { registrySync, marketSync, scanToken } from "./ingest";
 import {
@@ -13,12 +20,82 @@ if (conf.DATABASE_URL_WORKER)
   process.env.DATABASE_URL = conf.DATABASE_URL_WORKER;
 const sql = sqlClient(),
   owner = randomUUID();
+const profile = startWorkerProfile();
+function failureCode(error: unknown) {
+  if (
+    error instanceof Error &&
+    ["COLLECTOR_BUSY", "COLLECTOR_LOCK_LOST"].includes(error.message)
+  )
+    return error.message;
+  if (error instanceof ProviderError) return error.code;
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String(error.code)
+      : "";
+  return /^[0-9A-Z]{5}$/.test(code)
+    ? `SQLSTATE_${code}`
+    : networkErrorCode(error);
+}
 let stopping = false;
+let ownsLock = false;
+let collectorLock: Awaited<ReturnType<typeof sql.reserve>> | undefined;
+let activeJob: string | null = null;
+let pulsing = false;
+const platform = ["oracle", "digitalocean", "gcp", "aws", "linux"].includes(
+  process.env.WORKER_PLATFORM ?? "",
+)
+  ? process.env.WORKER_PLATFORM
+  : process.env.RAILWAY_SERVICE_ID
+    ? "railway"
+    : process.env.RENDER_SERVICE_ID
+      ? "render"
+      : "local";
+async function pulse() {
+  if (!ownsLock || !collectorLock || pulsing) return;
+  pulsing = true;
+  try {
+    const lock =
+      await collectorLock`SELECT EXISTS(SELECT 1 FROM pg_locks WHERE pid=pg_backend_pid() AND locktype='advisory' AND objid=726032) AS held`;
+    if (!lock[0].held) throw Error("COLLECTOR_LOCK_LOST");
+    await setSetting("worker_heartbeat", {
+      at: new Date().toISOString(),
+      owner,
+      job: activeJob,
+      platform,
+      mode: process.argv.includes("--once") ? "one-shot" : "continuous",
+      rssBytes: process.memoryUsage().rss,
+      release: /^[a-f0-9]{40}$/.test(process.env.WORKER_RELEASE_SHA ?? "")
+        ? process.env.WORKER_RELEASE_SHA
+        : null,
+    });
+  } catch {
+    stopping = true;
+    ownsLock = false;
+    process.exitCode = 1;
+    await closeDb();
+  } finally {
+    pulsing = false;
+  }
+}
+// Native database/HTTP timers may be unreferenced; the persistent collector owns its lifecycle.
+const lifecycle = setInterval(() => {
+  void pulse();
+}, 30000);
+const duration = Number(process.env.WORKER_RUN_SECONDS ?? 0);
+const stopTimer =
+  duration > 0
+    ? setTimeout(() => {
+        stopping = true;
+        stopProviderRequests();
+      }, duration * 1000)
+    : undefined;
 process.on("SIGINT", () => {
   stopping = true;
+  stopProviderRequests();
 });
 process.on("SIGTERM", () => {
   stopping = true;
+  stopProviderRequests();
 });
 const intervals: Record<string, number> = {
   registry: 900,
@@ -43,24 +120,46 @@ async function schedule() {
     await sql`INSERT INTO worker_jobs(key,kind,payload) VALUES(${"scan:" + t.id},'scan',${jsonParam({ tokenId: t.id })}::jsonb) ON CONFLICT DO NOTHING`;
 }
 async function next(excluded: string[] = []) {
+  const kinds =
+    process.env.WORKER_JOB_KINDS?.split(",") ?? Object.keys(intervals);
+  if (kinds.some((kind) => !Object.hasOwn(intervals, kind)))
+    throw Error("INVALID_JOB_KINDS");
   return sql.begin(async (tx) => {
     const rows =
-      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND NOT(key=ANY(${excluded})) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,key FOR UPDATE SKIP LOCKED LIMIT 1`;
+      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,key FOR UPDATE SKIP LOCKED LIMIT 1`;
     if (!rows.length) return null;
     const job = rows[0];
-    await tx`UPDATE worker_jobs SET status='running',owner=${owner},lease_until=now()+interval '30 minutes',updated_at=now() WHERE key=${job.key}`;
+    await tx`UPDATE worker_jobs SET status='running',owner=${owner},lease_until=now()+interval '2 minutes',updated_at=now() WHERE key=${job.key}`;
     return job;
   });
 }
 async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
+  activeJob = job.kind;
+  let forceStop: NodeJS.Timeout | undefined;
+  const deadline = setTimeout(() => {
+    console.error(
+      JSON.stringify({
+        event: "job_deadline_exceeded",
+        kind: job.kind,
+        recovery:
+          "Stop collector; preserve committed checkpoints; expired lease is recoverable",
+      }),
+    );
+    stopping = true;
+    process.exitCode = 1;
+    stopProviderRequests();
+    // A failed native connection must not keep an apparently alive collector
+    // hanging forever. Open transactions roll back; committed evidence survives.
+    forceStop = setTimeout(() => process.exit(1), 30000);
+  }, conf.WORKER_JOB_TIMEOUT_SECONDS * 1000);
+  profile.phase(job.kind);
+  console.log(
+    JSON.stringify({ event: "job_started", kind: job.kind, key: job.key }),
+  );
   const heartbeat = setInterval(() => {
     void Promise.all([
-      setSetting("worker_heartbeat", {
-        at: new Date().toISOString(),
-        owner,
-        job: job.kind,
-      }),
-      sql`UPDATE worker_jobs SET lease_until=now()+interval '30 minutes' WHERE key=${job.key} AND owner=${owner}`,
+      pulse(),
+      sql`UPDATE worker_jobs SET lease_until=now()+interval '2 minutes' WHERE key=${job.key} AND owner=${owner}`,
     ]).catch(() => {});
   }, 15000);
   try {
@@ -74,43 +173,69 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     else if (job.kind === "persistence") await persistenceSync();
     await sql`UPDATE worker_jobs SET status='done',attempts=0,lease_until=null,owner=null,last_error=null,run_after=now()+(${intervals[job.kind] ?? 300}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
     return true;
-  } catch {
+  } catch (error) {
+    const code = failureCode(error);
     const delay = Math.min(3600, 30 * 2 ** Math.min(Number(job.attempts), 7));
-    await sql`UPDATE worker_jobs SET status='retry',attempts=attempts+1,lease_until=null,owner=null,last_error='JOB_FAILED: inspect provider_runs and data_quality_issues',run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
+    await sql`UPDATE worker_jobs SET status='retry',attempts=attempts+1,lease_until=null,owner=null,last_error=${code},run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
     console.error(
       JSON.stringify({
         event: "job_failed",
         kind: job.kind,
         key: job.key,
         retryInSeconds: delay,
+        error: code,
       }),
     );
     return false;
   } finally {
+    clearTimeout(deadline);
+    if (forceStop) clearTimeout(forceStop);
+    console.log(
+      JSON.stringify({ event: "job_finished", kind: job.kind, key: job.key }),
+    );
+    profile.phase("idle");
+    activeJob = null;
     clearInterval(heartbeat);
   }
 }
 async function main() {
   // Reserve a dedicated session for advisory locking; use the direct URL, not transaction pooling.
   const lock = await sql.reserve();
+  collectorLock = lock;
   try {
     const acquired =
       await lock`SELECT pg_try_advisory_lock(726032) AS acquired`;
-    if (!acquired[0].acquired)
-      throw Error("Another worker owns the collector lock");
+    if (!acquired[0].acquired) throw Error("COLLECTOR_BUSY");
+    ownsLock = true;
+    await pulse();
     const once = process.argv.includes("--once");
     const seen = new Set<string>();
     let failed = false;
+    let scheduledAt = 0;
     while (!stopping) {
-      await setSetting("worker_heartbeat", {
-        at: new Date().toISOString(),
-        owner,
-      });
-      await schedule();
+      if (process.argv.includes("--idle")) {
+        profile.phase("idle");
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+      if (Date.now() - scheduledAt > 30000) {
+        await schedule();
+        scheduledAt = Date.now();
+      }
+      const size =
+        await sql`SELECT pg_database_size(current_database())::text AS bytes`;
+      if (
+        BigInt(size[0].bytes) >
+        BigInt(conf.DATABASE_STORAGE_LIMIT_MB) * 1024n * 1024n
+      ) {
+        await sql`INSERT INTO data_quality_issues(provider,kind,detail) VALUES('database','storage_guard','Configured storage guard halted ingestion; existing research was retained. Check account storage and compute quotas before resuming.')`;
+        stopping = true;
+        break;
+      }
       const job = await next(once ? [...seen] : []);
       if (!job) {
         if (once) break;
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 30000));
         continue;
       }
       seen.add(job.key);
@@ -118,20 +243,25 @@ async function main() {
     }
     if (once && failed) process.exitCode = 1;
   } finally {
-    await lock`SELECT pg_advisory_unlock(726032)`;
+    if (ownsLock) await lock`SELECT pg_advisory_unlock(726032)`;
+    ownsLock = false;
     lock.release();
-    await setSetting("worker_heartbeat", {
-      at: new Date().toISOString(),
-      owner,
-      stopped: true,
-    });
+    await sql`UPDATE settings SET value=${jsonParam({ at: new Date().toISOString(), owner, platform, stopped: true })}::jsonb,updated_at=now() WHERE key='worker_heartbeat' AND value->>'owner'=${owner}`;
     await closeDb();
   }
 }
-main().catch(async () => {
-  console.error(
-    "Worker failed. Check database connectivity, migrations and direct worker connection.",
-  );
-  await closeDb();
-  process.exitCode = 1;
-});
+main()
+  .catch(async (error) => {
+    console.error(
+      `Worker failed: ${failureCode(error)}. Check database connectivity, migrations and direct worker connection.`,
+    );
+    await closeDb();
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    clearInterval(lifecycle);
+    if (stopTimer) clearTimeout(stopTimer);
+    await closeDb();
+    await closeProviderNetwork();
+    profile.stop();
+  });

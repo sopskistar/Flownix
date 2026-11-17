@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { depthSchema } from "./quotes";
 import { hashResponse, contractIdentity, tokenKey } from "./identity";
+import { providerFetch, networkErrorCode } from "./network";
+import { countMetric } from "./telemetry";
 export type Observation<T> = {
   data: T;
   source: string;
@@ -21,31 +23,81 @@ export class ProviderError extends Error {
   constructor(
     public code: string,
     public status: number | null = null,
+    cause?: unknown,
   ) {
-    super(code);
+    super(code, { cause });
   }
 }
 export type Fetcher = typeof fetch;
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+let processRequestCount = 0;
+const providerNextAt = new Map<string, number>();
+export async function boundedResponseText(
+  response: Response,
+  maxBytes = 20_000_000,
+) {
+  if (!response.body) return "";
+  const reader = response.body.getReader(),
+    chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      size += part.value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        throw new ProviderError("RESPONSE_TOO_LARGE");
+      }
+      chunks.push(part.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks, size).toString("utf8");
+}
 export class HttpClient {
   private nextAt = 0;
   constructor(
     public provider: string,
     private rpm = 30,
     private audit: (a: RequestAudit) => Promise<void> = async () => {},
-    private fetcher: Fetcher = fetch,
+    private fetcher: Fetcher = providerFetch,
     private sleep = wait,
   ) {}
+  private async record(audit: RequestAudit) {
+    try {
+      await this.audit(audit);
+    } catch (cause) {
+      throw new ProviderError("AUDIT_PERSISTENCE_FAILED", audit.status, cause);
+    }
+  }
   async json<T>(
     url: string,
     parse: (data: unknown) => T,
     init: RequestInit = {},
   ): Promise<Observation<T>> {
     for (let attempt = 0; attempt < 3; attempt++) {
+      if (this.fetcher === providerFetch)
+        this.nextAt = Math.max(
+          this.nextAt,
+          providerNextAt.get(this.provider) ?? 0,
+        );
       const reservedAt = Math.max(Date.now(), this.nextAt);
       this.nextAt = reservedAt + 60000 / this.rpm;
+      if (this.fetcher === providerFetch)
+        providerNextAt.set(this.provider, this.nextAt);
       await this.sleep(Math.max(0, reservedAt - Date.now()));
       const at = new Date().toISOString();
+      const budget = Number(process.env.PROVIDER_PROCESS_REQUEST_BUDGET ?? 0);
+      if (budget > 0 && processRequestCount >= budget)
+        throw new ProviderError("PROCESS_REQUEST_BUDGET_EXHAUSTED");
+      processRequestCount++;
+      countMetric(`requests:${this.provider}`);
+      countMetric(
+        "httpRequestBodyBytes",
+        typeof init.body === "string" ? Buffer.byteLength(init.body) : 0,
+      );
       const start = Date.now();
       let status: number | null = null;
       try {
@@ -63,13 +115,16 @@ export class HttpClient {
               this.nextAt,
               Date.now() + Math.min(retry, 120) * 1000,
             );
+          if (this.fetcher === providerFetch)
+            providerNextAt.set(this.provider, this.nextAt);
           throw new ProviderError(`HTTP_${r.status}`, r.status);
         }
-        const raw = await r.text();
+        const raw = await boundedResponseText(r);
+        countMetric("httpResponseBodyBytes", Buffer.byteLength(raw));
         if (raw.length > 20_000_000)
           throw new ProviderError("RESPONSE_TOO_LARGE");
         const data = parse(JSON.parse(raw));
-        await this.audit({
+        await this.record({
           provider: this.provider,
           at,
           status,
@@ -86,14 +141,22 @@ export class HttpClient {
           serverDate: r.headers.get("date"),
         };
       } catch (error) {
+        countMetric(`requestErrors:${this.provider}`);
+        if (
+          error instanceof ProviderError &&
+          error.code === "AUDIT_PERSISTENCE_FAILED"
+        )
+          throw error;
         // Never log URL or native fetch message: RPC URLs/Telegram paths can contain secrets.
         const code =
           error instanceof ProviderError
             ? error.code
             : error instanceof z.ZodError
               ? "SCHEMA_MISMATCH"
-              : "NETWORK_OR_PARSE_ERROR";
-        await this.audit({
+              : error instanceof SyntaxError
+                ? "INVALID_JSON"
+                : networkErrorCode(error);
+        await this.record({
           provider: this.provider,
           at,
           status,
@@ -212,13 +275,14 @@ export class AlphaProvider {
       envelope(tickerSchema),
     );
   }
-  klines(symbol: string, endTime?: number) {
+  klines(symbol: string, endTime?: number, startTime?: number) {
     return this.http.json(
       this.url("klines", {
         symbol,
         interval: "1h",
         limit: "1500",
         ...(endTime ? { endTime: String(endTime) } : {}),
+        ...(startTime ? { startTime: String(startTime) } : {}),
       }),
       envelope(klineSchema),
     );

@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+**/.env
+**/.env.*
+.vercel
+.agents
+.codex
+.aws
+.ssh
+node_modules
+**/node_modules
+.next
+**/.next
+artifacts
+test-results
+playwright-report

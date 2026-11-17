@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { readdir, readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-import { sqlClient, closeDb, jsonParam } from "../packages/db/src/index";
+import {
+  sqlClient,
+  closeDb,
+  jsonParam,
+  database,
+} from "../packages/db/src/index";
 const enabled = !!process.env.DATABASE_URL;
 describe.skipIf(!enabled)(
   "Postgres transaction/reorg evidence integration — isolated rollback schema",
@@ -20,6 +25,9 @@ describe.skipIf(!enabled)(
             await tx.unsafe(
               await readFile("packages/db/migrations/" + name, "utf8"),
             );
+          const covered =
+            await tx`SELECT sum(extract(epoch FROM upper(period)-lower(period)))::int AS seconds FROM unnest((SELECT range_agg(r) FROM (VALUES (tstzrange('2026-01-01T00:00:00Z','2026-01-01T00:01:00Z','[)')),(tstzrange('2026-01-01T00:00:30Z','2026-01-01T00:01:30Z','[)')),(tstzrange('2026-01-01T00:02:00Z','2026-01-01T00:02:30Z','[)'))) AS ranges(r))) AS period`;
+          expect(covered[0].seconds).toBe(120); // Gaps and overlapping replay do not create extra history.
           const id = "a".repeat(32),
             address = "0x" + "1".repeat(40),
             hash = "0x" + "2".repeat(64);
@@ -47,6 +55,8 @@ describe.skipIf(!enabled)(
               .status,
           ).toBe("removed");
           for (let i = 0; i < 2; i++) {
+            // ORM construction must not mutate the raw client's JSON serializers.
+            database();
             await tx`INSERT INTO notification_deliveries(id,channel,status,payload) VALUES(${randomUUID()},'in_app','delivered',${jsonParam({ test: true, text: "Synthetic JSONB regression, isolated rollback only", nested: { count: i } })})`;
           }
           const payloads =

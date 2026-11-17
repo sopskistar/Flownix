@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readdir } from "node:fs/promises";
 import {
   sqlClient,
   closeDb,
@@ -35,8 +36,14 @@ try {
   await sql`SELECT 1`;
   const migrations =
     await sql`SELECT name FROM schema_migrations ORDER BY name`;
-  if (migrations.length !== 6)
-    throw new Error("Expected six applied migrations");
+  const expected = (
+    await readdir(new URL("../packages/db/migrations/", import.meta.url))
+  ).filter((name) => name.endsWith(".sql"));
+  if (
+    migrations.length !== expected.length ||
+    expected.some((name) => !migrations.some((row) => row.name === name))
+  )
+    throw new Error("Applied migrations do not match this release");
   const key = `deployment_probe:${probe}:${connection}`;
   if (mode === "write") {
     await setSetting(key, {

@@ -1,5 +1,36 @@
 # Coverage register
 
+## Current Phase 2 observations — 2026-11-16–17 UTC
+
+**Live acceptance still NOT PASSED:** three canonical receipt samples verified, but real replay/resume and Base logs remain blocked. No hosted continuous worker. Local profiling collector is stopped; data ages honestly.
+
+Latest registry capture **2026-11-17T02:34:34.868Z**: 686 identities, **378 online / 308 offline**. The earlier Nov16 observation had 377/309; the reconciler retained the status change rather than hardcoding the count.
+
+| Evidence                                     | Verified result                                                                                                                                                                                              |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Official registry                            | 686 unique identities: 378 current/online, 308 offline. Full observed universe persisted, no fixture substitution                                                                                            |
+| Chain distribution (all returned identities) | BSC 502; Ethereum 38; Base 46; Sonic 4; chain 4663 5; Arbitrum 4; Linea 1; Solana 70; Sui 13; Tron 3                                                                                                         |
+| Actual Alpha markets                         | 1,467 symbols, U/USDT/USDC quote assets; 20 identities with stored market quotes. Registry metadata prices kept as separate source_kind, never silently blended                                              |
+| Deep monitoring                              | 15 selected, 12 have one completed 100-block window each: 8 BSC, 4 ETH. Base 3 selected/0 scanned                                                                                                            |
+| Transfer ledger                              | 180 canonical events: BSC 139, ETH 41. UTC block times, atomic quantities/decimals, log index, block/tx hashes and raw source hashes retained                                                                |
+| Historical event coverage                    | BSC windows about 44–45 seconds/token; ETH about 20 minutes/token. Mostly Nov16 15:45–16:22 UTC. No complete history since Alpha inclusion                                                                   |
+| Passive swap evidence                        | 18 known-factory Pancake V3 records; one attributed buy, one attributed sell, sixteen unattributed. A pool direction is not a personal trader identity                                                       |
+| Balances / holder retention                  | 33 sampled balance snapshots, eight materialized wallet reports at first refresh. Longer deltas unknown without actual opening snapshots; no top-holder census or weeks-long retention yet                   |
+| Market candles                               | 60,543 completed hourly candles at latest count; up to ~187 days for some symbols, shorter elsewhere. Fetch-time availability recorded; historical membership before first observation is unproven           |
+| Signals                                      | Zero genuine accumulation signals. Real versioned suppression traces explain missing baseline/market/membership/coverage. No success/ROI chart                                                               |
+| Exchange/entity coverage                     | No independently verified exchange/market-maker/team registry. Case wallet has only a possible_exchange third-party Bitget lead, not verified historical ownership                                           |
+| RPC diagnostics                              | BSC current confirmed block/code/decimals and 10-block logs passed (five logs); ETH/BSC historical resume/replay returned 403/timeouts; Base current block/code/decimals pass, even 10-block logs return 429 |
+
+Independently checked receipt/log/block references:
+
+- [Ethereum transaction 0x537723…e5249](https://etherscan.io/tx/0x53772376ff8e56d91d6935b2d2cf3ff79bb3748924e38ac1a457f514008e5249), block 26428671.
+- [BSC transaction 0x2a277a…9307c](https://bscscan.com/tx/0x2a277a19ca306598354648526ebfcc9e9aa3bfc2eaa8c5b242dd41f3a529307c), block 133957211.
+- [Ethereum transaction 0x2a2cc0…feec](https://etherscan.io/tx/0x2a2cc07bd8981e3dd17cc220f73fa49ba7bef06e93ba7ae104f09b638b5efeec), block 26428655.
+
+Receipt verification recorded 2026-11-16 17:53 UTC. Synthetic reorg/idempotency tests pass; no actual chain reorganization was observed. Failed replay preserved prior cursors/availability; no successful full replay is claimed. Full available/custom/range selectors do not manufacture 7–180-day wallet coverage. Other official chains have metadata only; deep analysis displays unavailable. Paid enrichment, Telegram delivery, historical outcome validation and public homepage remain unavailable/uncompleted.
+
+## Archived foundation snapshot (superseded above)
+
 Source research date: 2026-11-15 UTC. Final database snapshot: 2026-11-16 02:41 UTC. The final smoke/test details are in docs/TESTING.md and docs/BUILD_REPORT.md.
 
 **Live-data acceptance gate: NOT PASSED.** Runtime official Binance registry checks returned DNS/network failure even outside the sandbox. The initial Ethereum RPC candidate resolved but timed out. Web documentation was accessible; web requests to registry/exchange did not yield a usable payload. No geographic bypass or alternative unofficial universe was used.

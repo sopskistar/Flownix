@@ -22,3 +22,13 @@ Supplied address: `0xa4856E07D14045014B2c3FEce5460bD37B310F10`. EVM syntax is va
 7. Compare contemporaneous negative/control Alpha cases and plausible execution costs. Follow retention/distribution over 7/14/30/60/90d. No maximum future high is a valid assumed exit.
 
 The local Wallet Detective route `/wallet/56/0xa4856e07d14045014b2c3fece5460bd37b310f10` reads only genuine local observations and honestly stays empty until collected. No synthetic wallet activity or permanent identity label is seeded.
+
+# Phase 2 observed update — 2026-11-16
+
+The reproducible `pnpm research:case` command queries official registry identities before any RPC access. Current BSC identities: JCT contract `0xea37a8de1de2d9d10772eeb569e28bfa5cb17707` (ALPHA_466), BTW `0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa` (ALPHA_778). These facts do not prove historic membership before local collection.
+
+At canonical block **133970409**, hash `0xecdd005fc59ed2502feb4cb96a23340723220ac3df85c210e79746e77704d326`, time **2026-11-16 17:49:36 UTC**, the user-supplied address had RPC-observed balances **2,158,055,485.79580584 JCT** and **84,570,297.18930802 BTW**. Exact atomic quantities and source responses were persisted. These are current sampled balances, not historical acquisition proof or the claimed earlier holdings.
+
+Two public transaction leads were attempted but remain unresolved in the saved case report. The allegation of ~338.84M JCT toward Bitget before a rally, earlier ~163.96M BTW and market-making connections is **not independently established**. Public Arkham attribution to Bitget is saved as **possible_exchange**, with current availability/time and an independently-unverified confidence statement. No verified exchange-flow metric is derived from that label. Custody operations remain a possible explanation; no manipulation claim is made.
+
+The earlier protocol below remains the required historical investigation plan. A nonzero balance today does not satisfy it. Raw live artifacts remain ignored, and no private Journal notes are exported.

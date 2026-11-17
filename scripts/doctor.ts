@@ -6,6 +6,9 @@ import {
   evmChains,
   normalizeRegistry,
   freshness,
+  ProviderError,
+  networkErrorCode,
+  closeProviderNetwork,
 } from "../packages/core/src/index";
 import { sqlClient, closeDb } from "../packages/db/src/index";
 const c = config();
@@ -46,8 +49,8 @@ try {
     jobs,
     marketFreshness: freshness(market[0]?.last_observed),
   };
-} catch {
-  report.database = { ok: false, error: "DATABASE_UNAVAILABLE_OR_UNMIGRATED" };
+} catch (error) {
+  report.database = { ok: false, error: networkErrorCode(error) };
 }
 try {
   const p = new AlphaProvider(new HttpClient("binance_alpha", 30));
@@ -68,11 +71,12 @@ try {
       ]),
     ),
   };
-} catch {
+} catch (error) {
   report.alpha = {
     ok: false,
     count: null,
-    error: "OFFICIAL_ENDPOINT_UNAVAILABLE",
+    error:
+      error instanceof ProviderError ? error.code : networkErrorCode(error),
     hint: "Run pnpm providers:smoke. No sample universe is substituted.",
   };
 }
@@ -99,18 +103,20 @@ if (process.argv.includes("--rpc")) {
         rpc: true,
         transferIngestion: "Verify per-token cursor and logs in database",
       });
-    } catch {
+    } catch (error) {
       (report.chains as unknown[]).push({
         chain,
         name: info.name,
         rpc: false,
-        error: "RPC_UNAVAILABLE",
+        error:
+          error instanceof ProviderError ? error.code : networkErrorCode(error),
       });
     }
   }
 }
 console.log(JSON.stringify(report, null, 2));
 await closeDb();
+await closeProviderNetwork();
 if (
   !(report.database as { ok: boolean }).ok ||
   !(report.alpha as { ok: boolean }).ok

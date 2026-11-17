@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { walletResearchSync } from "./wallet-research";
 import {
   config,
   quoteUsable,
@@ -9,10 +10,8 @@ import {
   simulateOutcome,
   defaultPaperAssumptions,
   type Candle,
-  researchWindows,
-  accumulationPersistence,
 } from "@flownix/core";
-import { jsonParam, sqlClient, auditRequest, setSetting } from "@flownix/db";
+import { jsonParam, sqlClient, auditRequest } from "@flownix/db";
 export async function enqueueTelegramTest() {
   const sql = sqlClient();
   await sql`INSERT INTO notification_deliveries(id,channel,status,payload) VALUES(${randomUUID()},'telegram','queued',${jsonParam({ test: true, text: "Flownix connection test — independent Alpha research. Simulation only. No trading action." })}::jsonb)`;
@@ -69,29 +68,7 @@ export async function queueResearchAlerts() {
   }
 }
 export async function persistenceSync() {
-  const sql = sqlClient();
-  const tokens =
-    await sql`SELECT * FROM alpha_tokens WHERE deep_selected OR id IN (SELECT token_id FROM watchlists WHERE NOT archived)`;
-  const now = new Date().toISOString();
-  for (const t of tokens) {
-    // No swap decoder is verified yet. Explicit empty purchase ledger is an unavailable capability, not zero buying.
-    for (const days of researchWindows) {
-      const start = new Date(Date.now() - days * 86400000).toISOString();
-      const result = accumulationPersistence([], start, now, now);
-      await sql`INSERT INTO accumulation_observations(token_id,window_days,computed_at,window_start,window_end,coverage,metrics) VALUES(${t.id},${days},${now},${start},${now},${jsonParam({ purchaseDecoder: "unavailable", verifiedDays: 0, requestedDays: days })}::jsonb,${jsonParam(result)}::jsonb) ON CONFLICT DO NOTHING`;
-    }
-    if (t.research_state === "DISCOVERY")
-      await sql.begin(async (tx) => {
-        await tx`UPDATE alpha_tokens SET research_state='INSUFFICIENT EVIDENCE' WHERE id=${t.id}`;
-        await tx`INSERT INTO research_state_history(token_id,from_state,to_state,observed_at,rule_version,evidence,reason) VALUES(${t.id},'DISCOVERY','INSUFFICIENT EVIDENCE',${now},'persistence/1',${jsonParam({ verifiedPurchaseCoverage: false })}::jsonb,'No verified swap history or independently measured retention. Monitoring continues without resetting the watchlist.')`;
-      });
-  }
-  await setSetting("persistence_sync", {
-    at: now,
-    tokens: tokens.length,
-    windows: researchWindows,
-    verifiedPurchaseAdapter: false,
-  });
+  await walletResearchSync();
 }
 function candle(r: Record<string, unknown>): Candle {
   return {

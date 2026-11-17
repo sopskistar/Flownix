@@ -1,5 +1,36 @@
 # Operations
 
+## Current operating state and changes (2026-11-16–17 UTC)
+
+**Hosting undecided. No hosted collector active.** Oracle account registration failed; the owner will choose a provider after support review. Local profiling collectors have stopped and their stopped heartbeat is durable. Do not activate paid resources or create another PostgreSQL database. Portable procedures: WORKER_DEPLOYMENT.md; measured cost comparison: WORKER_HOSTING_COMPARISON.md.
+
+Nine production migrations are applied (the earlier six plus additive 0007–0009). The worker uses DATABASE_URL_WORKER direct/TLS; Vercel keeps pooled DATABASE_URL. ORM audit and raw SQL use separate pools because Drizzle mutates serializers; native queries/typed JSON stay intact. Pool limits are four raw sessions plus one ORM session. Statements now have a 30-second server timeout. Keep this and the single session advisory lock when moving hosts.
+
+New operational commands: `pnpm providers:production`, `pnpm collection:status`, `pnpm worker:diagnostics`, `pnpm research:refresh`, `pnpm live:gate verify`, `pnpm live:gate replay`. Live-gate replay currently fails public RPC historical access; never announce success from a fixture. Research refresh reads only stored canonical observations and holds the same collector lock. Eight requested long-term windows do not imply eight real historical periods collected.
+
+Market refresh now requests candles incrementally after the newest stored completed hour. Extra historical pages are spaced six hours per symbol and bounded toward 180 days. Metadata covers the whole official registry; market batch remains capped and rotates non-deep entries. The current configured local batch is 20, default 15. Deep selection defaults 15; configurable upper bound is 100 for future approved quota capacity, not a claim that 100 tokens were live-tested.
+
+Heartbeat every 30 seconds verifies the held advisory lock; leases renew every 15 seconds with two-minute expiry. Lock contenders exit without overwriting the active owner's heartbeat. SIGTERM/duration profiling cancellation aborts provider fetches; existing committed evidence remains. Storage guard defaults 750 MB and halts rather than deleting research; it does not measure/cap Neon's billable CU-hours. A 30-second idle poll replaces rapid database polling. Read provider errors and cursor event times, not heartbeat alone.
+
+`WORKER_JOB_TIMEOUT_SECONDS` defaults to 900: an overlong job stops the collector, aborts requests and allows 30 seconds for cleanup before process exit. The host supervisor can then restart it and recover expired leases. This addresses the stalled profiling job without declaring provider success. Runtime deadline/restart behavior still needs a healthy hosted soak; do not set this shorter than a valid bounded job can complete.
+
+Profiling, only when no other collector runs:
+
+```sh
+WORKER_RUN_SECONDS=65 pnpm worker:profile --idle
+WORKER_RUN_SECONDS=600 PROVIDER_PROCESS_REQUEST_BUDGET=500 pnpm worker:profile
+WORKER_RUN_SECONDS=300 WORKER_JOB_KINDS=registry,scan,persistence PROVIDER_PROCESS_REQUEST_BUDGET=500 pnpm worker:profile --once
+pnpm worker:profile:report
+```
+
+The diagnostic job subset intentionally excludes market work and is not normal production monitoring. Leave WORKER_RUN_SECONDS/process-budget unset or zero and WORKER_JOB_KINDS unset for normal operation after approval. Profiling writes ignored `artifacts/profiles/`; mount a writable private path if running a read-only container. It stores aggregate CPU/memory/socket/query/request/log counts, never credentials/SQL/notes. The time limit stops scheduling after it expires; a running job may need bounded cleanup. Check actual stop/lease/lock status rather than assuming an exact wall-clock exit.
+
+Current RPC errors: Base logs HTTP429; historical ETH/BSC replay/resume HTTP403/timeouts. Fresh BSC 10-block logs passed. Do not reset cursors, silently skip missing windows, or mark that limited fresh success as recovered history. Full real restart recovery remains unaccepted. See DATA_COVERAGE.md for exact observations and real tx references.
+
+## Earlier foundation procedures
+
+The detailed procedures below remain useful except where superseded by current counts, nine migrations and incremental/backfill behavior above.
+
 ## First use
 
 From root: `corepack enable`, `pnpm install --frozen-lockfile`, `cp .env.example .env`, `docker compose up -d`, `pnpm db:migrate`. Start `pnpm worker:dev` in one persistent terminal and `pnpm dev` in another. Visit http://127.0.0.1:3000. Check `pnpm run doctor`, `pnpm providers:smoke`, then Data Health. Optional `pnpm run doctor --rpc` tests chain connectivity without claiming token event coverage.

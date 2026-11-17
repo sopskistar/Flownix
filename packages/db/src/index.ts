@@ -1,21 +1,61 @@
 import postgres from "postgres";
+import { connect, type Socket } from "node:net";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import type { Observation, RequestAudit } from "@flownix/core";
+import { providerLookup, countMetric } from "@flownix/core";
 export type DbRows = postgres.Row[];
 let client: ReturnType<typeof postgres> | undefined;
+let ormClient: ReturnType<typeof postgres> | undefined;
+function createClient(max: number) {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL is not configured");
+  const lookup = providerLookup();
+  const parsed = new URL(url);
+  const ssl =
+    lookup && parsed.searchParams.get("sslmode") === "require"
+      ? { rejectUnauthorized: true, servername: parsed.hostname }
+      : undefined;
+  const options = {
+    debug: () => {
+      countMetric("postgresQueries");
+    },
+    max,
+    prepare: false,
+    connection: { statement_timeout: 30000, application_name: "flownix" },
+    connect_timeout: 20,
+    idle_timeout: 20,
+    transform: { undefined: null },
+    ...(ssl ? { ssl } : {}),
+    ...(lookup
+      ? {
+          socket: (config: { host: string[]; port: number[]; ssl: unknown }) =>
+            new Promise<Socket>((resolve, reject) => {
+              const host = config.host[0],
+                port = config.port[0];
+              const socket = connect({ host, port, lookup, timeout: 15000 });
+              socket.once("error", reject);
+              socket.once("timeout", () => {
+                socket.destroy();
+                reject(
+                  Object.assign(new Error("DB_CONNECT_TIMEOUT"), {
+                    code: "CONNECT_TIMEOUT",
+                  }),
+                );
+              });
+              socket.once("connect", () => {
+                socket.setTimeout(0);
+                resolve(Object.assign(socket, { host, port, ssl: config.ssl }));
+              });
+            }),
+        }
+      : {}),
+  };
+  return postgres(url, options);
+}
 export function sqlClient() {
   if (!client) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL is not configured");
-    client = postgres(url, {
-      max: 4,
-      prepare: false,
-      // Neon Free may need to resume compute before accepting a connection.
-      connect_timeout: 20,
-      idle_timeout: 20,
-      transform: { undefined: null },
-    });
+    client = createClient(4);
   }
   return client;
 }
@@ -25,11 +65,20 @@ export function jsonParam(value: unknown) {
     JSON.parse(JSON.stringify(value)) as postgres.JSONValue,
   );
 }
-export const database = () => drizzle(sqlClient(), { schema });
+export const database = () => {
+  // Drizzle changes postgres-js JSON/date serializers in place. Keep its one-connection
+  // audit pool separate so typed raw-SQL JSON parameters retain their native serializer.
+  ormClient ??= createClient(1);
+  return drizzle(ormClient, { schema });
+};
 export async function closeDb() {
   if (client) {
     await client.end({ timeout: 3 });
     client = undefined;
+  }
+  if (ormClient) {
+    await ormClient.end({ timeout: 3 });
+    ormClient = undefined;
   }
 }
 export async function auditRequest(a: RequestAudit) {

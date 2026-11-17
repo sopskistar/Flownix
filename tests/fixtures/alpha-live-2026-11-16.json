@@ -1,0 +1,86 @@
+{
+  "manifest": {
+    "fixtureOnly": true,
+    "scope": "Minimal dated response subset; not a complete/current scanner universe",
+    "observedAt": "2026-11-16T15:10:15.347Z",
+    "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+    "parentResponseHash": "a6513804d9bfde425ed6c452043a14e33543379c29fd59484b62d1c69d65473e",
+    "retainedFields": "Identity, status and metadata only; production never reads this fixture"
+  },
+  "response": {
+    "code": "000000",
+    "success": true,
+    "data": [
+      {
+        "tokenId": "ADC1E5325169B424A2CD695CA184BA8C",
+        "chainId": "56",
+        "chainName": "BSC",
+        "contractAddress": "0xea37a8de1de2d9d10772eeb569e28bfa5cb17707",
+        "name": "Janction",
+        "symbol": "JCT",
+        "offline": false,
+        "alphaId": "ALPHA_466",
+        "decimals": 18,
+        "listingTime": 1770249600000,
+        "liquidity": "805682.78530289701911640190848207218817",
+        "marketCap": "29294429.57985648"
+      },
+      {
+        "tokenId": "5B9F45D72412D2BE90C339B652096D14",
+        "chainId": "1",
+        "chainName": "Ethereum",
+        "contractAddress": "0xe76c5b78f93909d34404e9eb4c1f19e7582a5de1",
+        "name": "Humanity",
+        "symbol": "H",
+        "offline": false,
+        "alphaId": "ALPHA_990",
+        "decimals": 18,
+        "listingTime": 1781699400000,
+        "liquidity": "458178.283763366301662229779860410053",
+        "marketCap": "67267514.56527139"
+      },
+      {
+        "tokenId": "6029613BEED1E45E47B7B25B2B23750B",
+        "chainId": "8453",
+        "chainName": "Base",
+        "contractAddress": "0x5be75e3b0aff5d1a042a5363ae36acb1d6d755ea",
+        "name": "Axis Robotics",
+        "symbol": "AXIS",
+        "offline": false,
+        "alphaId": "ALPHA_1248",
+        "decimals": 18,
+        "listingTime": 1792580400000,
+        "liquidity": "2482457.96017067918854312616090512704598",
+        "marketCap": "15054987.64273238"
+      },
+      {
+        "tokenId": "050F6150D01681DECCFA0C4FAEC2A51F",
+        "chainId": "CT_501",
+        "chainName": "Solana",
+        "contractAddress": "G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG",
+        "name": "Moonbirds",
+        "symbol": "BIRB",
+        "offline": false,
+        "alphaId": "ALPHA_620",
+        "decimals": 6,
+        "listingTime": 1769598000000,
+        "liquidity": "1559394.88688796671613238657152424747762",
+        "marketCap": "19108177.3975959"
+      },
+      {
+        "tokenId": "29CEC7E6EC8356796E8E8D495D524A29",
+        "chainId": "56",
+        "chainName": "BSC",
+        "contractAddress": "0xf5cb7cc90040aa717a16887c8b7d7c10a7c60984",
+        "name": "Warden",
+        "symbol": "WARD",
+        "offline": true,
+        "alphaId": "ALPHA_1270",
+        "decimals": 18,
+        "listingTime": 1793275200000,
+        "liquidity": "120492.707818046511459794469912334771",
+        "marketCap": "449922.42405317"
+      }
+    ]
+  }
+}

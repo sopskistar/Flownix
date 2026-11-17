@@ -8,3 +8,8 @@ export * from "./security";
 export * from "./accumulation";
 export * from "./quotes";
 export * from "./auth";
+export * from "./network";
+export * from "./swaps";
+export * from "./wallet-intelligence";
+export * from "./thesis";
+export * from "./telemetry";
