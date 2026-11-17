@@ -332,3 +332,15 @@ export function eligiblePairs(
           (!s.status || ["TRADING", "1"].includes(s.status)),
       );
 }
+/** Deterministic market pair choice. Values remain quoted in their source asset. */
+export function preferredAlphaPair(
+  alphaId: string | null | undefined,
+  symbols: MarketSymbol[],
+) {
+  const priority: Record<string, number> = { USDT: 0, USDC: 1, U: 2 };
+  return eligiblePairs(alphaId, symbols).sort(
+    (a, b) =>
+      (priority[a.quoteAsset] ?? 10) - (priority[b.quoteAsset] ?? 10) ||
+      a.symbol.localeCompare(b.symbol),
+  )[0] ?? null;
+}

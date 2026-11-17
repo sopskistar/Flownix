@@ -50,7 +50,8 @@ export function Radar({
     chain = query.get("chain") ?? "",
     sort = query.get("sort") ?? (watchlist ? "oldest" : "liquidity"),
     state = query.get("state") ?? "",
-    membership = query.get("membership") ?? "current";
+    membership = query.get("membership") ?? "current",
+    classification = query.get("classification") ?? "verified_non_meme";
   const cap = Number(query.get("minCap") ?? 0),
     liquidity = Number(query.get("minLiquidity") ?? 0),
     page = Math.max(1, Number(query.get("page")) || 1),
@@ -62,6 +63,7 @@ export function Radar({
           (t) =>
             (!watchlist || t.watchlisted) &&
             (!membership || t.status === membership) &&
+            (!classification || t.classification === classification) &&
             (!chain || t.chain_id === chain) &&
             (!state || t.research_state === state) &&
             (!cap || Number(t.market_cap) >= cap) &&
@@ -82,7 +84,7 @@ export function Radar({
                       a[sort === "cap" ? "market_cap" : "liquidity"] ?? -1,
                     ) || a.id.localeCompare(b.id),
         ),
-    [tokens, watchlist, membership, chain, state, cap, liquidity, search, sort],
+    [tokens, watchlist, membership, classification, chain, state, cap, liquidity, search, sort],
   );
   const pages = Math.max(1, Math.ceil(filtered.length / size)),
     safePage = Math.min(page, pages),
@@ -186,7 +188,7 @@ export function Radar({
                 .sort()
                 .map(([id, name]) => (
                   <option key={id} value={id}>
-                    {name} ({id})
+                    {name} — {tokens.filter((t) => t.chain_id === id && t.status === "current").length} active Alpha identities · chain ID {id}
                   </option>
                 ))}
             </select>
@@ -202,6 +204,16 @@ export function Radar({
               <option value="offline">Offline</option>
               <option value="removed">Removed</option>
               <option value="unknown">Unknown status</option>
+            </select>
+          </label>
+          <label>
+            Project classification
+            <select value={classification} onChange={(e) => set("classification", e.target.value)}>
+              <option value="verified_non_meme">Owner-reviewed non-meme (default)</option>
+              <option value="">All official Alpha identities</option>
+              <option value="unclassified">Unclassified</option>
+              <option value="mixed_ambiguous">Mixed / ambiguous</option>
+              <option value="verified_meme_focused">Meme-focused</option>
             </select>
           </label>
           <label>
@@ -333,7 +345,11 @@ export function Radar({
                   <td className="numeric">
                     {n(t.price, 8)}
                     <small>
-                      {t.quote_asset ?? "No Alpha pair observation"}
+                      {t.price_source === "alpha_market"
+                        ? `Alpha ticker · ${t.quote_asset}`
+                        : t.price_source === "alpha_registry"
+                          ? "Alpha registry · quote unspecified"
+                          : "No price observation"}
                     </small>
                   </td>
                   <td
@@ -366,7 +382,7 @@ export function Radar({
                           : "warning"
                       }
                     >
-                      {freshness(t.price_at)} market data
+                      {freshness(t.price_at)} {t.price_source === "alpha_market" ? "Alpha ticker" : t.price_source === "alpha_registry" ? "registry metadata" : "market data"}
                     </small>
                     <small className="muted">{stamp(t.price_at)}</small>
                   </td>

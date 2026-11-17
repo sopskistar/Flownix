@@ -27,7 +27,8 @@ export const envSchema = z.object({
   SCAN_BLOCKS: integer(100, 1, 1000),
   SCAN_CONFIRMATIONS: integer(20, 12, 1000),
   DEEP_TOKEN_LIMIT: integer(15, 1, 100),
-  MARKET_TOKEN_LIMIT: integer(15, 1, 1000),
+  // Broad Alpha ticker collection cap per worker cycle. Independent of deep scans.
+  MARKET_TOKEN_LIMIT: integer(100, 1, 1000),
   PASSIVE_SWAPS_ENABLED: z
     .enum(["true", "false"])
     .default("true")

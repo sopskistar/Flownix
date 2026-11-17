@@ -18,6 +18,13 @@ const tokenId = z.string().regex(/^[a-f0-9]{32}$/),
   uuid = z.string().uuid();
 const schemas = z.discriminatedUnion("action", [
   z.object({ action: z.literal("sync") }),
+  z.object({
+    action: z.literal("classification"),
+    tokenId,
+    classification: z.enum(["verified_non_meme", "verified_meme_focused", "mixed_ambiguous", "unclassified"]),
+    evidenceUrl: z.url().max(2000),
+    evidenceNote: z.string().min(10).max(3000),
+  }),
   z.object({ action: z.literal("watch"), tokenId, enabled: z.boolean() }),
   z.object({ action: z.literal("archive"), tokenId, archived: z.boolean() }),
   z.object({
@@ -124,6 +131,12 @@ export async function POST(request: Request) {
       return NextResponse.json({
         message: "Sync queued. The persistent worker must be running.",
       });
+    }
+    if (data.action === "classification") {
+      if (!["http:", "https:"].includes(new URL(data.evidenceUrl).protocol))
+        throw Error("Classification evidence must be an HTTP or HTTPS URL");
+      await sql`INSERT INTO token_project_classifications(token_id,classification,evidence_url,evidence_note,reviewed_by,reviewed_at) VALUES(${data.tokenId},${data.classification},${data.evidenceUrl},${data.evidenceNote},'owner',now()) ON CONFLICT(token_id) DO UPDATE SET classification=excluded.classification,evidence_url=excluded.evidence_url,evidence_note=excluded.evidence_note,reviewed_by=excluded.reviewed_by,reviewed_at=excluded.reviewed_at`;
+      return NextResponse.json({ message: "Classification saved with its cited evidence. Owner review is recorded; it is not independently verified by Flownix." });
     }
     if (data.action === "watch") {
       if (data.enabled)

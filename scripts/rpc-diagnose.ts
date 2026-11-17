@@ -3,6 +3,7 @@ import {
   HttpClient,
   config,
   evmChains,
+  TRANSFER_TOPIC,
   networkErrorCode,
   closeProviderNetwork,
 } from "../packages/core/src/index";
@@ -20,7 +21,7 @@ const timer = setInterval(() => {}, 1000);
 try {
   if (!["1", "56", "8453"].includes(chain)) throw Error("UNSUPPORTED_CHAIN");
   const rows =
-    await sqlClient()`SELECT id,contract FROM alpha_tokens WHERE chain_id=${chain} AND deep_selected AND status='current' ORDER BY id LIMIT 1`;
+    await sqlClient()`SELECT id,contract FROM alpha_tokens WHERE chain_id=${chain} AND alpha_id IS NOT NULL AND status='current' ORDER BY id LIMIT 1`;
   if (!rows.length) throw Error("NO_VERIFIED_ALPHA_TOKEN");
   const rpc = new EvmProvider(
     chain,
@@ -35,6 +36,7 @@ try {
   const results: Record<string, unknown> = {},
     head = await rpc.head(),
     block = head - c.SCAN_CONFIRMATIONS;
+  let transferLogs: Awaited<ReturnType<EvmProvider["logs"]>>["data"] = [];
   for (const [operation, read] of [
     ["confirmed_block", () => rpc.block(block)],
     ["contract_code", () => rpc.code(rows[0].contract, block)],
@@ -46,6 +48,8 @@ try {
   ] as const) {
     try {
       const result = await read();
+      if (operation === "transfer_logs_10_blocks")
+        transferLogs = (result as Awaited<ReturnType<EvmProvider["logs"]>>).data;
       results[operation] = {
         ok: true,
         ...(operation === "transfer_logs_10_blocks"
@@ -58,6 +62,33 @@ try {
     } catch (e) {
       results[operation] = { ok: false, error: networkErrorCode(e) };
     }
+  }
+  const sample = transferLogs.find((log) => log.topics[0]?.toLowerCase() === TRANSFER_TOPIC);
+  if (sample) {
+    try {
+      const receipt = await rpc.receipt(sample.transactionHash);
+      const receiptLog = receipt.data.logs.find((log) =>
+        log.address.toLowerCase() === rows[0].contract.toLowerCase() &&
+        log.blockHash.toLowerCase() === sample.blockHash.toLowerCase() &&
+        log.logIndex.toLowerCase() === sample.logIndex.toLowerCase() &&
+        log.topics[0]?.toLowerCase() === TRANSFER_TOPIC,
+      );
+      const canonical = await rpc.block(Number(BigInt(sample.blockNumber)));
+      results.receipt_sample = {
+        ok: !!receiptLog && canonical.data.hash.toLowerCase() === sample.blockHash.toLowerCase(),
+        txHash: sample.transactionHash,
+        blockNumber: Number(BigInt(sample.blockNumber)),
+        canonical: canonical.data.hash.toLowerCase() === sample.blockHash.toLowerCase(),
+        matchingTransferLog: !!receiptLog,
+      };
+    } catch (e) {
+      results.receipt_sample = { ok: false, error: networkErrorCode(e) };
+    }
+  } else {
+    results.receipt_sample = {
+      ok: null,
+      reason: "No ERC-20 Transfer log for this Alpha contract in the ten-block sample; this does not imply no historical activity.",
+    };
   }
   const report = {
     at: new Date().toISOString(),

@@ -12,6 +12,7 @@ export type RadarToken = {
   alpha_id: string | null;
   status: string;
   research_state: string;
+  classification: string;
   deep_selected: boolean;
   first_seen: string;
   last_seen: string;
@@ -33,6 +34,17 @@ export type Health = {
   database: boolean;
   error: string | null;
   registry: { at: string; count: number; source: string; hash: string } | null;
+  market: {
+    at: string | null;
+    online: number;
+    eligiblePairs: number;
+    freshPrices: number;
+    missingPair: number;
+    errors: number;
+    pending: number;
+    registryPrices: number;
+    lastCycle: Record<string, unknown> | null;
+  };
   heartbeat: { at: string; stopped?: boolean } | null;
   providers: {
     provider: string;
@@ -54,6 +66,7 @@ export type Health = {
     chain_id: string;
     chain_name: string;
     tokens: number;
+    active: number;
     deep: number;
     scanned: number;
     last_scan: string | null;
@@ -64,12 +77,22 @@ export async function health(): Promise<Health> {
   await requireAccess();
   try {
     const sql = sqlClient();
-    const [settings, providers, jobs, chains, snapshots] = await Promise.all([
-      sql`SELECT key,value FROM settings WHERE key IN ('registry_sync','worker_heartbeat')`,
+    const [settings, providers, jobs, chains, snapshots, market] = await Promise.all([
+      sql`SELECT key,value FROM settings WHERE key IN ('registry_sync','worker_heartbeat','market_coverage_sync')`,
       sql`SELECT provider,max(started_at) AS last_attempt,max(started_at) FILTER(WHERE ok) AS last_ok,count(*)::int AS calls,count(*) FILTER(WHERE NOT ok)::int AS failures,sum(cost_usd)::text AS cost FROM provider_runs WHERE started_at>now()-interval '24 hours' GROUP BY provider ORDER BY provider`,
       sql`SELECT key,kind,status,run_after,last_error,attempts FROM worker_jobs ORDER BY run_after LIMIT 30`,
-      sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(c.token_id)::int AS scanned,max(c.scanned_at) AS last_scan FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
+      sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.status='current')::int AS active,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(c.token_id)::int AS scanned,max(c.scanned_at) AS last_scan FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
       sql`SELECT changes FROM alpha_membership_snapshots ORDER BY observed_at DESC LIMIT 1`,
+      sql`SELECT count(*) FILTER(WHERE t.status='current')::int AS online,
+        count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL)::int AS eligible_pairs,
+        count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND m.observed_at>now()-interval '15 minutes')::int AS fresh_prices,
+        count(*) FILTER(WHERE t.status='current' AND m.status='no_pair')::int AS missing_pair,
+        count(*) FILTER(WHERE t.status='current' AND m.status='error')::int AS errors,
+        count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL AND m.token_id IS NULL)::int AS pending,
+        (SELECT count(DISTINCT token_id)::int FROM market_snapshots WHERE source_kind='alpha_registry' AND price IS NOT NULL AND observed_at=(SELECT max(observed_at) FROM market_snapshots WHERE source_kind='alpha_registry')) AS registry_prices,
+        max(m.observed_at) AS latest
+        FROM alpha_tokens t LEFT JOIN market_coverage m ON m.token_id=t.id
+        LEFT JOIN LATERAL (SELECT 1 AS token_id FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL) LIMIT 1) s ON true`,
     ]);
     const s = Object.fromEntries(settings.map((s) => [s.key, s.value]));
     return JSON.parse(
@@ -77,10 +100,21 @@ export async function health(): Promise<Health> {
         database: true,
         error: null,
         registry: s.registry_sync ?? null,
+        market: {
+          at: market[0]?.latest ?? null,
+          online: Number(market[0]?.online ?? 0),
+          eligiblePairs: Number(market[0]?.eligible_pairs ?? 0),
+          freshPrices: Number(market[0]?.fresh_prices ?? 0),
+          missingPair: Number(market[0]?.missing_pair ?? 0),
+          errors: Number(market[0]?.errors ?? 0),
+          pending: Number(market[0]?.pending ?? 0),
+          registryPrices: Number(market[0]?.registry_prices ?? 0),
+          lastCycle: s.market_coverage_sync ?? null,
+        },
         heartbeat: s.worker_heartbeat ?? null,
         providers,
         jobs,
-        chains,
+        chains: chains.map((ch) => ({ ...ch, chain_name: String(ch.chain_id) === "4663" ? "Robinhood Chain" : ch.chain_name })),
         changes: snapshots[0]?.changes ?? null,
       }),
     );
@@ -90,6 +124,7 @@ export async function health(): Promise<Health> {
       error:
         "Database unavailable. Configure DATABASE_URL and run pnpm db:migrate.",
       registry: null,
+      market: { at: null, online: 0, eligiblePairs: 0, freshPrices: 0, missingPair: 0, errors: 0, pending: 0, registryPrices: 0, lastCycle: null },
       heartbeat: null,
       providers: [],
       jobs: [],
@@ -102,14 +137,14 @@ export async function radar(): Promise<RadarToken[]> {
   await requireAccess();
   const sql = sqlClient();
   const rows =
-    await sql`SELECT t.id,t.symbol,t.name,t.chain_id,t.metadata->>'chainName' AS chain_name,t.contract,t.alpha_id,t.status,t.research_state,t.deep_selected,t.first_seen,t.last_seen,(w.token_id IS NOT NULL AND NOT w.archived) AS watchlisted,
+    await sql`SELECT t.id,t.symbol,t.name,t.chain_id,t.metadata->>'chainName' AS chain_name,t.contract,t.alpha_id,t.status,t.research_state,coalesce(rc.classification,'unclassified') AS classification,t.deep_selected,t.first_seen,t.last_seen,(w.token_id IS NOT NULL AND NOT w.archived) AS watchlisted,
   m.price::text,m.quote_asset,m.source_kind AS price_source,m.observed_at AS price_at,m.change_24h::text,m.volume_24h::text,
   t.metadata->>'liquidity' AS liquidity,t.metadata->>'marketCap' AS market_cap,c.scanned_at AS last_scan,
   (SELECT min(first_detected_at) FROM signal_events s WHERE s.token_id=t.id) AS first_signal,
   (SELECT count(*)::int FROM signal_events s WHERE s.token_id=t.id AND s.status='active') AS signal_count,
   (SELECT value->>'reason' FROM settings WHERE key='trace:'||t.id) AS baseline_trace
- FROM alpha_tokens t LEFT JOIN watchlists w ON w.token_id=t.id LEFT JOIN block_cursors c ON c.token_id=t.id
- LEFT JOIN LATERAL (SELECT price,quote_asset,source_kind,observed_at,change_24h,volume_24h FROM market_snapshots WHERE token_id=t.id AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1) m ON true
+ FROM alpha_tokens t LEFT JOIN watchlists w ON w.token_id=t.id LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN token_project_classifications rc ON rc.token_id=t.id
+ LEFT JOIN LATERAL (SELECT price,quote_asset,source_kind,observed_at,change_24h,volume_24h FROM market_snapshots WHERE token_id=t.id AND source_kind IN ('alpha_market','alpha_registry') AND price IS NOT NULL ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1) m ON true
  ORDER BY t.symbol,t.chain_id,t.id`;
   return JSON.parse(JSON.stringify(rows));
 }

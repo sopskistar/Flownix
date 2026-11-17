@@ -43,15 +43,17 @@ export default async function Token({
     states,
     cursors,
     persistence,
+    classificationRows,
   ] = await Promise.all([
     sql`SELECT * FROM market_symbols WHERE alpha_id=${t.alpha_id} AND active ORDER BY quote_asset`,
-    sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1`,
+    sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind IN ('alpha_market','alpha_registry') AND price IS NOT NULL ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1`,
     sql`SELECT * FROM token_transfers WHERE token_id=${id} AND canonical AND event_time>=${r.start} AND event_time<=${r.end} ORDER BY event_time DESC LIMIT 100`,
     sql`SELECT * FROM signal_events WHERE token_id=${id} ORDER BY first_detected_at DESC LIMIT 30`,
     sql`SELECT * FROM manual_research_notes WHERE token_id=${id} ORDER BY created_at DESC LIMIT 100`,
     sql`SELECT * FROM research_state_history WHERE token_id=${id} ORDER BY observed_at DESC LIMIT 100`,
     sql`SELECT c.*,s.value AS trace FROM block_cursors c LEFT JOIN settings s ON s.key='trace:'||c.token_id WHERE token_id=${id}`,
     sql`SELECT DISTINCT ON(window_days) * FROM accumulation_observations WHERE token_id=${id} ORDER BY window_days,computed_at DESC`,
+    sql`SELECT * FROM token_project_classifications WHERE token_id=${id}`,
   ]);
   const m = markets[0],
     symbol =
@@ -114,6 +116,23 @@ export default async function Token({
         collected registry snapshots from {iso(t.first_seen)}. Earlier candles
         are context, not proof that an Alpha signal could have existed then.
       </div>
+      <section className="workbench">
+        <div className="section-top">
+          <h2>Project research eligibility</h2>
+          <span>{classificationRows[0]?.classification ?? "unclassified"}</span>
+        </div>
+        <div className="panel-content">
+          <p>Use a project-controlled or otherwise reliable source to support this manual classification. Flownix stores the source and rationale; it does not fetch arbitrary URLs or independently certify the claim. Only owner-reviewed non-meme projects enter the default research scanner.</p>
+          <MutationForm actionName="classification" extra={{ tokenId: id }} label="Save classification review">
+            <div className="form-grid">
+              <label>Classification<select name="classification" defaultValue={classificationRows[0]?.classification ?? "unclassified"}><option value="verified_non_meme">Non-meme project — owner reviewed</option><option value="verified_meme_focused">Meme-focused project</option><option value="mixed_ambiguous">Mixed / ambiguous</option><option value="unclassified">Unclassified — needs review</option></select></label>
+              <label>Evidence URL<input name="evidenceUrl" type="url" defaultValue={classificationRows[0]?.evidence_url ?? ""} required maxLength={2000} /></label>
+              <label className="search-filter">Evidence and rationale<textarea name="evidenceNote" defaultValue={classificationRows[0]?.evidence_note ?? ""} minLength={10} maxLength={3000} required /></label>
+            </div>
+          </MutationForm>
+          {classificationRows[0] ? <p className="muted">Reviewed {iso(classificationRows[0].reviewed_at)} / {classificationRows[0].reviewed_by}. This is an owner-sourced classification, not an automated identity finding.</p> : null}
+        </div>
+      </section>
       <section className="workbench">
         <div className="section-top">
           <h2>Market history</h2>
@@ -200,9 +219,9 @@ export default async function Token({
           </div>
           <dl className="facts">
             <div>
-              <dt>Alpha market price</dt>
+              <dt>{m?.source_kind === "alpha_market" ? "Official Alpha ticker price" : m?.source_kind === "alpha_registry" ? "Official Alpha registry price (quote unspecified)" : "Official Alpha price"}</dt>
               <dd>
-                {m ? `${num(m.price, 8)} ${m.quote_asset}` : "Unavailable"}
+                {m ? `${num(m.price, 8)}${m.quote_asset ? ` ${m.quote_asset}` : ""}` : "Unavailable"}
               </dd>
             </div>
             <div>

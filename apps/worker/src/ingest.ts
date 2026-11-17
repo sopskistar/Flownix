@@ -6,7 +6,7 @@ import {
   HttpClient,
   config,
   normalizeRegistry,
-  eligiblePairs,
+  preferredAlphaPair,
   evmChains,
   EvmProvider,
   decodeTransfer,
@@ -97,11 +97,11 @@ export async function registrySync() {
   });
   const pins = await settingsValue<string[]>("deep_research_pins", []);
   const candidates =
-    await sql`SELECT t.id,t.symbol,t.chain_id,t.metadata FROM alpha_tokens t LEFT JOIN watchlists w ON w.token_id=t.id WHERE t.status='current' AND t.chain_id IN ('56','1','8453') AND CASE WHEN (t.metadata->>'liquidity') ~ '^[0-9]+([.][0-9]+)?$' THEN (t.metadata->>'liquidity')::numeric END>=${config().MIN_LIQUIDITY_USD} ORDER BY (t.id=ANY(${pins})) DESC,(w.token_id IS NOT NULL AND NOT w.archived) DESC,(t.metadata->>'liquidity')::numeric DESC,t.id LIMIT ${config().DEEP_TOKEN_LIMIT}`;
+    await sql`SELECT t.id,t.symbol,t.chain_id,t.metadata FROM alpha_tokens t JOIN token_project_classifications rc ON rc.token_id=t.id AND rc.classification='verified_non_meme' LEFT JOIN watchlists w ON w.token_id=t.id WHERE t.status='current' AND t.chain_id IN ('56','1','8453') AND CASE WHEN (t.metadata->>'liquidity') ~ '^[0-9]+([.][0-9]+)?$' THEN (t.metadata->>'liquidity')::numeric END>=${config().MIN_LIQUIDITY_USD} ORDER BY (t.id=ANY(${pins})) DESC,(w.token_id IS NOT NULL AND NOT w.archived) DESC,(t.metadata->>'liquidity')::numeric DESC,t.id LIMIT ${config().DEEP_TOKEN_LIMIT}`;
   await sql.begin(async (tx) => {
     await tx`UPDATE alpha_tokens SET deep_selected=false`;
     if (candidates.length)
-      await tx`UPDATE alpha_tokens SET deep_selected=true WHERE id=ANY(${candidates.map((t) => t.id)})`;
+      await tx`UPDATE alpha_tokens SET deep_selected=true WHERE id=ANY(${candidates.map((t) => t.id)}) AND EXISTS (SELECT 1 FROM token_project_classifications rc WHERE rc.token_id=alpha_tokens.id AND rc.classification='verified_non_meme')`;
   });
   await setSetting("registry_sync", {
     at: o.observedAt,
@@ -144,39 +144,47 @@ export async function marketSync() {
     serverTime: o.data.serverTime ?? null,
     timezone: o.data.timezone ?? null,
   });
-  const tokens =
-    await sql`SELECT t.* FROM alpha_tokens t LEFT JOIN LATERAL (SELECT max(observed_at) AS at FROM market_snapshots WHERE token_id=t.id AND source_kind='alpha_market') m ON true WHERE t.status='current' ORDER BY t.deep_selected DESC,m.at NULLS FIRST,t.id LIMIT ${config().MARKET_TOKEN_LIMIT}`;
-  let failures = 0;
+  // Market prices cover every online Alpha identity independently from deep
+  // wallet research. A durable per-token cursor spreads ticker calls across
+  // cycles and records missing-pair/provider-error reasons explicitly.
+  const tokens = await sql`
+    SELECT t.* FROM alpha_tokens t
+    LEFT JOIN market_coverage mc ON mc.token_id=t.id
+    WHERE t.status='current'
+      AND (mc.checked_at IS NULL OR mc.checked_at < now() - CASE WHEN mc.status='no_pair' THEN interval '6 hours' ELSE interval '15 minutes' END)
+    ORDER BY mc.checked_at NULLS FIRST, t.deep_selected DESC, t.id
+    LIMIT ${config().MARKET_TOKEN_LIMIT}`;
+  let failures = 0, observed = 0, noPair = 0;
   for (const token of tokens) {
-    const pairs = eligiblePairs(token.alpha_id, o.data.symbols).sort(
-      (a, b) =>
-        Number(b.quoteAsset === "USDT") - Number(a.quoteAsset === "USDT") ||
-        a.symbol.localeCompare(b.symbol),
-    );
-    if (!pairs.length) continue;
-    const pair = pairs[0];
+    // Pair preference is display-only; the actual quote asset remains attached.
+    const pair = preferredAlphaPair(token.alpha_id, o.data.symbols);
+    if (!pair) {
+      noPair++;
+      await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},NULL,NULL,'no_pair','binance_alpha',now(),NULL,'NO_ACTIVE_ALPHA_PAIR',${jsonParam({ alphaId: token.alpha_id, exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=NULL,quote_asset=NULL,status='no_pair',provider='binance_alpha',checked_at=excluded.checked_at,observed_at=NULL,error_code=excluded.error_code,raw=excluded.raw`;
+      continue;
+    }
     try {
       const ticker = await alpha.ticker(pair.symbol);
       if (ticker.data.symbol !== pair.symbol)
         throw Error("SYMBOL_RESPONSE_MISMATCH");
       await saveSource("binance_alpha", ticker);
       await sql`INSERT INTO market_snapshots(token_id,symbol,source,source_kind,quote_asset,observed_at,provider_time,price,change_24h,volume_24h,liquidity,market_cap,response_hash,raw) VALUES(${token.id},${pair.symbol},${ticker.source},'alpha_market',${pair.quoteAsset},${ticker.observedAt},${new Date(ticker.data.closeTime).toISOString()},${decimal(ticker.data.lastPrice)},${decimal(ticker.data.priceChangePercent)},${decimal(ticker.data.quoteVolume)},${decimal(token.metadata.liquidity)},${decimal(token.metadata.marketCap)},${ticker.hash},${jsonParam(JSON.parse(ticker.raw))}::jsonb)`;
-      try {
-        const depth = await alpha.depth(pair.symbol);
-        if (depth.data.symbol !== pair.symbol)
-          throw Error("DEPTH_SYMBOL_MISMATCH");
-        await saveSource("binance_alpha", depth);
-        const book = bookQuote(
-          depth.data,
-          depth.observedAt,
-          depth.source,
-          depth.hash,
-        );
-        if (book)
-          await sql`UPDATE market_snapshots SET book=${jsonParam(book)}::jsonb WHERE token_id=${token.id} AND response_hash=${ticker.hash} AND observed_at=${ticker.observedAt}`;
-      } catch {
-        await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${token.id},'binance_alpha','depth_unavailable','No verified fresh book quote; paper fills and outcomes remain unavailable.')`;
+      await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},${pair.symbol},${pair.quoteAsset},'observed','binance_alpha',${ticker.observedAt},${ticker.observedAt},NULL,${jsonParam({ responseHash: ticker.hash, exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=excluded.pair_symbol,quote_asset=excluded.quote_asset,status='observed',provider=excluded.provider,checked_at=excluded.checked_at,observed_at=excluded.observed_at,error_code=NULL,raw=excluded.raw`;
+      observed++;
+      if (token.deep_selected) {
+        try {
+          const depth = await alpha.depth(pair.symbol);
+          if (depth.data.symbol !== pair.symbol)
+            throw Error("DEPTH_SYMBOL_MISMATCH");
+          await saveSource("binance_alpha", depth);
+          const book = bookQuote(depth.data, depth.observedAt, depth.source, depth.hash);
+          if (book)
+            await sql`UPDATE market_snapshots SET book=${jsonParam(book)}::jsonb WHERE token_id=${token.id} AND response_hash=${ticker.hash} AND observed_at=${ticker.observedAt}`;
+        } catch {
+          await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${token.id},'binance_alpha','depth_unavailable','No verified fresh book quote; paper fills and outcomes remain unavailable.')`;
+        }
       }
+      if (token.deep_selected) {
       const newest = (
         await sql`SELECT max(close_at) AS at FROM ohlcv_candles WHERE symbol=${pair.symbol}`
       )[0]?.at;
@@ -217,6 +225,7 @@ export async function marketSync() {
         if (!older.data.length)
           await setSetting(`history_end:${pair.symbol}`, true);
       }
+      }
       console.log(
         JSON.stringify({
           event: "market_snapshot",
@@ -225,12 +234,25 @@ export async function marketSync() {
           source: "binance_alpha",
         }),
       );
-    } catch {
+    } catch (error) {
       failures++;
+      const code = errorCode(error);
+      await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},${pair.symbol},${pair.quoteAsset},'error','binance_alpha',now(),NULL,${code},${jsonParam({ exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=excluded.pair_symbol,quote_asset=excluded.quote_asset,status='error',provider=excluded.provider,checked_at=excluded.checked_at,error_code=excluded.error_code,raw=excluded.raw`;
       await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${token.id},'binance_alpha','market_gap','Market collection failed; earlier observations preserved.')`;
     }
   }
-  if (failures) throw Error("PARTIAL_MARKET_FAILURE");
+  await setSetting("market_coverage_sync", {
+    at: new Date().toISOString(), exchangeInfoAt: o.observedAt,
+    requested: tokens.length, observed, noPair, failures,
+    requestCap: config().MARKET_TOKEN_LIMIT,
+  });
+  console.log(JSON.stringify({ event: "alpha_market_cycle", requested: tokens.length, observed, noPair, failures }));
+}
+
+function errorCode(error: unknown) {
+  return error && typeof error === "object" && "code" in error
+    ? String(error.code).slice(0, 80)
+    : error instanceof Error ? error.name : "PROVIDER_ERROR";
 }
 async function storeCandles(
   symbol: string,
@@ -516,6 +538,17 @@ export async function scanToken(
   });
   await sql`INSERT INTO detection_traces(token_id,from_block,to_block,computed_at,rule_version,reason,evidence) VALUES(${id},${from},${to},${observedAt},'transfer-activity/1.0.0',${result.reason},${jsonParam({ sourceHash: logs.hash, events: transfers.length, baselineWindows: baseline.length, signalEmitted: !!result.signal, classification: "Transfers are not purchases" })}::jsonb)`;
   if (result.signal) {
+    const researchClass = await sql`SELECT classification FROM token_project_classifications WHERE token_id=${id}`;
+    if (researchClass[0]?.classification !== "verified_non_meme") {
+      await setSetting(`trace:${id}`, {
+        at: observedAt, from, to, events: transfers.length,
+        reason: "research_classification_ineligible",
+        rule: "transfer-activity/1.0.0",
+        detail: "Potential transfer-activity alert suppressed: no owner-reviewed non-meme classification with cited evidence.",
+      });
+      await sql`UPDATE detection_traces SET reason='research_classification_ineligible',evidence=evidence || ${jsonParam({ signalSuppressed: true, suppressionReason: "No owner-reviewed non-meme classification" })}::jsonb WHERE token_id=${id} AND from_block=${from} AND to_block=${to} AND computed_at=${observedAt}`;
+      return;
+    }
     const s = result.signal;
     const previous =
       await sql`SELECT id FROM signal_events WHERE token_id=${id} AND kind=${s.kind} AND first_detected_at>now()-(${c.SIGNAL_COOLDOWN_MINUTES} * interval '1 minute')`;

@@ -5,9 +5,21 @@ import {
   envelope,
   registryEntry,
   EvmProvider,
+  preferredAlphaPair,
 } from "../src/index";
 import { z } from "zod";
 describe("Bounded provider requests", () => {
+  it("prefers an exact active pair deterministically while preserving its quote currency", () => {
+    const symbols = [
+      { symbol: "ALPHA_17USDC", baseAsset: "ALPHA_17", quoteAsset: "USDC", status: "TRADING" },
+      { symbol: "ALPHA_17U", baseAsset: "ALPHA_17", quoteAsset: "U", status: "TRADING" },
+      { symbol: "ALPHA_17USDT", baseAsset: "ALPHA_17", quoteAsset: "USDT", status: "TRADING" },
+      { symbol: "ALPHA_18USDT", baseAsset: "ALPHA_18", quoteAsset: "USDT", status: "TRADING" },
+      { symbol: "ALPHA_17BTC", baseAsset: "ALPHA_17", quoteAsset: "BTC", status: "BREAK" },
+    ];
+    expect(preferredAlphaPair("ALPHA_17", symbols)).toMatchObject({ symbol: "ALPHA_17USDT", quoteAsset: "USDT" });
+    expect(preferredAlphaPair("ALPHA_99", symbols)).toBeNull();
+  });
   it("retries 429, counts actual calls and respects retry-after", async () => {
     const fetcher = vi
       .fn<typeof fetch>()

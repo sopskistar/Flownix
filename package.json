@@ -18,6 +18,7 @@
     "worker:profile": "node --env-file=.env.worker.local --import tsx apps/worker/src/index.ts --profile",
     "worker:profile:report": "node --import tsx scripts/worker-profile-report.ts",
     "worker:diagnostics": "tsx --env-file=.env.worker.local scripts/ingestion-diagnostics.ts",
+    "rpc:diagnose": "tsx --env-file=.env.worker.local scripts/rpc-diagnose.ts",
     "research:case": "tsx --env-file=.env.worker.local apps/worker/src/research-case.ts",
     "research:refresh": "node --env-file=.env.worker.local --import tsx apps/worker/src/research-refresh.ts",
     "db:migrate:production": "tsx --env-file=.env.worker.local packages/db/src/migrate.ts",

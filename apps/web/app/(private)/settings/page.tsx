@@ -83,6 +83,24 @@ export default async function Settings() {
       ) : null}
       <section className="workbench">
         <div className="section-top">
+          <h2>Broad Alpha market coverage</h2>
+          <span>Official Alpha tickers only; DEX quotes remain separate</span>
+        </div>
+        <div className="status-strip">
+          <span><strong>{h.market.freshPrices}</strong> fresh prices</span>
+          <span><strong>{h.market.eligiblePairs}</strong> active pair identities</span>
+          <span><strong>{h.market.pending}</strong> pending</span>
+          <span><strong>{h.market.missingPair}</strong> without an active pair</span>
+          <span><strong>{h.market.errors}</strong> provider errors</span>
+          <span><strong>{h.market.registryPrices}</strong> registry metadata prices</span>
+        </div>
+        <div className="panel-content">
+          <p>Latest official Alpha ticker observed: {iso(h.market.at)}. Latest market cycle: {h.market.lastCycle ? JSON.stringify(h.market.lastCycle) : "not observed"}.</p>
+          <p className="muted">Coverage rotates up to {c.MARKET_TOKEN_LIMIT} token identities per worker cycle, independently of the {c.DEEP_TOKEN_LIMIT} deep-research selection. Fresh means an observation within 15 minutes. Price, volume and quote currency are retained as returned by the official Alpha pair. Registry prices have no assumed quote currency. DEX prices and Alpha ticker prices remain separate sources.</p>
+        </div>
+      </section>
+      <section className="workbench">
+        <div className="section-top">
           <h2>Provider operations</h2>
           <span>Calls over the past 24 hours</span>
         </div>
@@ -157,7 +175,7 @@ export default async function Settings() {
             <thead>
               <tr>
                 <th>Network</th>
-                <th>Registry identities</th>
+                <th>All observed / current</th>
                 <th>Selected / scanned</th>
                 <th>Transfer capability</th>
                 <th>Verified buys / holders</th>
@@ -168,9 +186,9 @@ export default async function Settings() {
               {h.chains.map((ch) => (
                 <tr key={ch.chain_id}>
                   <td>
-                    {ch.chain_name} ({ch.chain_id})
+                    {ch.chain_name} · chain ID {ch.chain_id}
                   </td>
-                  <td>{ch.tokens}</td>
+                  <td>{ch.tokens} / {ch.active}</td>
                   <td>
                     {ch.deep} / {ch.scanned}
                   </td>

@@ -7,13 +7,18 @@ process.env.DATABASE_URL =
   process.env.DATABASE_URL_WORKER ?? process.env.DATABASE_URL;
 try {
   const sql = sqlClient();
-  const [counts, work, scans, storage, latestRegistryStorage] =
+  const [counts, work, scans, storage, latestRegistryStorage, marketCoverage, classification, marketCycle, heartbeat, locks] =
     await Promise.all([
-      sql`SELECT (SELECT count(*) FROM alpha_tokens)::int AS identities,(SELECT count(*) FROM market_symbols)::int AS symbols,(SELECT count(DISTINCT token_id) FROM market_snapshots WHERE source_kind='alpha_market')::int AS quoted_tokens,(SELECT count(*) FROM ohlcv_candles)::int AS candles,(SELECT count(*) FROM token_transfers WHERE canonical)::int AS transfers,(SELECT count(*) FROM verified_swaps WHERE canonical)::int AS swap_interpretations,pg_database_size(current_database())::text AS database_bytes`,
+      sql`SELECT (SELECT count(*) FROM alpha_tokens)::int AS identities,(SELECT count(DISTINCT alpha_id) FROM alpha_tokens WHERE alpha_id IS NOT NULL)::int AS alpha_ids,(SELECT count(DISTINCT alpha_id) FROM alpha_tokens WHERE status='current' AND alpha_id IS NOT NULL)::int AS online_alpha_ids,(SELECT count(*) FROM alpha_tokens WHERE status='current')::int AS online,(SELECT count(*) FROM alpha_tokens WHERE status='offline')::int AS offline,(SELECT count(*) FROM alpha_tokens WHERE status='unknown')::int AS unknown,(SELECT count(*) FROM alpha_tokens WHERE status='current' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=alpha_tokens.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL)))::int AS online_with_active_pair,(SELECT count(*) FROM alpha_tokens WHERE status='current' AND metadata->>'price' IS NOT NULL)::int AS registry_metadata_prices,(SELECT count(*) FROM market_symbols)::int AS symbols,(SELECT count(DISTINCT token_id) FROM market_snapshots WHERE source_kind='alpha_market')::int AS quoted_tokens,(SELECT count(*) FROM ohlcv_candles)::int AS candles,(SELECT count(*) FROM token_transfers WHERE canonical)::int AS transfers,(SELECT count(*) FROM verified_swaps WHERE canonical)::int AS swap_interpretations,pg_database_size(current_database())::text AS database_bytes`,
       sql`SELECT state,wait_event_type,wait_event,count(*)::int,max(extract(epoch FROM now()-query_start))::integer AS longest_query_seconds FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid() GROUP BY state,wait_event_type,wait_event`,
       sql`SELECT t.id,t.symbol,t.chain_id,c.block_number::text,c.scanned_at FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id WHERE deep_selected ORDER BY t.symbol`,
       sql`SELECT source_kind,count(*)::int AS rows,avg(pg_column_size(m))::int AS mean_row_bytes FROM market_snapshots m GROUP BY source_kind`,
       sql`SELECT count(*)::int AS rows,avg(pg_column_size(m))::int AS mean_row_bytes,count(*) FILTER(WHERE raw->>'registryResponseHash'=response_hash AND EXISTS(SELECT 1 FROM source_responses r WHERE r.hash=m.response_hash))::int AS verified_source_references FROM market_snapshots m WHERE source_kind='alpha_registry' AND observed_at=(SELECT max(observed_at) FROM market_snapshots WHERE source_kind='alpha_registry')`,
+      sql`SELECT status,count(*)::int AS tokens,count(*) FILTER(WHERE checked_at>now()-interval '15 minutes')::int AS checked_fresh,max(checked_at) AS latest FROM market_coverage GROUP BY status ORDER BY status`,
+      sql`SELECT classification,count(*)::int AS tokens FROM token_project_classifications GROUP BY classification ORDER BY classification`,
+      sql`SELECT value FROM settings WHERE key='market_coverage_sync'`,
+      sql`SELECT value FROM settings WHERE key='worker_heartbeat'`,
+      sql`SELECT l.pid,a.application_name,a.state,a.backend_start,a.xact_start,a.query_start,a.client_addr FROM pg_locks l LEFT JOIN pg_stat_activity a ON a.pid=l.pid WHERE l.locktype='advisory' AND l.objid=726032 AND l.granted`,
     ]);
   console.log(
     JSON.stringify(
@@ -23,6 +28,11 @@ try {
         databaseActivity: work,
         marketStorage: storage,
         latestRegistryStorage: latestRegistryStorage[0],
+        marketCoverage,
+        classification,
+        marketCycle: marketCycle[0]?.value ?? null,
+        heartbeat: heartbeat[0]?.value ?? null,
+        collectorLocks: locks,
         selected: scans,
       },
       null,

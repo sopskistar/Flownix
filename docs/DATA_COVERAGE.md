@@ -1,16 +1,24 @@
 # Coverage register
 
+## Market-coverage and classification follow-up — 2026-11-17
+
+The official Binance registry was fetched and persisted at 2026-11-17 15:07:10 UTC: **686 identities, 379 online, 307 offline, 0 unknown**, with 1,467 market symbols. Four bounded live Alpha ticker cycles then covered **317/317 online identities with an exact active Alpha pair** (377 snapshots, zero provider errors) and recorded **62 no-pair identities**. At 15:55 UTC, 244 of those ticker observations were within the 15-minute freshness threshold; the rest were already stale because this was finite local collection, not a persistent worker. Registry metadata prices were present for all 379 online entries, but are separately sourced with quote unspecified. This does not imply ticker data for no-pair entries or continuous freshness.
+
+Migration 0010 adds per-identity market coverage diagnostics. Migration 0011 adds owner-reviewed project classification with source URL and evidence note. The default radar and deep-selection logic now admit only `verified_non_meme`; no current classification rows have been independently confirmed in this session, so expected eligible count is currently unknown until migration and manual review. Full Alpha provenance remains retained. See [universe audit](ALPHA_UNIVERSE_AUDIT.md).
+
+Alchemy variables are `ETH_RPC_URL`, `BSC_RPC_URL`, `BASE_RPC_URL`. No keyed Alchemy endpoints were present in `.env.worker.local` at last check. Free `eth_getLogs` is limited to 10-block ranges on these chains; historical multiweek/full-token logs may exceed practical free-tier CU limits. The next live gate must check contracts, historical blocks, 10-block logs and receipts separately; see [API setup](API_SOURCES_AND_SETUP.md).
+
 ## Current Phase 2 observations — 2026-11-16–17 UTC
 
 **Live acceptance still NOT PASSED:** three canonical receipt samples verified, but real replay/resume and Base logs remain blocked. No hosted continuous worker. Local profiling collector is stopped; data ages honestly.
 
-Latest registry capture **2026-11-17T02:34:34.868Z**: 686 identities, **378 online / 308 offline**. The earlier Nov16 observation had 377/309; the reconciler retained the status change rather than hardcoding the count.
+Latest registry capture **2026-11-17T15:07:10.149Z**: 686 identities, **379 online / 307 offline**. The prior Nov17 02:34 observation was 378/308; the reconciler retained the status change rather than hardcoding the count.
 
 | Evidence                                     | Verified result                                                                                                                                                                                              |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Official registry                            | 686 unique identities: 378 current/online, 308 offline. Full observed universe persisted, no fixture substitution                                                                                            |
+| Official registry                            | 686 unique identities: 379 current/online, 307 offline. Full observed universe persisted, no fixture substitution                                                                                            |
 | Chain distribution (all returned identities) | BSC 502; Ethereum 38; Base 46; Sonic 4; chain 4663 5; Arbitrum 4; Linea 1; Solana 70; Sui 13; Tron 3                                                                                                         |
-| Actual Alpha markets                         | 1,467 symbols, U/USDT/USDC quote assets; 20 identities with stored market quotes. Registry metadata prices kept as separate source_kind, never silently blended                                              |
+| Actual Alpha markets                         | 1,467 symbols, U/USDT/USDC quote assets; 317 of 317 active-pair online identities received ticker observations (377 snapshots, zero provider errors); 62 online identities have no active pair. Registry metadata prices remain separate, quote unspecified |
 | Deep monitoring                              | 15 selected, 12 have one completed 100-block window each: 8 BSC, 4 ETH. Base 3 selected/0 scanned                                                                                                            |
 | Transfer ledger                              | 180 canonical events: BSC 139, ETH 41. UTC block times, atomic quantities/decimals, log index, block/tx hashes and raw source hashes retained                                                                |
 | Historical event coverage                    | BSC windows about 44–45 seconds/token; ETH about 20 minutes/token. Mostly Nov16 15:45–16:22 UTC. No complete history since Alpha inclusion                                                                   |
@@ -20,6 +28,8 @@ Latest registry capture **2026-11-17T02:34:34.868Z**: 686 identities, **378 onli
 | Signals                                      | Zero genuine accumulation signals. Real versioned suppression traces explain missing baseline/market/membership/coverage. No success/ROI chart                                                               |
 | Exchange/entity coverage                     | No independently verified exchange/market-maker/team registry. Case wallet has only a possible_exchange third-party Bitget lead, not verified historical ownership                                           |
 | RPC diagnostics                              | BSC current confirmed block/code/decimals and 10-block logs passed (five logs); ETH/BSC historical resume/replay returned 403/timeouts; Base current block/code/decimals pass, even 10-block logs return 429 |
+
+Broad market ticker observations were collected locally in four bounded runs (100, 100, 100, then 91 candidates) with a 100-candidate/cycle cap. At the final health query, 244 ticker observations were younger than 15 minutes and 73 older; an offline worker naturally ages. The registry had price metadata for all 379 online identities, but those values are not substituted for ticker data. Alpha ticker observations retain the exact pair quote asset.
 
 Independently checked receipt/log/block references:
 
