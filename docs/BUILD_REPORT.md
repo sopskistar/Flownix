@@ -1,5 +1,9 @@
 # Delivery report — Phase 2 progress, hosting deferred
 
+## Activation verification — 2026-11-18
+
+The current detailed live run is documented in [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md). It confirms all five Alchemy endpoint variables are loaded, Ethereum/BSC/Base/Arbitrum historical point probes pass, and Solana returned real Alpha-mint token-account deltas after fixing a signature validator. The official registry refreshed to 686 identities (378 online, 308 offline); 357 supported identities have jobs and 21 online identities are on other networks. A bounded 90-second worker attempt tried 23 jobs but all failed with a generic network/parse error and advanced no EVM cursors. One 180-second Solana scan partially persisted 83 records for one Alpha identity but did not complete. Market prices are 0 fresh / 316 stale / 62 no-pair; signal count remains zero. **Automatic full-universe monitoring is not yet operational.**
+
 ## Automatic full-universe continuation — 2026-11-17
 
 The previous 15-token deep-selection gate was removed from baseline job scheduling and the project-classification gate was removed from active Alpha monitoring. Radar includes every online official Alpha identity, including meme coins. `MARKET_TOKEN_LIMIT=100` remains a per-cycle batch bound only. Registry reconciliation now creates/reconciles durable scan jobs for every online token on EVM networks (Ethereum, BSC, Base, Arbitrum) and Solana. Jobs are claimed serially by due time; EVM baseline cadence defaults to one hour, Solana partial top-account sampling to six hours. Additive migrations 0012/0013 add Solana observations and the dynamic intensive-investigation queue. Qualifying signals are stored without a token/event quota; notification batches can defer delivery. Watchlist-only Telegram mode defaults off.

@@ -1,5 +1,11 @@
 # Coverage register
 
+## Activation verification — 2026-11-18
+
+Use [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md) as the latest live snapshot. The ignored worker file now contains all five RPC variables. The registry refreshed to 686 identities / 378 online / 308 offline. The five-network scheduler reconciled 357 current jobs; a 90-second worker run attempted 23 and failed all 23 with `NETWORK_OR_PARSE_ERROR`, advancing no EVM cursors. The 21 other online identities are Sonic (4), Robinhood Chain (5; Binance registry label `Robinhood`, chain ID 4663), TRON (3), and Sui (9).
+
+Current market observations are 0 fresh, 316 stale, and 62 with no active pair. The database retains 180 canonical EVM transfers and 18 swap interpretations; the signal table has zero events. A partial direct Solana scan of one verified Alpha mint wrote 83 observations (14 top-account snapshots, 69 token-account transaction deltas, 58 observed owners); 14 of 20 account cursors show explicit coverage gaps. This is not full historical wallet coverage. The complete automatic cycle, accumulating-wallet evidence, exchange ownership labels, alert delivery, and continuous worker remain unverified.
+
 ## Automatic-universe scheduling update — 2026-11-17
 
 The prior registry snapshot remains 686 official chain/contract identities, 379 online and 307 offline; it has not been refreshed in this change. No fixed research eligibility, meme-classification gate, or 15-token scheduling cap remains. Current online Alpha identities on the implemented EVM/Solana networks are reconciled into durable `worker_jobs` with one per-token cursor/job, a single active worker lease and due-time scheduling. Current online tokens on other official Alpha chains remain visible but are unsupported for deep monitoring. The existing 100-token market setting is only one work batch; stale-first `market_coverage` rows rotate across the entire official active-pair universe. Market observations can age while the worker is offline.

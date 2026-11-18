@@ -8,6 +8,7 @@ import {
   preferredAlphaPair,
   decodeSolanaBalanceDeltas,
   SOLANA_MINT_RE,
+  SolanaProvider,
 } from "../src/index";
 import { z } from "zod";
 describe("Bounded provider requests", () => {
@@ -31,6 +32,21 @@ describe("Bounded provider requests", () => {
       deltaRaw: "-123",
       decimals: 6,
     }]);
+  });
+  it("accepts Solana transaction signatures using signature length, not mint length", async () => {
+    const signature = "1".repeat(88);
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      result: [{ signature, slot: 123, blockTime: null, err: null, confirmationStatus: "finalized" }],
+    })));
+    const provider = new SolanaProvider(
+      "https://solana.example.test",
+      new HttpClient("solana-test", 120, async () => {}, fetcher, async () => {}),
+    );
+    await expect(provider.signatures("11111111111111111111111111111111", 1)).resolves.toMatchObject({
+      data: [{ signature, slot: 123, confirmationStatus: "finalized" }],
+    });
   });
   it("prefers an exact active pair deterministically while preserving its quote currency", () => {
     const symbols = [

@@ -1,6 +1,22 @@
-# Next steps — Phase 2, hosting undecided
+# Next steps — automatic discovery activation
 
-Current priorities, superseding the archived deployment notes below:
+Latest live results and the complete per-network diagnostics are in [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md).
+
+1. Diagnose RPC/Neon intermittent timeouts by failing stage. All five variables are loaded; Ethereum, BSC, Base and Arbitrum point diagnostics passed. Solana’s account/history probe passed after its signature validation fix. The 90-second collector run attempted 23 jobs but all failed; no EVM cursor advanced.
+2. Fix scan throughput and validate cursor progress before increasing coverage. Alchemy 10-block windows and per-token request schedules do not yet establish gap-free full-universe observation. Preserve retry backoff and source quotas.
+3. Complete partial Solana observations and verify transaction/cursor resume. Current data is only top-account sampling; the 180-second single-token scan stopped after 14/20 accounts with 83 rows and all 14 cursors flagged for history gaps.
+4. Add adapters for the 21 online identities on Sonic (4), registry-labeled Robinhood/4663 (5), TRON (3), and Sui (9), after verifying chain-native APIs.
+5. Confirm exact Vercel production SHA, real dashboard rendering of findings, and an actual Telegram delivery receipt before claiming the end-to-end alert loop works.
+6. Keep all 686 official identities and historical observations; current snapshot is 378 online / 308 offline. Market data is 0 fresh / 316 stale / 62 no-pair. Signal count is zero.
+7. Only after reliable full-universe collection, build/validate the original multiweek wallet retention, verified exchange flows, project/market-maker attribution, cross-token patterns, distribution and Evening Trader case studies. No evidence in the current run proves accumulation or predictive value.
+
+No paid worker hosting or API plan was activated. The collector remains local and is not running continuously.
+
+## Archived earlier continuation notes
+
+The following notes describe prior snapshots and may contain older counts/configuration; the activation report above supersedes them.
+
+<!--
 
 1. Fill in the missing `ETH_RPC_URL`, `ARBITRUM_RPC_URL`, and `SOLANA_RPC_URL` in ignored `.env.worker.local` (Alchemy HTTPS endpoints for the exact mainnets). BSC and Base are currently the only explicit Alchemy endpoints and their point probes passed. Do not paste endpoint values in chat.
 2. Start one local persistent worker after confirming all five env values. The schedule now has 358 supported current Alpha identities queued (358 due, 14 in retry state as of 2026-11-18); no worker is deployed or running, and market data is currently 0 fresh / 317 stale / 62 no-pair.
@@ -11,6 +27,8 @@ Current priorities, superseding the archived deployment notes below:
 7. Accumulate real 7/14/30/60/90/180-day evidence, validate with chronology and negative controls, and continue the Evening Trader/JCT case studies without inferring historic evidence.
 
 No new dashboard credentials are needed. Real second-account OAuth denial remains a manual security check; existing owner sign-in/Journal verification and protected endpoints are preserved.
+
+-->
 
 ## Archived deployment-repair next steps
 

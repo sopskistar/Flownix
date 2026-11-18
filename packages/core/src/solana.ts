@@ -91,7 +91,7 @@ export class SolanaProvider {
   signatures(address: string, limit = 10) {
     pubkey.parse(address);
     return this.rpc("getSignaturesForAddress", [address, { commitment: "finalized", limit }], (v) => z.array(z.object({
-      signature: z.string().regex(SOLANA_MINT_RE), slot: z.number().int().nonnegative(), blockTime: z.number().int().nullable(), err: z.unknown().nullable(), confirmationStatus: z.string().optional(),
+      signature: z.string().regex(signatureRe), slot: z.number().int().nonnegative(), blockTime: z.number().int().nullable(), err: z.unknown().nullable(), confirmationStatus: z.string().optional(),
     })).parse(v));
   }
 
