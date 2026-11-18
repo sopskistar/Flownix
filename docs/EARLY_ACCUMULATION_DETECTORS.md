@@ -13,7 +13,7 @@ The current implementation remains deliberately conservative. Existing experimen
 | Re-accumulation | Existing thesis state history supports research annotations | No verified full-cycle signal. A higher balance alone is not an acquisition. |
 | Distribution / invalidation | Existing thesis can retain manual invalidation and transfer risk evidence | Automatic broad distribution detector not operational. No exchange ownership census. |
 
-New automatic transfer-activity alerts additionally require owner-reviewed `verified_non_meme` project classification with a cited URL and rationale. This classification is not a wallet label and does not certify token quality.
+Project categories are informational only. Automatic signal eligibility is based on current official Alpha membership and detector evidence; meme/non-meme classification does not gate discovery. The current transferable alert rule is only `UNUSUAL_TRANSFER_ACTIVITY`, not an accumulation detector.
 
 ## Experimental signal conditions
 

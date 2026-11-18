@@ -2,13 +2,13 @@
 
 Current priorities, superseding the archived deployment notes below:
 
-1. Configure reliable permitted historical/log RPC access for ETH/BSC and Base. Current public heads work, historical replay gets 403/timeouts and Base logs 429. Store keys only in ignored worker configuration. No paid plan without approval.
-2. Complete real replay/duplicate preservation and cursor advancement after process restart. Never reset cursors to the head to hide catch-up failures. Gate remains incomplete despite 180 canonical transfers and three verified receipts.
-3. Re-profile a healthy 15-token cycle including successful scans, writes, catch-up and restart; then validate quota capacity before 50/100 live workloads. Current estimates and measurements are explicitly separated in WORKER_HOSTING_COMPARISON.md. Review Neon compute/storage usage, not just worker hosting price.
-4. Owner chooses/approves a host after Oracle support review and cost comparison. No host is assumed; no cloud collector is active. Use WORKER_DEPLOYMENT.md for portable Docker/systemd or managed container deployment, same Neon and single-worker lock.
-5. Continue the original full wallet-intelligence scope: monitored-address balance history, verified entity labels, exchange flows excluding internal routing, project/MM provenance, passive swap coverage, cross-token relationships, conservative retained purchases and supply concentration exclusions. Unknown ownership/history remains unknown.
-6. Accumulate actual longitudinal 7/14/30/60/90/180-day evidence, evaluate quiet/persistent accumulation and contradictory distribution evidence, then validate with chronological negative controls and realistic fills. Current zero accumulation signals is an honest result.
-7. Finish JCT/BTW historical transaction/date/label proof and other candidate/failed-runner cases. Keep historical Alpha membership separate from today's registry. Public introduction remains secondary to working core data.
+1. Fill in the missing `ETH_RPC_URL`, `ARBITRUM_RPC_URL`, and `SOLANA_RPC_URL` in ignored `.env.worker.local` (Alchemy HTTPS endpoints for the exact mainnets). BSC and Base are currently the only explicit Alchemy endpoints and their point probes passed. Do not paste endpoint values in chat.
+2. Start one local persistent worker after confirming all five env values. The schedule now has 358 supported current Alpha identities queued (358 due, 14 in retry state as of 2026-11-18); no worker is deployed or running, and market data is currently 0 fresh / 317 stale / 62 no-pair.
+3. Fix/recover the existing RPC failures (11 HTTP 403, 2 HTTP 429, 1 timeout) and verify per-chain cursor advancement. Alchemy ranges are clamped to 10 blocks; this is safe for free-tier limits but can fall behind chain head. Never reset cursors to the head to hide backlog.
+4. Establish an actual per-chain cursor lag and full-universe scan-duration measurement before selecting any paid host. The worker is still offline. Current historical resource measurements were for a small selected workload only and must not be extrapolated to the full universe.
+5. Owner chooses/approves a host only after reviewing updated resource data; no host or paid plan is activated. Keep Vercel, Neon and the single-worker lock.
+6. Continue the original full wallet-intelligence scope and only add stronger detectors once there is sufficient verified trade/label coverage. Current total signals remain zero; the current EVM rule detects unusual transfers, not accumulation. Solana samples top accounts only.
+7. Accumulate real 7/14/30/60/90/180-day evidence, validate with chronology and negative controls, and continue the Evening Trader/JCT case studies without inferring historic evidence.
 
 No new dashboard credentials are needed. Real second-account OAuth denial remains a manual security check; existing owner sign-in/Journal verification and protected endpoints are preserved.
 

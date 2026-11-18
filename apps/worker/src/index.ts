@@ -9,6 +9,7 @@ import {
 } from "@flownix/core";
 import { jsonParam, sqlClient, closeDb, setSetting } from "@flownix/db";
 import { registrySync, marketSync, scanToken } from "./ingest";
+import { reconcileScanJobs } from "./scheduler";
 import {
   queueResearchAlerts,
   deliverNotifications,
@@ -100,7 +101,7 @@ process.on("SIGTERM", () => {
 const intervals: Record<string, number> = {
   registry: 900,
   market: 300,
-  scan: 60,
+  scan: config().BASELINE_SCAN_INTERVAL_SECONDS,
   notifications: 30,
   outcomes: 3600,
   persistence: 3600,
@@ -114,10 +115,8 @@ async function schedule() {
     "persistence",
   ])
     await sql`INSERT INTO worker_jobs(key,kind) VALUES(${kind},${kind}) ON CONFLICT DO NOTHING`;
-  const tokens =
-    await sql`SELECT id FROM alpha_tokens WHERE deep_selected AND status='current'`;
-  for (const t of tokens)
-    await sql`INSERT INTO worker_jobs(key,kind,payload) VALUES(${"scan:" + t.id},'scan',${jsonParam({ tokenId: t.id })}::jsonb) ON CONFLICT DO NOTHING`;
+  // Full current supported-chain universe; jobs persist independently and are fairly due-time scheduled.
+  await reconcileScanJobs();
 }
 async function next(excluded: string[] = []) {
   const kinds =
@@ -126,7 +125,7 @@ async function next(excluded: string[] = []) {
     throw Error("INVALID_JOB_KINDS");
   return sql.begin(async (tx) => {
     const rows =
-      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,key FOR UPDATE SKIP LOCKED LIMIT 1`;
+      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,CASE WHEN kind='scan' AND EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=worker_jobs.payload->>'tokenId' AND q.active) THEN 0 ELSE 1 END,key FOR UPDATE SKIP LOCKED LIMIT 1`;
     if (!rows.length) return null;
     const job = rows[0];
     await tx`UPDATE worker_jobs SET status='running',owner=${owner},lease_until=now()+interval '2 minutes',updated_at=now() WHERE key=${job.key}`;
@@ -171,7 +170,13 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
       await deliverNotifications();
     } else if (job.kind === "outcomes") await outcomesSync();
     else if (job.kind === "persistence") await persistenceSync();
-    await sql`UPDATE worker_jobs SET status='done',attempts=0,lease_until=null,owner=null,last_error=null,run_after=now()+(${intervals[job.kind] ?? 300}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
+    const delay = job.kind === "scan" && job.payload?.chainId === "CT_501"
+      ? conf.SOLANA_BASELINE_INTERVAL_SECONDS
+      : intervals[job.kind] ?? 300;
+    await sql`UPDATE worker_jobs SET status='done',attempts=0,lease_until=null,owner=null,last_error=null,run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
+    if (job.kind === "scan" && job.payload?.tokenId) {
+      await sql`UPDATE token_investigation_queue SET last_investigated_at=now(),next_investigation_at=now()+(${delay}*interval '1 second') WHERE token_id=${job.payload.tokenId} AND active`;
+    }
     return true;
   } catch (error) {
     const code = failureCode(error);

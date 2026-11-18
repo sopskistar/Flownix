@@ -22,9 +22,14 @@ try {
       console.log(`Applied ${name}`);
     });
   }
-} catch {
+} catch (error) {
+  const code =
+    typeof error === "object" && error !== null && "code" in error &&
+    /^[A-Z0-9_]{2,32}$/.test(String(error.code))
+      ? String(error.code)
+      : "UNKNOWN";
   console.error(
-    "Migration failed. Check direct database connectivity and migration state securely; no reset was attempted.",
+    `Migration failed (${code}). Check direct database connectivity and migration state securely; no reset was attempted.`,
   );
   process.exitCode = 1;
 } finally {

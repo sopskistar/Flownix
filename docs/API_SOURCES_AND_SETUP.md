@@ -1,13 +1,21 @@
 # Data providers and setup
 
+## Current endpoint configuration and diagnostic result — 2026-11-18
+
+All five Alchemy variables are recognized: `ETH_RPC_URL` (Ethereum 1), `BSC_RPC_URL` (56), `BASE_RPC_URL` (8453), `ARBITRUM_RPC_URL` (42161), `SOLANA_RPC_URL` (Solana). The most recent safe local check found BSC and Base configured; Ethereum, Arbitrum and Solana were unset. Do not paste credentials into chat. BSC and Base point diagnostics passed confirmed-head, contract metadata, historical block, historical `balanceOf`, and 10-block Transfer-log requests; the sampled blocks had no token Transfer event. Ethereum and Arbitrum fail fast with `_NOT_CONFIGURED`; Solana similarly reports `SOLANA_RPC_URL_NOT_CONFIGURED`. A previously stored BSC transfer receipt was independently re-fetched and matched canonically, but this does not prove broad coverage.
+
+Alchemy currently documents a 30M compute-unit/month Free tier and 10-block `eth_getLogs` spans for the relevant EVM products. The worker now clamps Alchemy log windows to 10 blocks even when `SCAN_BLOCKS` is higher. That prevents range-limit failures but means the 358-token universe can accumulate cursor lag at one-hour cadence. Historical Alchemy Solana account-state/archive support is separately tier-limited; current Flownix Solana coverage is prospective top-account sampling, not a full owner ledger. Keep paid services disabled and inspect account CU use before changing cadence.
+
 ## Required configuration for the next EVM test
 
-Alchemy is optional to current Flownix local operation but is the next targeted test for historical RPC access. Create a free account at [Alchemy Dashboard](https://dashboard.alchemy.com/), create three **mainnet apps** for Ethereum, BNB Smart Chain and Base, then copy each HTTPS JSON-RPC endpoint from the app dashboard into the existing ignored file `/home/sopski/projects/Flownix/.env.worker.local`:
+Alchemy is optional to current Flownix local operation. If the missing networks are enabled on the existing account, copy each HTTPS JSON-RPC endpoint from the app dashboard into the ignored file `/home/sopski/projects/Flownix/.env.worker.local` (no new account or paid plan is needed):
 
 ```env
 ETH_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/<your-key>
 BSC_RPC_URL=https://bnb-mainnet.g.alchemy.com/v2/<your-key>
 BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/<your-key>
+ARBITRUM_RPC_URL=https://arb-mainnet.g.alchemy.com/v2/<your-key>
+SOLANA_RPC_URL=https://solana-mainnet.g.alchemy.com/v2/<your-key>
 ```
 
 The file contains secrets and is ignored by Git. Never paste endpoint values in chat or add them to `NEXT_PUBLIC_*`. `ETH_RPC_URL` maps to chain ID 1; `BSC_RPC_URL` to 56; `BASE_RPC_URL` to 8453. These exact variable names already exist in the worker configuration. After saving, run `pnpm rpc:diagnose 1`, `pnpm rpc:diagnose 56`, and `pnpm rpc:diagnose 8453`. A passing result checks actual official Alpha contract bytecode/decimals, confirmed and historical block access, a 10-block Transfer log range, and verifies a sampled receipt against its canonical block when a matching log exists. It does not backfill or claim an accumulation history.

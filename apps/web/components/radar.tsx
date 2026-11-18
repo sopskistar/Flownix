@@ -51,7 +51,7 @@ export function Radar({
     sort = query.get("sort") ?? (watchlist ? "oldest" : "liquidity"),
     state = query.get("state") ?? "",
     membership = query.get("membership") ?? "current",
-    classification = query.get("classification") ?? "verified_non_meme";
+    classification = query.get("classification") ?? "";
   const cap = Number(query.get("minCap") ?? 0),
     liquidity = Number(query.get("minLiquidity") ?? 0),
     page = Math.max(1, Number(query.get("page")) || 1),
@@ -209,8 +209,8 @@ export function Radar({
           <label>
             Project classification
             <select value={classification} onChange={(e) => set("classification", e.target.value)}>
-              <option value="verified_non_meme">Owner-reviewed non-meme (default)</option>
-              <option value="">All official Alpha identities</option>
+              <option value="">All official Alpha identities (default)</option>
+              <option value="verified_non_meme">Owner-reviewed non-meme</option>
               <option value="unclassified">Unclassified</option>
               <option value="mixed_ambiguous">Mixed / ambiguous</option>
               <option value="verified_meme_focused">Meme-focused</option>

@@ -14,6 +14,11 @@ export const evmChains: Record<
     explorer: "https://basescan.org",
     env: "BASE_RPC_URL",
   },
+  "42161": {
+    name: "Arbitrum One",
+    explorer: "https://arbiscan.io",
+    env: "ARBITRUM_RPC_URL",
+  },
 };
 export function contractIdentity(chain: string, address: string) {
   const a = address.trim();
@@ -33,6 +38,17 @@ export function tokenKey(chain: string, address: string) {
 export const hashResponse = (raw: string) =>
   createHash("sha256").update(raw).digest("hex");
 export const isEvmAddress = (s: string) => /^0x[0-9a-fA-F]{40}$/.test(s);
+export function configuredEvmRpc(chain: string) {
+  const descriptor = evmChains[chain];
+  if (!descriptor) throw new Error("UNSUPPORTED_EVM_CHAIN");
+  const defaults: Record<string, string> = {
+    ETH_RPC_URL: "https://ethereum-rpc.publicnode.com",
+    BSC_RPC_URL: "https://bsc-rpc.publicnode.com",
+    BASE_RPC_URL: "https://mainnet.base.org",
+    ARBITRUM_RPC_URL: "https://arbitrum-one-rpc.publicnode.com",
+  };
+  return process.env[descriptor.env] ?? defaults[descriptor.env];
+}
 export function explorerUrl(
   chain: string,
   kind: "tx" | "address" | "token",

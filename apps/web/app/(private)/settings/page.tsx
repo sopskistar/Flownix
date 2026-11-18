@@ -83,11 +83,31 @@ export default async function Settings() {
       ) : null}
       <section className="workbench">
         <div className="section-top">
+          <h2>Automatic discovery queue</h2>
+          <span>Watchlist enrollment is optional and does not gate discovery</span>
+        </div>
+        <div className="status-strip">
+          <span>Supported current Alpha identities <strong>{h.scanCoverage.eligible}</strong></span>
+          <span>Durable baseline jobs <strong>{h.scanCoverage.scheduled}</strong></span>
+          <span>Missing jobs <strong>{h.scanCoverage.missingJobs}</strong></span>
+          <span>Due now <strong>{h.scanCoverage.due}</strong></span>
+          <span>Retrying <strong>{h.scanCoverage.retrying}</strong></span>
+          <span>Intensive investigations <strong>{h.scanCoverage.intensive}</strong></span>
+          <span>Intensive due <strong>{h.scanCoverage.intensiveWaiting}</strong></span>
+          <span>Other-chain baseline unavailable <strong>{h.scanCoverage.unsupported}</strong></span>
+        </div>
+        <div className="panel-content">
+          <p>Oldest overdue scan: {iso(h.scanCoverage.oldestDue)}. EVM baseline windows and Solana account sampling are partial observations, not complete wallet histories. Unsupported-chain identities remain in the official Alpha Radar and are not reported as scanned.</p>
+        </div>
+      </section>
+      <section className="workbench">
+        <div className="section-top">
           <h2>Broad Alpha market coverage</h2>
           <span>Official Alpha tickers only; DEX quotes remain separate</span>
         </div>
         <div className="status-strip">
           <span><strong>{h.market.freshPrices}</strong> fresh prices</span>
+          <span><strong>{h.market.stalePrices}</strong> stale prices</span>
           <span><strong>{h.market.eligiblePairs}</strong> active pair identities</span>
           <span><strong>{h.market.pending}</strong> pending</span>
           <span><strong>{h.market.missingPair}</strong> without an active pair</span>
@@ -96,7 +116,7 @@ export default async function Settings() {
         </div>
         <div className="panel-content">
           <p>Latest official Alpha ticker observed: {iso(h.market.at)}. Latest market cycle: {h.market.lastCycle ? JSON.stringify(h.market.lastCycle) : "not observed"}.</p>
-          <p className="muted">Coverage rotates up to {c.MARKET_TOKEN_LIMIT} token identities per worker cycle, independently of the {c.DEEP_TOKEN_LIMIT} deep-research selection. Fresh means an observation within 15 minutes. Price, volume and quote currency are retained as returned by the official Alpha pair. Registry prices have no assumed quote currency. DEX prices and Alpha ticker prices remain separate sources.</p>
+          <p className="muted">The {c.MARKET_TOKEN_LIMIT}-identity limit is a per-cycle batch size; persistent coverage rotates across every eligible online Alpha identity with a tradable pair. Baseline on-chain jobs cover all current identities on supported networks at a {Math.round(c.BASELINE_SCAN_INTERVAL_SECONDS / 60)}-minute schedule. Credible findings enter the persistent intensive-investigation queue. Price, volume and quote currency are retained as returned by the official Alpha pair. Registry prices have no assumed quote currency. DEX prices and Alpha ticker prices remain separate sources.</p>
         </div>
       </section>
       <section className="workbench">
@@ -176,7 +196,7 @@ export default async function Settings() {
               <tr>
                 <th>Network</th>
                 <th>All observed / current</th>
-                <th>Selected / scanned</th>
+                <th>Prioritized / baseline scanned</th>
                 <th>Transfer capability</th>
                 <th>Verified buys / holders</th>
                 <th>Last scan</th>
@@ -193,11 +213,15 @@ export default async function Settings() {
                     {ch.deep} / {ch.scanned}
                   </td>
                   <td>
-                    {["56", "1", "8453"].includes(ch.chain_id)
+                    {["56", "1", "8453", "42161"].includes(ch.chain_id)
                       ? ch.scanned
-                        ? "Confirmed RPC log observations"
+                        ? "EVM RPC logs observed; history may be behind"
                         : "EVM adapter; runtime not verified"
-                      : "Not available on this chain"}
+                      : ch.chain_id === "CT_501"
+                        ? ch.scanned
+                          ? `Top-account deltas only${ch.coverage_gap ? " · history gap/partial" : " · incomplete"}`
+                          : "Solana adapter; runtime not verified"
+                        : "Not available on this chain"}
                   </td>
                   <td>Unavailable / partial samples only</td>
                   <td>{iso(ch.last_scan)}</td>
@@ -209,8 +233,9 @@ export default async function Settings() {
             <div className="empty">
               <p>
                 Networks will appear after a successful official registry sync.
-                EVM adapters exist for BSC, Ethereum and Base; no network
-                ingestion is claimed until scanned.
+                EVM adapters target Ethereum, BSC, Base and Arbitrum; a Solana
+                account-history adapter is separate. No network ingestion is
+                claimed until a persisted scan is visible.
               </p>
             </div>
           ) : null}

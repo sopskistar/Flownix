@@ -24,11 +24,16 @@ export const envSchema = z.object({
   BSC_RPC_URL: z.url().default("https://bsc-rpc.publicnode.com"),
   ETH_RPC_URL: z.url().default("https://ethereum-rpc.publicnode.com"),
   BASE_RPC_URL: z.url().default("https://mainnet.base.org"),
+  ARBITRUM_RPC_URL: z.url().default("https://arbitrum-one-rpc.publicnode.com"),
+  SOLANA_RPC_URL: z.url().default("https://api.mainnet-beta.solana.com"),
+  SOLANA_TOP_ACCOUNTS_PER_TOKEN: integer(20, 20, 20),
+  SOLANA_HISTORY_SIGNATURES_PER_ACCOUNT: integer(1, 1, 5),
   SCAN_BLOCKS: integer(100, 1, 1000),
   SCAN_CONFIRMATIONS: integer(20, 12, 1000),
-  DEEP_TOKEN_LIMIT: integer(15, 1, 100),
-  // Broad Alpha ticker collection cap per worker cycle. Independent of deep scans.
+  // Per-cycle batch size only. The persistent cursor rotates through the entire universe.
   MARKET_TOKEN_LIMIT: integer(100, 1, 1000),
+  BASELINE_SCAN_INTERVAL_SECONDS: integer(3600, 60, 86400),
+  SOLANA_BASELINE_INTERVAL_SECONDS: integer(21600, 3600, 604800),
   PASSIVE_SWAPS_ENABLED: z
     .enum(["true", "false"])
     .default("true")
@@ -50,7 +55,7 @@ export const envSchema = z.object({
   TELEGRAM_ENABLED: bool,
   TELEGRAM_WATCHLIST_ONLY: z
     .enum(["true", "false"])
-    .default("true")
+    .default("false")
     .transform((v) => v === "true"),
   PAID_ENRICHMENT_ENABLED: bool,
   PAID_DAILY_BUDGET_USD: z.coerce.number().min(0).max(100).default(0),

@@ -1,8 +1,18 @@
 # Verification
 
-## Phase 2 verification update (2026-11-16–17 UTC)
+## Full-universe scheduler verification update (2026-11-18 UTC)
 
-- **65 tests across six files pass** with existing local PostgreSQL, including market-pair selection/quote preservation, project-classification support, canonical transfer migration, and the earlier transfer/signal/auth/database coverage. No synthetic production observations.
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (66 tests across six files, including an isolated PostgreSQL test scheduling 251 identities across three 100-item batches), and production `pnpm build` passed. Build and DB integration needed an approved unsandboxed run because child-process and localhost database access are denied by the default sandbox.
+- Additive migrations `0012_solana_coverage.sql` and `0013_investigation_queue.sql` were applied to the verified existing Neon `neondb`; a post-migration query confirmed all 13 migrations, 686 identities and 180 canonical transfers remained.
+- `pnpm worker:schedule` reconciled 358/358 currently online tokens on EVM/Solana-supported chains (Ethereum 19, BSC 289, Base 26, Arbitrum 2, Solana 22). This created/resynchronized jobs only; it did not start the collector. All 358 were due while the worker was offline; 14 old jobs were retrying (11 403, 2 429, 1 timeout). Market state was 0 fresh, 317 stale, 62 no-pair.
+- Live Alchemy BSC and Base point probes passed head, confirmed block, contract code/decimals, historical block, historical `balanceOf`, and ten-block logs. Those two token-specific samples had no logs. A separate BSC receipt/log/block check validated one pre-existing stored event (UB, tx `0xb2edaad4fd46545aed097b0c829ac9913a8a576a71f782e8d2b48dafedb2f9f9`, block 133958666, log 105). No new canonical transfer or signal was created.
+- Ethereum, Arbitrum and Solana diagnostics fail fast because their endpoint variables are not set in `.env.worker.local`. Solana implementation remains partial top-account sampling, not full ledger coverage. All five chain families have scheduling entries but live provider configuration/coverage is not complete.
+- The scanner clamps Alchemy `eth_getLogs` windows to ten blocks. This respects documented free-tier range limits but does not prove the collector can keep a token cursor near chain head at full-universe scale. Per-token backlog/latency must be measured when a persistent worker is intentionally started.
+- The existing four Playwright browser journeys passed on 2026-11-18, including Data Health navigation and responsive phone/tablet layouts. These are local browser checks, not proof that this unpushed revision is deployed.
+
+## Earlier Phase 2 verification (2026-11-16–17 UTC)
+
+- Earlier run: 65 tests across six files passed. The latest 66-test run above supersedes this count. Tests use synthetic observations only in isolated fixtures; no synthetic data enters production.
 - Typecheck, lint and production Next build passed. Initial sandbox runs could not access local PostgreSQL or spawn Next's TypeScript configuration; approved reruns outside it passed.
 - **Four browser journeys passed** using installed Chromium via CHROME_PATH. These cover responsive/reduced-motion navigation, authorization, notes/in-app persistence and the modified Radar filters. No redesign or visual-QA claim is added.
 - AMD64 Docker worker build succeeded; no exposed ports. Initial Docker build failed WSL DNS resolution of official npm; a local DNS-resolved `--add-host` retry preserved TLS. Native ARM64 execution remains untested. Linux host/service scripts are prepared, not remotely deployed.

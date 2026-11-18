@@ -6,9 +6,32 @@ import {
   registryEntry,
   EvmProvider,
   preferredAlphaPair,
+  decodeSolanaBalanceDeltas,
+  SOLANA_MINT_RE,
 } from "../src/index";
 import { z } from "zod";
 describe("Bounded provider requests", () => {
+  it("decodes Solana token-account balance changes without calling them trades", () => {
+    const mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+    expect(SOLANA_MINT_RE.test(mint)).toBe(true);
+    const decoded = decodeSolanaBalanceDeltas({
+      transaction: { message: { accountKeys: ["TokenAccount111111111111111111111111111111"] } },
+      meta: {
+        preTokenBalances: [{ accountIndex: 0, mint, owner: "Owner11111111111111111111111111111111", uiTokenAmount: { amount: "9007199254740993123", decimals: 6 } }],
+        postTokenBalances: [{ accountIndex: 0, mint, owner: "Owner11111111111111111111111111111111", uiTokenAmount: { amount: "9007199254740993000", decimals: 6 } }],
+      },
+    }, mint);
+    expect(decoded).toEqual([{
+      accountIndex: 0,
+      accountAddress: "TokenAccount111111111111111111111111111111",
+      owner: "Owner11111111111111111111111111111111",
+      mint,
+      preRaw: "9007199254740993123",
+      postRaw: "9007199254740993000",
+      deltaRaw: "-123",
+      decimals: 6,
+    }]);
+  });
   it("prefers an exact active pair deterministically while preserving its quote currency", () => {
     const symbols = [
       { symbol: "ALPHA_17USDC", baseAsset: "ALPHA_17", quoteAsset: "USDC", status: "TRADING" },

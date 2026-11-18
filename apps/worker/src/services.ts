@@ -56,7 +56,7 @@ export async function queueResearchAlerts() {
   if (!c.TELEGRAM_ENABLED) return;
   const sql = sqlClient();
   const rows =
-    await sql`SELECT s.*,t.symbol,t.chain_id,t.contract,t.metadata FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id LEFT JOIN watchlists w ON w.token_id=t.id WHERE s.status='active' AND s.first_detected_at>now()-interval '15 minutes' AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR (w.token_id IS NOT NULL AND NOT w.archived)) AND NOT EXISTS (SELECT 1 FROM notification_deliveries n WHERE n.signal_id=s.id AND n.channel='telegram') LIMIT 10`;
+    await sql`SELECT s.*,t.symbol,t.chain_id,t.contract,t.metadata FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id LEFT JOIN watchlists w ON w.token_id=t.id WHERE s.status='active' AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR (w.token_id IS NOT NULL AND NOT w.archived)) AND NOT EXISTS (SELECT 1 FROM notification_deliveries n WHERE n.signal_id=s.id AND n.channel='telegram') ORDER BY s.first_detected_at LIMIT 100`;
   for (const s of rows) {
     const evidence =
       await sql`SELECT * FROM signal_evidence WHERE signal_id=${s.id} LIMIT 3`;

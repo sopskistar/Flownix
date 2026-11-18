@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { collectPassiveSwaps } from "./passive-swaps";
+import { scanSolanaToken } from "./solana";
 import {
   AlphaProvider,
   bookQuote,
@@ -8,6 +9,7 @@ import {
   normalizeRegistry,
   preferredAlphaPair,
   evmChains,
+  configuredEvmRpc,
   EvmProvider,
   decodeTransfer,
   detectTransferActivity,
@@ -95,14 +97,10 @@ export async function registrySync() {
     await tx`UPDATE alpha_tokens SET status='removed',deep_selected=false WHERE NOT (id=ANY(${ids}))`;
     await tx`INSERT INTO alpha_membership_snapshots(observed_at,source,response_hash,raw,token_count,changes) VALUES(${o.observedAt},${o.source},${o.hash},${jsonParam(JSON.parse(o.raw))}::jsonb,${tokens.length},${jsonParam(changes)}::jsonb)`;
   });
-  const pins = await settingsValue<string[]>("deep_research_pins", []);
-  const candidates =
-    await sql`SELECT t.id,t.symbol,t.chain_id,t.metadata FROM alpha_tokens t JOIN token_project_classifications rc ON rc.token_id=t.id AND rc.classification='verified_non_meme' LEFT JOIN watchlists w ON w.token_id=t.id WHERE t.status='current' AND t.chain_id IN ('56','1','8453') AND CASE WHEN (t.metadata->>'liquidity') ~ '^[0-9]+([.][0-9]+)?$' THEN (t.metadata->>'liquidity')::numeric END>=${config().MIN_LIQUIDITY_USD} ORDER BY (t.id=ANY(${pins})) DESC,(w.token_id IS NOT NULL AND NOT w.archived) DESC,(t.metadata->>'liquidity')::numeric DESC,t.id LIMIT ${config().DEEP_TOKEN_LIMIT}`;
-  await sql.begin(async (tx) => {
-    await tx`UPDATE alpha_tokens SET deep_selected=false`;
-    if (candidates.length)
-      await tx`UPDATE alpha_tokens SET deep_selected=true WHERE id=ANY(${candidates.map((t) => t.id)}) AND EXISTS (SELECT 1 FROM token_project_classifications rc WHERE rc.token_id=alpha_tokens.id AND rc.classification='verified_non_meme')`;
-  });
+  // Do not build a top-N research universe. Intensive work is driven by
+  // manually pinned tokens and the persistent anomaly queue; baseline scans
+  // are scheduled for every supported online Alpha identity.
+  const candidates = await sql`SELECT count(*)::int AS n FROM alpha_tokens WHERE deep_selected AND status='current'`;
   await setSetting("registry_sync", {
     at: o.observedAt,
     count: tokens.length,
@@ -119,7 +117,7 @@ export async function registrySync() {
           tokens.filter((t) => t.chainId === c).length,
         ]),
       ),
-      deepSelected: candidates.length,
+      manuallyPrioritized: candidates[0]?.n ?? 0,
     }),
   );
 }
@@ -316,6 +314,13 @@ export async function scanToken(
     await sql`SELECT * FROM alpha_tokens WHERE id=${id} AND status='current'`;
   const t = rows[0];
   if (!t) return;
+  if (t.chain_id === "CT_501")
+    return scanSolanaToken(t as { id: string; chain_id: string; contract: string; last_seen: string });
+  const intensive = Boolean(t.deep_selected) || (await sql`
+    SELECT 1 FROM token_investigation_queue q WHERE q.token_id=${id} AND q.active
+    UNION ALL SELECT 1 FROM watchlists w WHERE w.token_id=${id} AND NOT w.archived
+    LIMIT 1
+  `).length > 0;
   const c = config();
   if (
     Date.now() - new Date(t.last_seen).getTime() >
@@ -324,14 +329,15 @@ export async function scanToken(
     throw Error("STALE_MEMBERSHIP");
   const chain = evmChains[t.chain_id];
   if (!chain) return;
+  const rpcUrl = configuredEvmRpc(t.chain_id);
+  // Alchemy's documented free-tier eth_getLogs span is ten blocks. Clamp
+  // larger local settings so baseline jobs do not silently fail with range errors.
+  const blockLimit = new URL(rpcUrl).hostname.endsWith("alchemy.com")
+    ? Math.min(c.SCAN_BLOCKS, 10)
+    : c.SCAN_BLOCKS;
   const rpc = new EvmProvider(
     t.chain_id,
-    process.env[chain.env] ??
-      (t.chain_id === "56"
-        ? c.BSC_RPC_URL
-        : t.chain_id === "1"
-          ? c.ETH_RPC_URL
-          : c.BASE_RPC_URL),
+    rpcUrl,
     new HttpClient(`rpc:${t.chain_id}`, 60, auditRequest),
   );
   const head = await rpc.head();
@@ -362,14 +368,16 @@ export async function scanToken(
     replay?.from ??
     (cursor
       ? Number(cursor.block_number) + 1
-      : Math.max(0, target - c.SCAN_BLOCKS + 1));
-  const to = replay?.to ?? Math.min(target, from + c.SCAN_BLOCKS - 1);
+      : Math.max(0, target - blockLimit + 1));
+  const to = replay
+    ? Math.min(replay.to, from + blockLimit - 1)
+    : Math.min(target, from + blockLimit - 1);
   if (
     !Number.isSafeInteger(from) ||
     !Number.isSafeInteger(to) ||
     from < 0 ||
     to > target ||
-    to - from >= c.SCAN_BLOCKS
+    to - from >= blockLimit
   )
     throw Error("INVALID_SCAN_WINDOW");
   if (to < from) return;
@@ -461,30 +469,30 @@ export async function scanToken(
     await tx`INSERT INTO scan_windows(token_id,from_block,to_block,start_time,end_time,available_at,count,complete) VALUES(${id},${from},${to},${startTime},${endTime},${observedAt},${transfers.filter((t) => t.kind === "unknown_transfer").length},true) ON CONFLICT DO NOTHING`;
   });
   // Bounded balance samples of observed addresses, not a holder leaderboard.
-  const monitors =
-    await sql`SELECT address FROM wallet_monitoring WHERE token_id=${id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 3`;
-  const addresses = [
-    ...new Set([
-      ...monitors.map((m) => String(m.address)),
-      ...transfers.flatMap((t) => [t.from, t.to]),
-    ]),
-  ]
-    .filter((a) => !/^0x0{40}$/.test(a))
-    .slice(0, 3);
-  for (const a of addresses) {
-    try {
-      const b = await rpc.balance(a, t.contract, to);
-      await sql`INSERT INTO wallet_balance_snapshots(chain_id,address,token_id,block_number,block_hash,raw_quantity,observed_at,source,block_time,decimals) VALUES(${t.chain_id},${a},${id},${to},${blocks.get(to)!.data.hash},${b.data},${b.observedAt},${b.source},${endTime},${decimals}) ON CONFLICT DO NOTHING`;
-    } catch {
-      await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${id},${"rpc:" + t.chain_id},'balance_unavailable','Historic balance call failed; transfer evidence remains available.')`;
+  if (intensive) {
+    const monitors =
+      await sql`SELECT address FROM wallet_monitoring WHERE token_id=${id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`;
+    const addresses = [
+      ...new Set([
+        ...monitors.map((m) => String(m.address)),
+        ...transfers.flatMap((t) => [t.from, t.to]),
+      ]),
+    ].filter((a) => !/^0x0{40}$/.test(a));
+    for (const a of addresses) {
+      try {
+        const b = await rpc.balance(a, t.contract, to);
+        await sql`INSERT INTO wallet_balance_snapshots(chain_id,address,token_id,block_number,block_hash,raw_quantity,observed_at,source,block_time,decimals) VALUES(${t.chain_id},${a},${id},${to},${blocks.get(to)!.data.hash},${b.data},${b.observedAt},${b.source},${endTime},${decimals}) ON CONFLICT DO NOTHING`;
+      } catch {
+        await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${id},${"rpc:" + t.chain_id},'balance_unavailable','Historic balance call failed; transfer evidence remains available.')`;
+      }
     }
+    await collectPassiveSwaps(
+      t as { id: string; chain_id: string; contract: string },
+      rpc,
+      from,
+      to,
+    );
   }
-  await collectPassiveSwaps(
-    t as { id: string; chain_id: string; contract: string },
-    rpc,
-    from,
-    to,
-  );
   const market = (
     await sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1`
   )[0];
@@ -538,27 +546,14 @@ export async function scanToken(
   });
   await sql`INSERT INTO detection_traces(token_id,from_block,to_block,computed_at,rule_version,reason,evidence) VALUES(${id},${from},${to},${observedAt},'transfer-activity/1.0.0',${result.reason},${jsonParam({ sourceHash: logs.hash, events: transfers.length, baselineWindows: baseline.length, signalEmitted: !!result.signal, classification: "Transfers are not purchases" })}::jsonb)`;
   if (result.signal) {
-    const researchClass = await sql`SELECT classification FROM token_project_classifications WHERE token_id=${id}`;
-    if (researchClass[0]?.classification !== "verified_non_meme") {
-      await setSetting(`trace:${id}`, {
-        at: observedAt, from, to, events: transfers.length,
-        reason: "research_classification_ineligible",
-        rule: "transfer-activity/1.0.0",
-        detail: "Potential transfer-activity alert suppressed: no owner-reviewed non-meme classification with cited evidence.",
-      });
-      await sql`UPDATE detection_traces SET reason='research_classification_ineligible',evidence=evidence || ${jsonParam({ signalSuppressed: true, suppressionReason: "No owner-reviewed non-meme classification" })}::jsonb WHERE token_id=${id} AND from_block=${from} AND to_block=${to} AND computed_at=${observedAt}`;
-      return;
-    }
     const s = result.signal;
-    const previous =
-      await sql`SELECT id FROM signal_events WHERE token_id=${id} AND kind=${s.kind} AND first_detected_at>now()-(${c.SIGNAL_COOLDOWN_MINUTES} * interval '1 minute')`;
-    if (previous.length) return;
     const signalId = randomUUID();
     await sql.begin(async (tx) => {
       await tx`INSERT INTO signal_events(id,token_id,kind,rule_version,stage,first_detected_at,computed_at,data_available_at,price_at_detection,quote_asset,market_snapshot_id,evidence_confidence,thresholds,observed,counter_evidence,message) VALUES(${signalId},${id},${s.kind},${s.ruleVersion},${s.stage},${s.firstDetectedAt},${s.computedAt},${s.dataAvailableAt},${s.priceAtDetection},${s.quoteAsset},${market.id},${s.evidenceConfidence},${jsonParam(s.thresholds)}::jsonb,${jsonParam(s.observed)}::jsonb,${jsonParam(s.counterEvidence)}::jsonb,'Unusual confirmed transfer count relative to this token’s prior equal-block windows. Not evidence of buying or accumulation.')`;
       for (const e of s.evidence)
         await tx`INSERT INTO signal_evidence(signal_id,chain_id,tx_hash,log_index) VALUES(${signalId},${e.chain},${e.txHash},${e.logIndex}) ON CONFLICT DO NOTHING`;
       await tx`INSERT INTO notification_deliveries(id,signal_id,channel,status,payload) VALUES(${randomUUID()},${signalId},'in_app','delivered',${jsonParam({ kind: s.kind, token: t.symbol, at: observedAt })}::jsonb)`;
+      await tx`INSERT INTO token_investigation_queue(token_id,priority,reasons,last_queued_at,next_investigation_at,active,resolved_at) VALUES(${id},50,jsonb_build_array(${jsonParam({ kind: s.kind, detectedAt: observedAt, rule: s.ruleVersion })}::jsonb),now(),now(),true,NULL) ON CONFLICT(token_id) DO UPDATE SET priority=least(token_investigation_queue.priority,excluded.priority),reasons=token_investigation_queue.reasons||excluded.reasons,last_queued_at=now(),next_investigation_at=least(token_investigation_queue.next_investigation_at,now()),active=true,resolved_at=NULL`;
     });
   }
   console.log(

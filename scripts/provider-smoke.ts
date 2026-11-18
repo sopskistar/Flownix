@@ -6,6 +6,7 @@ import {
   HttpClient,
   EvmProvider,
   evmChains,
+  configuredEvmRpc,
   normalizeRegistry,
   ProviderError,
   networkErrorCode,
@@ -107,12 +108,7 @@ try {
       try {
         const rpc = new EvmProvider(
           chain,
-          process.env[info.env] ??
-            (chain === "56"
-              ? config().BSC_RPC_URL
-              : chain === "1"
-                ? config().ETH_RPC_URL
-                : config().BASE_RPC_URL),
+          process.env[info.env] ?? configuredEvmRpc(chain),
           new HttpClient(`rpc:${chain}`, 30, audit),
         );
         const head = await rpc.head(),

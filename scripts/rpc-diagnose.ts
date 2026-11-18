@@ -19,18 +19,17 @@ const chain = process.argv[2] ?? "8453",
   c = config();
 const timer = setInterval(() => {}, 1000);
 try {
-  if (!["1", "56", "8453"].includes(chain)) throw Error("UNSUPPORTED_CHAIN");
+  if (!["1", "56", "8453", "42161"].includes(chain)) throw Error("UNSUPPORTED_CHAIN");
+  const envName = evmChains[chain].env;
+  const endpoint = process.env[envName];
+  if (!endpoint) throw Error(`${envName}_NOT_CONFIGURED`);
+  if (!new URL(endpoint).hostname.endsWith("alchemy.com")) throw Error(`${envName}_IS_NOT_ALCHEMY`);
   const rows =
     await sqlClient()`SELECT id,contract FROM alpha_tokens WHERE chain_id=${chain} AND alpha_id IS NOT NULL AND status='current' ORDER BY id LIMIT 1`;
   if (!rows.length) throw Error("NO_VERIFIED_ALPHA_TOKEN");
   const rpc = new EvmProvider(
     chain,
-    process.env[evmChains[chain].env] ??
-      (chain === "56"
-        ? c.BSC_RPC_URL
-        : chain === "1"
-          ? c.ETH_RPC_URL
-          : c.BASE_RPC_URL),
+    endpoint,
     new HttpClient(`rpc:${chain}`, 10, auditRequest),
   );
   const results: Record<string, unknown> = {},
@@ -41,6 +40,8 @@ try {
     ["confirmed_block", () => rpc.block(block)],
     ["contract_code", () => rpc.code(rows[0].contract, block)],
     ["decimals", () => rpc.decimals(rows[0].contract, block)],
+    ["historical_block", () => rpc.block(Math.max(0, head - 1_000_000))],
+    ["historical_balance_of", () => rpc.balance("0x0000000000000000000000000000000000000000", rows[0].contract, Math.max(0, head - 1_000_000))],
     [
       "transfer_logs_10_blocks",
       () => rpc.logs(rows[0].contract, block - 9, block),
@@ -97,13 +98,14 @@ try {
     head,
     confirmed: block,
     results,
-    limitations:
-      "Connectivity diagnostics only; no token events or completed coverage window were ingested by this command",
+    provider: "Alchemy",
+    limitations: "Read-only point probes only; not a complete history, ledger, replay or coverage proof",
   };
   await setSetting(`rpc_diagnostic:${chain}`, report);
   console.log(JSON.stringify(report, null, 2));
 } catch (e) {
-  console.error(networkErrorCode(e));
+  const message = e instanceof Error ? e.message : "RPC_DIAGNOSTIC_FAILED";
+  console.error(/^(ETH_RPC_URL|BSC_RPC_URL|BASE_RPC_URL|ARBITRUM_RPC_URL)_(NOT_CONFIGURED|IS_NOT_ALCHEMY)$/.test(message) ? message : networkErrorCode(e));
   process.exitCode = 1;
 } finally {
   await closeDb();

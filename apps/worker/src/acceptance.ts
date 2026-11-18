@@ -4,7 +4,7 @@ import {
   EvmProvider,
   HttpClient,
   config,
-  evmChains,
+  configuredEvmRpc,
   decodeTransfer,
   explorerUrl,
   networkErrorCode,
@@ -109,10 +109,19 @@ async function main() {
         const cursor = (
           await sql`SELECT block_number::text AS block FROM block_cursors WHERE token_id=${sample.token_id}`
         )[0];
-        await scanToken(sample.token_id, {
-          from: Number(sample.from_block),
-          to: Number(sample.to_block),
-        });
+        const endpoint = configuredEvmRpc(sample.chain_id);
+        const blockLimit = new URL(endpoint).hostname.endsWith("alchemy.com")
+          ? Math.min(config().SCAN_BLOCKS, 10)
+          : config().SCAN_BLOCKS;
+        for (
+          let from = Number(sample.from_block);
+          from <= Number(sample.to_block);
+          from += blockLimit
+        )
+          await scanToken(sample.token_id, {
+            from,
+            to: Math.min(Number(sample.to_block), from + blockLimit - 1),
+          });
         const after = (
           await sql`SELECT count(*)::int AS count,min(available_at) AS first FROM token_transfers WHERE token_id=${sample.token_id}`
         )[0];
@@ -141,12 +150,7 @@ async function main() {
       for (const event of events) {
         const rpc = new EvmProvider(
           event.chain_id,
-          process.env[evmChains[event.chain_id].env] ??
-            (event.chain_id === "56"
-              ? config().BSC_RPC_URL
-              : event.chain_id === "1"
-                ? config().ETH_RPC_URL
-                : config().BASE_RPC_URL),
+          configuredEvmRpc(event.chain_id),
           new HttpClient(`rpc:${event.chain_id}`, 30, auditRequest),
         );
         await rpc.head();

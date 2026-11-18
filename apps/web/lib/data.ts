@@ -39,6 +39,7 @@ export type Health = {
     online: number;
     eligiblePairs: number;
     freshPrices: number;
+    stalePrices: number;
     missingPair: number;
     errors: number;
     pending: number;
@@ -62,6 +63,17 @@ export type Health = {
     last_error: string | null;
     attempts: number;
   }[];
+  scanCoverage: {
+    eligible: number;
+    scheduled: number;
+    missingJobs: number;
+    due: number;
+    retrying: number;
+    oldestDue: string | null;
+    unsupported: number;
+    intensive: number;
+    intensiveWaiting: number;
+  };
   chains: {
     chain_id: string;
     chain_name: string;
@@ -70,6 +82,7 @@ export type Health = {
     deep: number;
     scanned: number;
     last_scan: string | null;
+    coverage_gap: boolean;
   }[];
   changes: Record<string, string[]> | null;
 };
@@ -77,15 +90,16 @@ export async function health(): Promise<Health> {
   await requireAccess();
   try {
     const sql = sqlClient();
-    const [settings, providers, jobs, chains, snapshots, market] = await Promise.all([
+    const [settings, providers, jobs, chains, snapshots, market, scanCoverage] = await Promise.all([
       sql`SELECT key,value FROM settings WHERE key IN ('registry_sync','worker_heartbeat','market_coverage_sync')`,
       sql`SELECT provider,max(started_at) AS last_attempt,max(started_at) FILTER(WHERE ok) AS last_ok,count(*)::int AS calls,count(*) FILTER(WHERE NOT ok)::int AS failures,sum(cost_usd)::text AS cost FROM provider_runs WHERE started_at>now()-interval '24 hours' GROUP BY provider ORDER BY provider`,
       sql`SELECT key,kind,status,run_after,last_error,attempts FROM worker_jobs ORDER BY run_after LIMIT 30`,
-      sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.status='current')::int AS active,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(c.token_id)::int AS scanned,max(c.scanned_at) AS last_scan FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
+      sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.status='current')::int AS active,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(DISTINCT coalesce(c.token_id,sc.token_id))::int AS scanned,max(coalesce(c.scanned_at,sc.scanned_at)) AS last_scan,coalesce(bool_or(sc.coverage_gap),false) AS coverage_gap FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN (SELECT token_id,max(scanned_at) AS scanned_at,bool_or(coverage_gap) AS coverage_gap FROM solana_account_cursors GROUP BY token_id) sc ON sc.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
       sql`SELECT changes FROM alpha_membership_snapshots ORDER BY observed_at DESC LIMIT 1`,
       sql`SELECT count(*) FILTER(WHERE t.status='current')::int AS online,
         count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL)::int AS eligible_pairs,
         count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND m.observed_at>now()-interval '15 minutes')::int AS fresh_prices,
+        count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND m.observed_at<=now()-interval '15 minutes')::int AS stale_prices,
         count(*) FILTER(WHERE t.status='current' AND m.status='no_pair')::int AS missing_pair,
         count(*) FILTER(WHERE t.status='current' AND m.status='error')::int AS errors,
         count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL AND m.token_id IS NULL)::int AS pending,
@@ -93,6 +107,16 @@ export async function health(): Promise<Health> {
         max(m.observed_at) AS latest
         FROM alpha_tokens t LEFT JOIN market_coverage m ON m.token_id=t.id
         LEFT JOIN LATERAL (SELECT 1 AS token_id FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL) LIMIT 1) s ON true`,
+      sql`SELECT
+        (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND chain_id IN ('56','1','8453','42161','CT_501')) AS eligible,
+        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501')) AS scheduled,
+        (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND NOT EXISTS(SELECT 1 FROM worker_jobs j WHERE j.key='scan:'||t.id AND j.kind='scan')) AS missing_jobs,
+        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND j.run_after<=now()) AS due,
+        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND j.status='retry') AS retrying,
+        (SELECT min(j.run_after) FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND j.run_after<=now()) AS oldest_due,
+        (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND chain_id NOT IN ('56','1','8453','42161','CT_501')) AS unsupported,
+        (SELECT count(*)::int FROM token_investigation_queue WHERE active) AS intensive,
+        (SELECT count(*)::int FROM token_investigation_queue WHERE active AND next_investigation_at<=now()) AS intensive_waiting`,
     ]);
     const s = Object.fromEntries(settings.map((s) => [s.key, s.value]));
     return JSON.parse(
@@ -105,6 +129,7 @@ export async function health(): Promise<Health> {
           online: Number(market[0]?.online ?? 0),
           eligiblePairs: Number(market[0]?.eligible_pairs ?? 0),
           freshPrices: Number(market[0]?.fresh_prices ?? 0),
+          stalePrices: Number(market[0]?.stale_prices ?? 0),
           missingPair: Number(market[0]?.missing_pair ?? 0),
           errors: Number(market[0]?.errors ?? 0),
           pending: Number(market[0]?.pending ?? 0),
@@ -114,6 +139,17 @@ export async function health(): Promise<Health> {
         heartbeat: s.worker_heartbeat ?? null,
         providers,
         jobs,
+      scanCoverage: {
+        eligible: Number(scanCoverage[0]?.eligible ?? 0),
+        scheduled: Number(scanCoverage[0]?.scheduled ?? 0),
+        missingJobs: Number(scanCoverage[0]?.missing_jobs ?? 0),
+        due: Number(scanCoverage[0]?.due ?? 0),
+        retrying: Number(scanCoverage[0]?.retrying ?? 0),
+        oldestDue: scanCoverage[0]?.oldest_due ?? null,
+        unsupported: Number(scanCoverage[0]?.unsupported ?? 0),
+        intensive: Number(scanCoverage[0]?.intensive ?? 0),
+        intensiveWaiting: Number(scanCoverage[0]?.intensive_waiting ?? 0),
+      },
         chains: chains.map((ch) => ({ ...ch, chain_name: String(ch.chain_id) === "4663" ? "Robinhood Chain" : ch.chain_name })),
         changes: snapshots[0]?.changes ?? null,
       }),
@@ -124,10 +160,11 @@ export async function health(): Promise<Health> {
       error:
         "Database unavailable. Configure DATABASE_URL and run pnpm db:migrate.",
       registry: null,
-      market: { at: null, online: 0, eligiblePairs: 0, freshPrices: 0, missingPair: 0, errors: 0, pending: 0, registryPrices: 0, lastCycle: null },
+      market: { at: null, online: 0, eligiblePairs: 0, freshPrices: 0, stalePrices: 0, missingPair: 0, errors: 0, pending: 0, registryPrices: 0, lastCycle: null },
       heartbeat: null,
       providers: [],
       jobs: [],
+      scanCoverage: { eligible: 0, scheduled: 0, missingJobs: 0, due: 0, retrying: 0, oldestDue: null, unsupported: 0, intensive: 0, intensiveWaiting: 0 },
       chains: [],
       changes: null,
     };

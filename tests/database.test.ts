@@ -54,6 +54,37 @@ describe.skipIf(!enabled)(
             (await tx`SELECT status FROM alpha_tokens WHERE id=${id}`)[0]
               .status,
           ).toBe("removed");
+          const universe = Array.from({ length: 251 }, (_, i) => ({
+            id: i.toString(16).padStart(32, "0"),
+            chain_id: "56",
+            contract: "0x" + (i + 1000).toString(16).padStart(40, "0"),
+            symbol: `A${i}`,
+            name: `Alpha fixture ${i}`,
+            token_id: `opaque-${i}`,
+            alpha_id: `ALPHA_${i}`,
+            status: "current",
+            first_seen: new Date().toISOString(),
+            last_seen: new Date().toISOString(),
+            source: "synthetic-test-only",
+            response_hash: hash,
+            metadata: {},
+          }));
+          await tx`INSERT INTO alpha_tokens(id,chain_id,contract,symbol,name,token_id,alpha_id,status,first_seen,last_seen,source,response_hash,metadata) SELECT id,chain_id,contract,symbol,name,token_id,alpha_id,status,first_seen,last_seen,source,response_hash,metadata FROM jsonb_to_recordset(${jsonParam(universe)}::jsonb) AS r(id text,chain_id text,contract text,symbol text,name text,token_id text,alpha_id text,status text,first_seen timestamptz,last_seen timestamptz,source text,response_hash text,metadata jsonb)`;
+          const scanJobs = universe.map((t) => ({
+            key: `scan:${t.id}`,
+            kind: "scan",
+            payload: { tokenId: t.id, chainId: t.chain_id },
+          }));
+          await tx`INSERT INTO worker_jobs(key,kind,payload) SELECT key,kind,payload FROM jsonb_to_recordset(${jsonParam(scanJobs)}::jsonb) AS r(key text,kind text,payload jsonb)`;
+          let visited = 0;
+          while (true) {
+            const batch = await tx`SELECT key FROM worker_jobs WHERE kind='scan' AND run_after<=now() ORDER BY run_after,key LIMIT 100 FOR UPDATE`;
+            if (!batch.length) break;
+            visited += batch.length;
+            const keys = batch.map((r) => r.key);
+            await tx`UPDATE worker_jobs SET run_after=now()+interval '1 day',status='done' WHERE key=ANY(${keys})`;
+          }
+          expect(visited).toBe(251); // More than two batches; no permanent universe cap.
           for (let i = 0; i < 2; i++) {
             // ORM construction must not mutate the raw client's JSON serializers.
             database();

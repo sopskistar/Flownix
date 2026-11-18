@@ -4,6 +4,7 @@ import {
   HttpClient,
   EvmProvider,
   evmChains,
+  configuredEvmRpc,
   normalizeRegistry,
   freshness,
   ProviderError,
@@ -83,13 +84,7 @@ try {
 if (process.argv.includes("--rpc")) {
   for (const [chain, info] of Object.entries(evmChains)) {
     try {
-      const url =
-        process.env[info.env] ??
-        (chain === "1"
-          ? c.ETH_RPC_URL
-          : chain === "56"
-            ? c.BSC_RPC_URL
-            : c.BASE_RPC_URL);
+      const url = process.env[info.env] ?? configuredEvmRpc(chain);
       const rpc = new EvmProvider(
         chain,
         url,
