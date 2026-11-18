@@ -47,6 +47,10 @@ A direct bounded Solana baseline invocation for the verified Fartcoin identity p
 
 The current market-coverage table reports **0 fresh, 316 stale, 62 no-pair, 0 errors**. A recent registry metadata price is not substituted for a fresh executable Alpha ticker. The collector is not continuously hosted.
 
+At 2026-11-18 14:36 UTC, scan jobs were **335 queued, 23 retrying, 0 done** in the current batch state. The existing Neon database measured **79,921,152 bytes** (about 76.2 MiB). Its RPC audit table recorded 83 HTTP attempts in the preceding two hours: 80 successful responses and 3 failures (BSC connect timeout; Solana timeout and the now-fixed signature-schema error). These are request counts, not Alchemy CU billing. Neon SQL activity/compute usage and account-level Alchemy CU consumption were not available from this local check.
+
+The worker profile collector was not enabled during the 90-second EVM scan attempt or 180-second Solana attempt. Therefore CPU, RSS/heap peak and socket byte totals for these live jobs were **not measured**; those bounded runs are not a complete-cycle resource benchmark.
+
 ## Evidence and system state
 
 - Existing canonical EVM transfers: **180**; existing decoded swap interpretations: **18**. No new canonical EVM transfer was stored by the bounded worker attempt.
