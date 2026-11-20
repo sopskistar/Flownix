@@ -9,7 +9,7 @@ import {
 } from "@flownix/core";
 import { jsonParam, sqlClient, closeDb, setSetting } from "@flownix/db";
 import { registrySync, marketSync, scanToken } from "./ingest";
-import { reconcileScanJobs } from "./scheduler";
+import { reconcileScanJobs, SUPPORTED_BASELINE_CHAINS } from "./scheduler";
 import {
   queueResearchAlerts,
   deliverNotifications,
@@ -41,6 +41,7 @@ let stopping = false;
 let ownsLock = false;
 let collectorLock: Awaited<ReturnType<typeof sql.reserve>> | undefined;
 let activeJob: string | null = null;
+let drainScanAfterRegistry = false;
 let pulsing = false;
 const platform = ["oracle", "digitalocean", "gcp", "aws", "linux"].includes(
   process.env.WORKER_PLATFORM ?? "",
@@ -87,16 +88,24 @@ const stopTimer =
   duration > 0
     ? setTimeout(() => {
         stopping = true;
-        stopProviderRequests();
+        // A bounded invocation may finish its current provider call. If the
+        // time budget expires during membership refresh, permit one baseline
+        // scan afterward so a successful refresh does not consume the whole
+        // run without producing any token observation.
+        if (
+          activeJob === "registry" &&
+          (
+            process.env.WORKER_JOB_KINDS?.split(",") ?? Object.keys(intervals)
+          ).includes("scan")
+        )
+          drainScanAfterRegistry = true;
       }, duration * 1000)
     : undefined;
 process.on("SIGINT", () => {
   stopping = true;
-  stopProviderRequests();
 });
 process.on("SIGTERM", () => {
   stopping = true;
-  stopProviderRequests();
 });
 const intervals: Record<string, number> = {
   registry: 900,
@@ -125,7 +134,7 @@ async function next(excluded: string[] = []) {
     throw Error("INVALID_JOB_KINDS");
   return sql.begin(async (tx) => {
     const rows =
-      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,CASE WHEN kind='scan' AND EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=worker_jobs.payload->>'tokenId' AND q.active) THEN 0 ELSE 1 END,key FOR UPDATE SKIP LOCKED LIMIT 1`;
+      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (kind<>'scan' OR EXISTS(SELECT 1 FROM alpha_tokens t WHERE t.id=worker_jobs.payload->>'tokenId' AND t.status='current' AND t.chain_id=ANY(${[...SUPPORTED_BASELINE_CHAINS]}))) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,CASE WHEN kind='scan' AND EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=worker_jobs.payload->>'tokenId' AND q.active) THEN 0 ELSE 1 END,key FOR UPDATE SKIP LOCKED LIMIT 1`;
     if (!rows.length) return null;
     const job = rows[0];
     await tx`UPDATE worker_jobs SET status='running',owner=${owner},lease_until=now()+interval '2 minutes',updated_at=now() WHERE key=${job.key}`;
@@ -162,17 +171,22 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     ]).catch(() => {});
   }, 15000);
   try {
-    if (job.kind === "registry") await registrySync();
-    else if (job.kind === "market") await marketSync();
+    if (job.kind === "registry") {
+      await registrySync();
+      // Registry refresh can add identities. Reconcile immediately rather
+      // than waiting for the next scheduler tick before scans become eligible.
+      await reconcileScanJobs();
+    } else if (job.kind === "market") await marketSync();
     else if (job.kind === "scan") await scanToken(job.payload.tokenId);
     else if (job.kind === "notifications") {
       await queueResearchAlerts();
       await deliverNotifications();
     } else if (job.kind === "outcomes") await outcomesSync();
     else if (job.kind === "persistence") await persistenceSync();
-    const delay = job.kind === "scan" && job.payload?.chainId === "CT_501"
-      ? conf.SOLANA_BASELINE_INTERVAL_SECONDS
-      : intervals[job.kind] ?? 300;
+    const delay =
+      job.kind === "scan" && job.payload?.chainId === "CT_501"
+        ? conf.SOLANA_BASELINE_INTERVAL_SECONDS
+        : (intervals[job.kind] ?? 300);
     await sql`UPDATE worker_jobs SET status='done',attempts=0,lease_until=null,owner=null,last_error=null,run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
     if (job.kind === "scan" && job.payload?.tokenId) {
       await sql`UPDATE token_investigation_queue SET last_investigated_at=now(),next_investigation_at=now()+(${delay}*interval '1 second') WHERE token_id=${job.payload.tokenId} AND active`;
@@ -217,7 +231,7 @@ async function main() {
     const seen = new Set<string>();
     let failed = false;
     let scheduledAt = 0;
-    while (!stopping) {
+    while (!stopping || drainScanAfterRegistry) {
       if (process.argv.includes("--idle")) {
         profile.phase("idle");
         await new Promise((r) => setTimeout(r, 1000));
@@ -239,10 +253,12 @@ async function main() {
       }
       const job = await next(once ? [...seen] : []);
       if (!job) {
-        if (once) break;
+        if (once || stopping) break;
         await new Promise((r) => setTimeout(r, 30000));
         continue;
       }
+      if (stopping && drainScanAfterRegistry && job.kind === "scan")
+        drainScanAfterRegistry = false;
       seen.add(job.key);
       if (!(await runJob(job))) failed = true;
     }

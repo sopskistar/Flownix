@@ -1,5 +1,17 @@
 # Coverage register
 
+## Scheduler recovery snapshot — 2026-11-20 UTC
+
+The latest authenticated registry refresh stored **686 official identities: 378 online, 308 offline**. Current online network counts are ETH 18, BSC 289, Base 26, Arbitrum 2, Solana 22, Sonic 4, chain ID 4663 5, TRON 3 and Sui 9. The five configured adapters cover 357 online identities; the remaining 21 retain registry provenance but have no baseline chain adapter.
+
+Two bounded local worker invocations completed **14 supported-token scan jobs** and persisted cursors. The final queue snapshot was 14 done, 24 retrying, 320 queued, 0 running, with 344 still due. There is one scan job for a non-current identity awaiting reconciliation. Current cursor rows: 6 Ethereum, 19 BSC, 1 Base, 0 Arbitrum and 0 Solana. Cursor-row totals include pre-existing data. This is partial progress, not a complete cycle and not evidence of 14 newly reconstructed holder histories.
+
+Eight new canonical Transfer logs were stored: four for MSFTon and four for RION, both on BSC. For every event the scan fetched the containing block and matched the returned log's block hash before persisting it. These are canonical-at-observation log/block checks; the new events were not separately checked with transaction-receipt calls. MSFTon includes a mint and three unknown transfers; RION has four unknown transfers. None is a verified purchase. References and exact hashes are recorded in [activation verification](ACTIVATION_VERIFICATION.md). The total canonical EVM transfer count is now **188**, versus 180 before the cycle. Accumulation signal count remains **zero**; the observed scans were suppressed because fresh Alpha price and minimum-liquidity evidence was unavailable.
+
+The interrupted Base scan lease expired and the next worker process selected and completed that same RECALL job, demonstrating durable lease recovery. The remaining Solana baseline attempt returned provider error `SOLANA_RPC_-32015`; no Solana cursor advanced. Neon status reads later succeeded with the existing direct worker connection. After the bounded multi-address connector change, two new read-only worker-connection queries succeeded (3.9s and 3.4s); database size was 82,640,896 bytes. Earlier `ETIMEOUT` and `EHOSTUNREACH` were intermittent connection-stage failures; no SQL saturation or active advisory lock was found. The worker's custom connector now tries up to three resolved IPv4 addresses with bounded connection timeouts and preserves TLS verification. This mitigation has not been validated against a subsequent repeated Neon outage.
+
+The local worker is not continuously hosted. Market observations are still stale unless another collector run refreshes them. Full-universe market freshness, historical Alpha membership before observation, complete transfer histories, 7–180-day holder retention, verified Binance/Bitget attribution, project/market-maker labels, Telegram delivery, and predictive value are not established by this work.
+
 ## Activation verification — 2026-11-18
 
 Use [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md) as the latest live snapshot. The ignored worker file now contains all five RPC variables. The registry refreshed to 686 identities / 378 online / 308 offline. The five-network scheduler reconciled 357 current jobs; a 90-second worker run attempted 23 and failed all 23 with `NETWORK_OR_PARSE_ERROR`, advancing no EVM cursors. The 21 other online identities are Sonic (4), Robinhood Chain (5; Binance registry label `Robinhood`, chain ID 4663), TRON (3), and Sui (9).

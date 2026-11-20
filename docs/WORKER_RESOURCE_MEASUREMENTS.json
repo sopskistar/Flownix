@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T02:12:38.366Z",
+  "generatedAt": "2026-11-20T01:05:25.481Z",
   "scope": "Local Node-process measurements. No hosted worker, full production soak, 50-token or 100-token live benchmark. Socket counters approximate TCP traffic including PostgreSQL; billing differs. Large sampling gaps excluded from CPU averages. resourceUsage.maxRSS inherited before exec was 539 MiB even at startup; use Linux VmHWM where present and sampled RSS otherwise. Samples omit tsx helper, OS and Docker overhead. Database server CPU during writes was not measured.",
   "runs": [
     {
@@ -144,6 +144,205 @@
         "requestErrors:rpc:56": 11,
         "requests:rpc:1": 20,
         "requestErrors:rpc:1": 4
+      }
+    },
+    {
+      "file": "worker-2026-11-18T16-07-10.426Z.json",
+      "startedAt": "2026-11-18T16:07:10.426Z",
+      "measuredAt": "2026-11-18T16:07:20.457Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 4,
+      "elapsedSeconds": 10.031,
+      "activeSampleSeconds": 10.030000000000001,
+      "maxSampleGapSeconds": 5.002999999999999,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 95.8056640625,
+      "peakSampleRssMiB": 104.0234375,
+      "linuxHighWaterMiB": 105.734375,
+      "peakHeapUsedMiB": 25.836990356445312,
+      "meanActiveSampleCpuPercent": 2.030977068793619,
+      "peakIntervalCpuPercent": 18.976923076923224,
+      "phases": {
+        "startup": {
+          "activeSeconds": 10.030000000000001,
+          "meanCpuPercent": 2.030977068793619,
+          "peakRssMiB": 104.0234375
+        }
+      },
+      "tcpReadBytes": 0,
+      "tcpWrittenBytes": 0,
+      "logBytes": 95,
+      "peakTcpSockets": 1,
+      "counters": {}
+    },
+    {
+      "file": "worker-2026-11-18T16-35-15.689Z.json",
+      "startedAt": "2026-11-18T16:35:15.689Z",
+      "measuredAt": "2026-11-18T16:38:58.237Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 47,
+      "elapsedSeconds": 222.547,
+      "activeSampleSeconds": 222.546,
+      "maxSampleGapSeconds": 5.005000000000003,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 110.59208776595744,
+      "peakSampleRssMiB": 123.83984375,
+      "linuxHighWaterMiB": 123.83984375,
+      "peakHeapUsedMiB": 36.57606506347656,
+      "meanActiveSampleCpuPercent": 0.4352709102837166,
+      "peakIntervalCpuPercent": 3.5882536632236333,
+      "phases": {
+        "startup": {
+          "activeSeconds": 48.199999999999996,
+          "meanCpuPercent": 0.7960124481327802,
+          "peakRssMiB": 105.5
+        },
+        "registry": {
+          "activeSeconds": 171.243,
+          "meanCpuPercent": 0.3363354998452492,
+          "peakRssMiB": 123.83984375
+        },
+        "idle": {
+          "activeSeconds": 3.1030000000000086,
+          "meanCpuPercent": 0.29162101192394374,
+          "peakRssMiB": 105.1328125
+        }
+      },
+      "tcpReadBytes": 327376,
+      "tcpWrittenBytes": 4248630,
+      "logBytes": 290,
+      "peakTcpSockets": 6,
+      "counters": {
+        "postgresQueries": 70,
+        "requests:binance_alpha": 1,
+        "httpRequestBodyBytes": 0,
+        "httpResponseBodyBytes": 860969
+      }
+    },
+    {
+      "file": "worker-2026-11-20T00-51-33.000Z.json",
+      "startedAt": "2026-11-20T00:51:33.000Z",
+      "measuredAt": "2026-11-20T00:55:38.020Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 50,
+      "elapsedSeconds": 245.02,
+      "activeSampleSeconds": 245.01900000000003,
+      "maxSampleGapSeconds": 5.0020000000000095,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 135.7384375,
+      "peakSampleRssMiB": 138.8515625,
+      "linuxHighWaterMiB": 138.8515625,
+      "peakHeapUsedMiB": 38.80116271972656,
+      "meanActiveSampleCpuPercent": 0.9930168680796182,
+      "peakIntervalCpuPercent": 10.1189,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.001000000000001,
+          "meanCpuPercent": 4.853969735350977,
+          "peakRssMiB": 132.625
+        },
+        "registry": {
+          "activeSeconds": 20.001999999999995,
+          "meanCpuPercent": 2.4491500849915013,
+          "peakRssMiB": 133.64453125
+        },
+        "scan": {
+          "activeSeconds": 170.01500000000001,
+          "meanCpuPercent": 0.5705002499779431,
+          "peakRssMiB": 138.8515625
+        },
+        "idle": {
+          "activeSeconds": 40.00099999999999,
+          "meanCpuPercent": 0.6127871803204921,
+          "peakRssMiB": 138.33984375
+        }
+      },
+      "tcpReadBytes": 639452,
+      "tcpWrittenBytes": 4783445,
+      "logBytes": 3244,
+      "peakTcpSockets": 6,
+      "counters": {
+        "postgresQueries": 407,
+        "requests:binance_alpha": 1,
+        "httpRequestBodyBytes": 10044,
+        "httpResponseBodyBytes": 1146802,
+        "rpcMethod:56:eth_chainId": 6,
+        "requests:rpc:56": 42,
+        "rpcMethod:56:eth_blockNumber": 6,
+        "rpcMethod:56:eth_getLogs": 6,
+        "rpcMethod:56:eth_getCode": 6,
+        "rpcMethod:56:eth_call": 6,
+        "rpcMethod:56:eth_getBlockByNumber": 12,
+        "rpcMethod:1:eth_chainId": 2,
+        "requests:rpc:1": 14,
+        "rpcMethod:1:eth_blockNumber": 2,
+        "rpcMethod:1:eth_getLogs": 2,
+        "rpcMethod:1:eth_getCode": 2,
+        "rpcMethod:1:eth_call": 2,
+        "rpcMethod:1:eth_getBlockByNumber": 4,
+        "requests:rpc:CT_501": 22,
+        "requestErrors:rpc:CT_501": 1
+      }
+    },
+    {
+      "file": "worker-2026-11-20T01-02-26.461Z.json",
+      "startedAt": "2026-11-20T01:02:26.461Z",
+      "measuredAt": "2026-11-20T01:04:32.023Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 27,
+      "elapsedSeconds": 125.562,
+      "activeSampleSeconds": 125.55999999999999,
+      "maxSampleGapSeconds": 5.0120000000000005,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 97.48394097222223,
+      "peakSampleRssMiB": 102.46484375,
+      "linuxHighWaterMiB": 106.51953125,
+      "peakHeapUsedMiB": 27.894760131835938,
+      "meanActiveSampleCpuPercent": 1.5544982478496339,
+      "peakIntervalCpuPercent": 5.806871753895326,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.002,
+          "meanCpuPercent": 2.2849286761765097,
+          "peakRssMiB": 102.46484375
+        },
+        "scan": {
+          "activeSeconds": 90.041,
+          "meanCpuPercent": 1.5625515043147011,
+          "peakRssMiB": 99.8828125
+        },
+        "idle": {
+          "activeSeconds": 20.517000000000003,
+          "meanCpuPercent": 0.9850660427937806,
+          "peakRssMiB": 99.8828125
+        }
+      },
+      "tcpReadBytes": 250495,
+      "tcpWrittenBytes": 241192,
+      "logBytes": 1926,
+      "peakTcpSockets": 6,
+      "counters": {
+        "postgresQueries": 208,
+        "rpcMethod:8453:eth_chainId": 1,
+        "requests:rpc:8453": 7,
+        "httpRequestBodyBytes": 4807,
+        "httpResponseBodyBytes": 139829,
+        "rpcMethod:8453:eth_blockNumber": 1,
+        "rpcMethod:8453:eth_getLogs": 1,
+        "rpcMethod:8453:eth_getCode": 1,
+        "rpcMethod:8453:eth_call": 1,
+        "rpcMethod:8453:eth_getBlockByNumber": 2,
+        "rpcMethod:56:eth_chainId": 5,
+        "requests:rpc:56": 36,
+        "rpcMethod:56:eth_blockNumber": 5,
+        "rpcMethod:56:eth_getLogs": 5,
+        "rpcMethod:56:eth_getCode": 5,
+        "rpcMethod:56:eth_call": 5,
+        "rpcMethod:56:eth_getBlockByNumber": 11
       }
     }
   ]

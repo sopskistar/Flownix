@@ -98,8 +98,25 @@ export async function closeProviderNetwork() {
 
 // Error codes only: never persist native messages, URL paths, query strings or credentials.
 export function networkErrorCode(error: unknown): string {
+  const safeApplicationCodes = new Set([
+    "STALE_MEMBERSHIP",
+    "INVALID_SCAN_WINDOW",
+    "NO_CONTRACT_CODE",
+    "LOG_CONTRACT_MISMATCH",
+    "LOG_RANGE_MISMATCH",
+    "REORG_DURING_SCAN",
+    "CONFLICTING_EVENT_REPLAY",
+    "SYMBOL_RESPONSE_MISMATCH",
+    "DEPTH_SYMBOL_MISMATCH",
+    "INVALID_CANDLE",
+    "NOT_SOLANA_ALPHA_TOKEN",
+    "INVALID_JOB_KINDS",
+    "COLLECTOR_BUSY",
+    "COLLECTOR_LOCK_LOST",
+  ]);
   const allowed = new Set([
     "CONNECT_TIMEOUT",
+    "DB_CONNECT_FAILED",
     "COLLECTION_STOPPED",
     "CONNECTION_CLOSED",
     "CONNECTION_ENDED",
@@ -109,6 +126,7 @@ export function networkErrorCode(error: unknown): string {
     "ENODATA",
     "ECONNREFUSED",
     "ECONNRESET",
+    "EHOSTUNREACH",
     "ETIMEDOUT",
     "ETIMEOUT",
     "UND_ERR_CONNECT_TIMEOUT",
@@ -125,7 +143,14 @@ export function networkErrorCode(error: unknown): string {
     depth < 4 && typeof current === "object" && current !== null;
     depth++
   ) {
-    const e = current as { code?: unknown; name?: unknown; cause?: unknown };
+    const e = current as {
+      code?: unknown;
+      name?: unknown;
+      cause?: unknown;
+      message?: unknown;
+    };
+    if (typeof e.message === "string" && safeApplicationCodes.has(e.message))
+      return e.message;
     if (typeof e.code === "string" && allowed.has(e.code)) return e.code;
     if (
       typeof e.code === "string" &&

@@ -31,22 +31,56 @@ function createClient(max: number) {
       ? {
           socket: (config: { host: string[]; port: number[]; ssl: unknown }) =>
             new Promise<Socket>((resolve, reject) => {
-              const host = config.host[0],
-                port = config.port[0];
-              const socket = connect({ host, port, lookup, timeout: 15000 });
-              socket.once("error", reject);
-              socket.once("timeout", () => {
-                socket.destroy();
-                reject(
-                  Object.assign(new Error("DB_CONNECT_TIMEOUT"), {
-                    code: "CONNECT_TIMEOUT",
-                  }),
+              // postgres-js normally rotates through resolved addresses after
+              // a failed connection. Its custom-socket hook bypasses that
+              // behavior, so explicitly try up to three Neon IPv4 results.
+              // Keep TLS verification and the original hostname/SNI intact.
+              const candidates = config.host.slice(0, 3);
+              let index = 0;
+              const tryNext = (lastError?: Error) => {
+                if (index >= candidates.length) {
+                  reject(lastError ?? Error("DB_CONNECT_FAILED"));
+                  return;
+                }
+                const host = candidates[index];
+                const port = config.port[index] ?? config.port[0];
+                index++;
+                const socket = connect({
+                  host,
+                  port,
+                  lookup,
+                  timeout: 5000,
+                });
+                let settled = false;
+                const fail = (error: Error) => {
+                  if (settled) return;
+                  settled = true;
+                  socket.destroy();
+                  tryNext(error);
+                };
+                socket.once("error", fail);
+                socket.once("timeout", () =>
+                  fail(
+                    Object.assign(new Error("DB_CONNECT_TIMEOUT"), {
+                      code: "CONNECT_TIMEOUT",
+                    }),
+                  ),
                 );
-              });
-              socket.once("connect", () => {
-                socket.setTimeout(0);
-                resolve(Object.assign(socket, { host, port, ssl: config.ssl }));
-              });
+                socket.once("connect", () => {
+                  if (settled) return;
+                  settled = true;
+                  socket.removeListener("error", fail);
+                  socket.setTimeout(0);
+                  resolve(
+                    Object.assign(socket, {
+                      host,
+                      port,
+                      ssl: config.ssl,
+                    }),
+                  );
+                });
+              };
+              tryNext();
             }),
         }
       : {}),

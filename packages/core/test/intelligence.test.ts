@@ -429,6 +429,17 @@ describe("Provider diagnostic safety", () => {
         }),
       ),
     ).toBe("EAI_AGAIN");
+    expect(networkErrorCode(new Error("STALE_MEMBERSHIP"))).toBe(
+      "STALE_MEMBERSHIP",
+    );
+    expect(
+      networkErrorCode(
+        Object.assign(new Error("connect failed"), { code: "EHOSTUNREACH" }),
+      ),
+    ).toBe("EHOSTUNREACH");
+    expect(
+      networkErrorCode(new Error("https://provider.invalid/private-key")),
+    ).toBe("NETWORK_OR_PARSE_ERROR");
   });
   it("does not retry a successful API when storing its audit fails", async () => {
     const fetcher = vi

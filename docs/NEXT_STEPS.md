@@ -1,14 +1,15 @@
 # Next steps — automatic discovery activation
 
-Latest live results and the complete per-network diagnostics are in [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md).
+Latest live results are in [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md). The scheduler now progresses from registry refresh into scans and recovers expired leases; this has been verified on a bounded local cycle, not a full-universe operation.
 
-1. Diagnose RPC/Neon intermittent timeouts by failing stage. All five variables are loaded; Ethereum, BSC, Base and Arbitrum point diagnostics passed. Solana’s account/history probe passed after its signature validation fix. The 90-second collector run attempted 23 jobs but all failed; no EVM cursor advanced.
-2. Fix scan throughput and validate cursor progress before increasing coverage. Alchemy 10-block windows and per-token request schedules do not yet establish gap-free full-universe observation. Preserve retry backoff and source quotas.
-3. Complete partial Solana observations and verify transaction/cursor resume. Current data is only top-account sampling; the 180-second single-token scan stopped after 14/20 accounts with 83 rows and all 14 cursors flagged for history gaps.
-4. Add adapters for the 21 online identities on Sonic (4), registry-labeled Robinhood/4663 (5), TRON (3), and Sui (9), after verifying chain-native APIs.
-5. Confirm exact Vercel production SHA, real dashboard rendering of findings, and an actual Telegram delivery receipt before claiming the end-to-end alert loop works.
-6. Keep all 686 official identities and historical observations; current snapshot is 378 online / 308 offline. Market data is 0 fresh / 316 stale / 62 no-pair. Signal count is zero.
-7. Only after reliable full-universe collection, build/validate the original multiweek wallet retention, verified exchange flows, project/market-maker attribution, cross-token patterns, distribution and Evening Trader case studies. No evidence in the current run proves accumulation or predictive value.
+1. Start the worker again locally using the existing ignored `.env.worker.local` and `pnpm worker:dev`; collection stops when the process/laptop stops. No persistent host is active.
+2. Triage the 24 retrying scan jobs using preserved symbolic/provider errors. Solana has a current `SOLANA_RPC_-32015` failure; investigate method/history support before repeating that account-level request. Do not blindly replay long ranges.
+3. Continue fair scans until all 357 currently supported online identities have successful current checkpoints. The snapshot still had 320 queued, 24 retrying and 344 due; a complete cycle has not been demonstrated.
+4. Fix broad Alpha market freshness. Current scan suppressions cite unavailable fresh market price/minimum liquidity. The prior 317 active-pair observations are stale and no always-on market collector is running.
+5. Add and verify genuine Solana balance-history coverage, then plan chain-native adapters for the 21 online identities on Sonic (4), chain ID 4663 (5), TRON (3), and Sui (9).
+6. Build longitudinal observed-holder balances and verified DEX trade classification before claiming accumulator retention, exchange outflows, or 7–180-day accumulation. Current new EVM observations are Transfer logs, including mint/unknown transfers, not verified buys.
+7. Continue the historical Evening Trader cases and validate each against point-in-time data, negative examples, and source coverage. Existing claims remain unverified where historical evidence is missing.
+8. Verify the exact Vercel production SHA and GitHub Actions result for the final pushed commit. No worker host or paid API was enabled; Telegram delivery and exact production SHA remain unverified.
 
 No paid worker hosting or API plan was activated. The collector remains local and is not running continuously.
 

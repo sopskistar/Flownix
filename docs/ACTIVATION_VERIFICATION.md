@@ -1,5 +1,38 @@
 # Automatic discovery activation verification — 2026-11-18
 
+## Scheduler and database continuation — 2026-11-20 UTC
+
+This section supersedes the earlier scan-only counts for the current Neon snapshot; older measurements below remain historical.
+
+### Why the registry-only run did not start scans
+
+The persisted queue was not empty or blocked by a live lease. Before the new cycle, the status query showed 358 scan jobs, all overdue; 23 had retry status, and there was no active advisory lock. The worker selector accepts queued/done/retry jobs with `run_after <= now()` and expired running leases, and a read-only reproduction of that predicate returned eligible jobs.
+
+The failed bounded invocation had `WORKER_RUN_SECONDS=180`. Its profile started at `2026-11-18T16:35:15Z`, spent about 171 seconds inside registry refresh, and ended at `16:38:58Z` without a scan phase. The old timer set `stopping=true` and aborted provider requests even while a job was active; the registry job finished as the deadline elapsed and the main loop exited before selecting a scan. This explains the observed registry-only exit; it was a run-window/shutdown interaction, not an empty queue or lease. The stale-membership failures in the earlier scan-only attempt were a separate issue: the scan guard correctly rejected a registry older than 15 minutes, while the worker error mapper obscured the exact reason.
+
+The worker now finishes its current job after a bounded run timer and, if the timer expires during registry sync, permits one baseline scan after that sync. Registry completion also reconciles scan jobs immediately so newly discovered identities are eligible without waiting another 30-second schedule tick. Scan selection now requires that the queued token still be current and on a supported chain; historical/offline queue rows are retained but cannot consume a scan. Safe symbolic errors such as `STALE_MEMBERSHIP` now remain visible in retry records. The Neon socket connector tries up to three already-resolved IPv4 addresses with bounded per-address timeouts while retaining TLS verification and the original hostname/SNI. `EHOSTUNREACH` is now recorded as a safe error code.
+
+### Bounded real worker result
+
+At `2026-11-20T00:51Z`, the worker refreshed the official registry (**686 identities; 378 online, 308 offline**) and immediately began scans. The current online split at the following snapshot was Ethereum 18, BSC 289, Base 26, Arbitrum 2, Solana 22 (357 on the five adapters), plus Sonic 4, chain ID 4663 5, TRON 3 and Sui 9 (21 online identities without baseline adapters). Registry status can change between snapshots.
+
+The first five-minute attempt was externally interrupted while a Base scan held a lease; it completed eight scans before interruption. No cursor was advanced by the interrupted scan. The expired two-minute lease was then demonstrably reclaimed on the next process start: `RECALL` on Base completed, followed by five more scans. The second worker exited cleanly. Across the two bounded runs, the queue had **14 scan jobs marked done**, **24 retrying**, **320 queued**, **0 running** at `01:05Z`; 357 online supported identities existed, so the job table also contained one stale/non-current scan key. No full-universe cycle completed. Incremental cursors include 6 Ethereum, 19 BSC, 1 Base, 0 Arbitrum, and 0 Solana identities at this snapshot; older cursors are included in those counts. Recent new checkpoint advances were on Ethereum, BSC and Base. The two Arbitrum jobs and Solana identities remain unscanned in this bounded run.
+
+Eight new canonical Transfer log rows were persisted across two BSC Alpha identities. Their logs were checked against the block hash fetched for the same scan window, and cursors were committed with those observations. These are log/block consistency checks, not separate receipt re-fetches. Two example transaction references:
+
+- [MSFTon BSC transaction](https://bscscan.com/tx/0x8b19075289fabddc82771d1e289149460aed841a3e76f827dbed9c786556e216), block 134602584, four logs: one mint and three `unknown_transfer` events.
+- [RION BSC transaction](https://bscscan.com/tx/0x77d69ae38504f7b343c40d4902a6b3a756c8a1341f8f3af5a0d79d52f48cde69), block 134604038, four `unknown_transfer` events.
+
+The database total moved from 180 to **188 canonical EVM transfers**. None of these eight logs is classified as a buy or sell. Signal count remains **zero**. Each observed scan printed the suppression reason “Fresh market price and minimum liquidity required”; the current Alpha market table is stale, and the scan has no fresh executable quote supporting a signal. Solana returned one `SOLANA_RPC_-32015` historical request failure; no Solana cursor advanced in this cycle. No qualifying accumulation or distribution claim is made.
+
+### Neon instability and measured scope
+
+The historical `ETIMEOUT` and `EHOSTUNREACH` occurred at connection time; they were not accompanied by a PostgreSQL SQLSTATE, a held advisory lock, or evidence of saturated Neon sessions. DNS resolution alone is not proof of TCP/database availability. Subsequent status and snapshot queries succeeded against the same worker connection configuration. After the connector change, two fresh worker-connection queries also succeeded in 3.9s and 3.4s; measured database size was **82,640,896 bytes**. This intermittent network failure has not been proven to be caused by Neon compute suspension or quota. The connector's bounded multi-address failover is a mitigation, not evidence that those past outages are permanently fixed. No new database was created and no data was reset.
+
+The clean scan-only profile ran for 125.6 seconds: mean Node RSS 97.5 MiB, peak sampled RSS 102.5 MiB (Linux high-water 106.5 MiB), peak heap 27.9 MiB, mean sampled CPU 1.55%, 208 SQL queries, 43 RPC requests (7 Base and 36 BSC), 250,495 TCP bytes read and 241,192 written. The earlier registry-plus-scan profile ran 245 seconds before the command supervisor interrupted it: mean RSS 135.7 MiB, peak 138.9 MiB, peak heap 38.8 MiB, 407 SQL queries, 1 registry request, 42 BSC RPC and 14 Ethereum RPC requests. These are process-level local measurements, not billed provider CUs or a full-cycle benchmark. The five-minute cycle reached 8 scans; the subsequent 2-minute recovery cycle reached 6. At this observed pace, a full 357-token visit would take an estimated ~71–119 minutes if future jobs sustained 20–30 seconds each; this is a rough extrapolation, not a measured full cycle. The request counters do not expose Alchemy CU billing. The prior estimate of ~37.6M CUs/month for hourly EVM windows remains a planning estimate, not measured account usage.
+
+The collector is still local and stops when this process or computer stops. No continuous worker host is active. Current production deployment SHA remains unverified; no Vercel CLI/deployment API access was available. Live full-universe and long-term accumulation acceptance remains **NOT PASSED**.
+
 This report records live checks against the ignored local worker configuration and the existing Neon database. It separates successful point probes from scheduled jobs and completed observations.
 
 ## Configuration and RPC diagnostics
