@@ -311,16 +311,15 @@ export async function scanToken(
 ) {
   const sql = sqlClient();
   const rows =
-    await sql`SELECT * FROM alpha_tokens WHERE id=${id} AND status='current'`;
+    await sql`SELECT t.*,c.block_number,c.block_hash,
+      (t.deep_selected OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active) OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived)) AS intensive
+      FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id
+      WHERE t.id=${id} AND t.status='current'`;
   const t = rows[0];
   if (!t) return;
   if (t.chain_id === "CT_501")
     return scanSolanaToken(t as { id: string; chain_id: string; contract: string; last_seen: string });
-  const intensive = Boolean(t.deep_selected) || (await sql`
-    SELECT 1 FROM token_investigation_queue q WHERE q.token_id=${id} AND q.active
-    UNION ALL SELECT 1 FROM watchlists w WHERE w.token_id=${id} AND NOT w.archived
-    LIMIT 1
-  `).length > 0;
+  const intensive = Boolean(t.intensive);
   const c = config();
   if (
     Date.now() - new Date(t.last_seen).getTime() >
@@ -342,9 +341,9 @@ export async function scanToken(
   );
   const head = await rpc.head();
   const target = head - c.SCAN_CONFIRMATIONS;
-  const cursor = (
-    await sql`SELECT * FROM block_cursors WHERE token_id=${id}`
-  )[0];
+  const cursor = t.block_number == null
+    ? undefined
+    : { block_number: t.block_number, block_hash: t.block_hash };
   if (cursor) {
     const b = await rpc.block(Number(cursor.block_number));
     if (b.data.hash.toLowerCase() !== cursor.block_hash) {

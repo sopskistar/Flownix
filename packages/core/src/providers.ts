@@ -2,7 +2,7 @@ import { z } from "zod";
 import { depthSchema } from "./quotes";
 import { hashResponse, contractIdentity, tokenKey } from "./identity";
 import { providerFetch, networkErrorCode } from "./network";
-import { countMetric } from "./telemetry";
+import { countMetric, estimateAlchemyComputeUnits } from "./telemetry";
 export type Observation<T> = {
   data: T;
   source: string;
@@ -94,6 +94,15 @@ export class HttpClient {
         throw new ProviderError("PROCESS_REQUEST_BUDGET_EXHAUSTED");
       processRequestCount++;
       countMetric(`requests:${this.provider}`);
+      const alchemyUsage = estimateAlchemyComputeUnits(
+        url,
+        typeof init.body === "string" ? init.body : undefined,
+      );
+      if (alchemyUsage.requests) {
+        countMetric("alchemyRpcRequests", alchemyUsage.requests);
+        countMetric("alchemyEstimatedComputeUnits", alchemyUsage.units);
+        countMetric("alchemyUnpricedMethods", alchemyUsage.unpriced);
+      }
       countMetric(
         "httpRequestBodyBytes",
         typeof init.body === "string" ? Buffer.byteLength(init.body) : 0,

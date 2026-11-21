@@ -97,7 +97,7 @@ export class SolanaProvider {
 
   transaction(signature: string) {
     if (!signatureRe.test(signature)) throw new Error("INVALID_SOLANA_SIGNATURE");
-    return this.rpc("getTransaction", [signature, { commitment: "finalized", encoding: "jsonParsed", maxSupportedTransactionVersion: 0 }], (v) => z.unknown().nullable().parse(v));
+    return this.rpc("getTransaction", [signature, { commitment: "finalized", encoding: "jsonParsed", maxSupportedTransactionVersion: 1 }], (v) => z.unknown().nullable().parse(v));
   }
 }
 

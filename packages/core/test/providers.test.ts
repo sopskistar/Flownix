@@ -48,6 +48,25 @@ describe("Bounded provider requests", () => {
       data: [{ signature, slot: 123, confirmationStatus: "finalized" }],
     });
   });
+  it("opts into current Solana v1 transactions when reading token-account history", async () => {
+    const signature = "1".repeat(88);
+    let payload: { method?: string; params?: unknown[] } = {};
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (_url, init) => {
+      payload = JSON.parse(String(init?.body)) as typeof payload;
+      return new Response(JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        result: { slot: 10, meta: null, transaction: {} },
+      }));
+    });
+    const provider = new SolanaProvider(
+      "https://solana.example.test",
+      new HttpClient("solana-test", 120, async () => {}, fetcher, async () => {}),
+    );
+    await provider.transaction(signature);
+    expect(payload.method).toBe("getTransaction");
+    expect(payload.params?.[1]).toMatchObject({ maxSupportedTransactionVersion: 1 });
+  });
   it("prefers an exact active pair deterministically while preserving its quote currency", () => {
     const symbols = [
       { symbol: "ALPHA_17USDC", baseAsset: "ALPHA_17", quoteAsset: "USDC", status: "TRADING" },
