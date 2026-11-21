@@ -3,6 +3,7 @@ export default defineConfig({
   testDir: "tests/e2e",
   workers: 1,
   timeout: 90000,
+  expect: { timeout: 30000 },
   use: {
     baseURL: "http://127.0.0.1:3047",
     trace: "retain-on-failure",
@@ -11,10 +12,11 @@ export default defineConfig({
       : {},
   },
   webServer: {
-    command: "pnpm dev --port 3047",
-    url: "http://127.0.0.1:3047",
+    command: "pnpm dev --webpack --port 3047",
+    // Readiness should not wait on the database-backed Radar query.
+    url: "http://127.0.0.1:3047/privacy",
     reuseExistingServer: false,
-    timeout: 120000,
+    timeout: 240000,
   },
   reporter: "list",
 });

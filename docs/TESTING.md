@@ -1,3 +1,13 @@
+# Latest account-recovery verification
+
+See [ACCOUNT_RECOVERY_RELEASE_2026-11-21.md](ACCOUNT_RECOVERY_RELEASE_2026-11-21.md) for preserved work, the 103-test result, browser history regression, driver backport, live evidence and remaining operational gates. Older snapshots below retain their original dates.
+
+# Recovery verification — 2026-11-21
+
+The recovery continuation passed 98 tests in 12 files on Node 22, including local PostgreSQL rollback integration. Both database integration cases additionally passed against the existing Neon target with isolated rollback schemas. Regression coverage includes real lease claiming/recovery, retry admission, market batch rotation beyond its cap, immediate newly active pairs, atomic provenance/coverage rollback, a two-consumer market bound, Solana newest-signature checkpoints, shared-transaction deduplication, unavailable metadata, slot validation and per-account gaps. Synthetic test rows never commit to the research schema.
+
+Final release/browser results and measured live limitations are recorded in [the acceptance continuation](LOCAL_AUTOMATIC_ACCEPTANCE_2026-11-21.md). Browser readiness checks the public privacy route on owned port 3047. Tests wait for interactive Radar controls, capture runtime/hydration errors, verify that local filters avoid an RSC refetch, and capture responsive viewports. Cold compilation has a separate 240-second readiness allowance on a heavily loaded shared machine. These timing allowances do not substitute for passed application assertions.
+
 # Verification
 
 ## Full-universe scheduler verification update (2026-11-18 UTC)

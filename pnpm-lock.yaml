@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  postgres@3.4.9: 0f18983e5cdf362af2d7684c87686f957a6b55becf120459fc011b5e1a4d12d5
+
 importers:
 
   .:
@@ -103,10 +106,10 @@ importers:
         version: link:../core
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.4(postgres@3.4.9)
+        version: 0.45.4(postgres@3.4.9(patch_hash=0f18983e5cdf362af2d7684c87686f957a6b55becf120459fc011b5e1a4d12d5))
       postgres:
         specifier: ^3.4.7
-        version: 3.4.9
+        version: 3.4.9(patch_hash=0f18983e5cdf362af2d7684c87686f957a6b55becf120459fc011b5e1a4d12d5)
 
 packages:
 
@@ -2235,9 +2238,9 @@ snapshots:
   detect-libc@2.1.2:
     optional: true
 
-  drizzle-orm@0.45.4(postgres@3.4.9):
+  drizzle-orm@0.45.4(postgres@3.4.9(patch_hash=0f18983e5cdf362af2d7684c87686f957a6b55becf120459fc011b5e1a4d12d5)):
     optionalDependencies:
-      postgres: 3.4.9
+      postgres: 3.4.9(patch_hash=0f18983e5cdf362af2d7684c87686f957a6b55becf120459fc011b5e1a4d12d5)
 
   es-module-lexer@1.7.0: {}
 
@@ -2560,7 +2563,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
-  postgres@3.4.9: {}
+  postgres@3.4.9(patch_hash=0f18983e5cdf362af2d7684c87686f957a6b55becf120459fc011b5e1a4d12d5): {}
 
   preact-render-to-string@5.2.6(preact@10.29.8):
     dependencies:

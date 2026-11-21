@@ -2,6 +2,38 @@ import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 
+const browserErrors = new WeakMap<Page, string[]>();
+test.beforeEach(async ({ page }) => {
+  const errors: string[] = [];
+  browserErrors.set(page, errors);
+  page.on("pageerror", (error) => errors.push(error.message));
+});
+test.afterEach(async ({ page }) => {
+  expect(
+    browserErrors.get(page) ?? [],
+    "Browser runtime/hydration errors",
+  ).toEqual([]);
+});
+
+// Local network-interface churn can cancel a read-only Chromium navigation.
+// Retry that exact transport error once; application assertions are never retried.
+async function navigate(
+  page: Page,
+  url: string,
+  options?: Parameters<Page["goto"]>[1],
+) {
+  try {
+    return await page.goto(url, options);
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !error.message.includes("net::ERR_NETWORK_CHANGED")
+    )
+      throw error;
+    return page.goto(url, options);
+  }
+}
+
 async function expectPageReady(page: Page, heading: string) {
   const main = page.getByRole("main");
   await expect(
@@ -14,6 +46,11 @@ async function expectPageReady(page: Page, heading: string) {
     }),
   ).toBeHidden();
   await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
+  if (["Alpha Radar", "Accumulation Watchlist"].includes(heading)) {
+    await expect(
+      main.getByRole("searchbox", { name: "Search", exact: true }),
+    ).toBeEnabled({ timeout: 60000 });
+  }
 }
 test.beforeEach(async ({ request }) => {
   const r = await request.get("/privacy");
@@ -22,8 +59,8 @@ test.beforeEach(async ({ request }) => {
 test("private workspace renders honest states and working navigation, themes and filters", async ({
   page,
 }) => {
-  test.setTimeout(180000);
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  test.setTimeout(420000);
+  await navigate(page, "/", { waitUntil: "domcontentloaded" });
   await expectPageReady(page, "Alpha Radar");
   await expect(
     page.getByRole("region", { name: "Scrollable Alpha token table" }),
@@ -31,14 +68,30 @@ test("private workspace renders honest states and working navigation, themes and
   // Server HTML can become visible before the client shortcut effect mounts.
   await expect(async () => {
     await page.keyboard.press("Control+k");
-    await expect(
-      page.getByLabel("Search Alpha tokens, Control K"),
-    ).toBeFocused();
+    await expect(page.getByLabel("Search Alpha tokens, Control K")).toBeFocused(
+      { timeout: 1000 },
+    );
   }).toPass({ timeout: 30000 });
+  const filterRequests: string[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (
+      url.searchParams.has("_rsc") &&
+      url.searchParams.get("q") === "nonexistent-test-identity"
+    )
+      filterRequests.push(url.pathname);
+  });
   await page
     .getByLabel("Search", { exact: true })
     .fill("nonexistent-test-identity");
   await expect(page).toHaveURL(/q=nonexistent/, { timeout: 30000 });
+  await expect(
+    page.getByText("0 matching identities", { exact: true }),
+  ).toBeVisible();
+  expect(
+    filterRequests,
+    "Client filters must not refetch the research workspace",
+  ).toEqual([]);
   await page.getByLabel("Search", { exact: true }).fill("");
   await page.getByRole("button", { name: "Switch to light theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
@@ -77,7 +130,7 @@ test("private workspace renders honest states and working navigation, themes and
       "Wallet Detective",
     ],
   ]) {
-    await page.goto(path, { waitUntil: "commit" });
+    await navigate(page, path, { waitUntil: "commit" });
     await expectPageReady(page, heading);
     await page.screenshot({
       path: `artifacts/screenshots/screen-${path.split("/")[1]}.png`,
@@ -85,7 +138,7 @@ test("private workspace renders honest states and working navigation, themes and
       caret: "initial",
     });
   }
-  await page.goto("/nonexistent");
+  await navigate(page, "/nonexistent");
   await expect(
     page.getByRole("heading", { name: "This evidence isn’t here" }),
   ).toBeVisible();
@@ -93,6 +146,7 @@ test("private workspace renders honest states and working navigation, themes and
 test("phone, tablet and reduced motion layouts have no page overflow", async ({
   page,
 }) => {
+  test.setTimeout(240000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const [name, width, height] of [
     ["phone", 390, 844],
@@ -100,7 +154,7 @@ test("phone, tablet and reduced motion layouts have no page overflow", async ({
     ["desktop", 1440, 1000],
   ] as const) {
     await page.setViewportSize({ width, height });
-    await page.goto("/");
+    await navigate(page, "/", { waitUntil: "domcontentloaded" });
     await expectPageReady(page, "Alpha Radar");
     expect(
       await page.evaluate(
@@ -109,10 +163,69 @@ test("phone, tablet and reduced motion layouts have no page overflow", async ({
     ).toBe(true);
     await page.screenshot({
       path: `artifacts/screenshots/${name}.png`,
-      fullPage: true,
+      fullPage: false,
       caret: "initial",
     });
   }
+});
+test("Radar filters preserve shared URLs, hydration and browser history without server refetches", async ({
+  page,
+}) => {
+  test.setTimeout(240000);
+  await navigate(
+    page,
+    "/?q=nonexistent-initial&sort=name&context=shared#ledger",
+    {
+      waitUntil: "domcontentloaded",
+    },
+  );
+  await expectPageReady(page, "Alpha Radar");
+  const search = page.getByRole("searchbox", { name: "Search", exact: true });
+  const sort = page.getByRole("combobox", { name: "Sort by", exact: true });
+  await expect(search).toHaveValue("nonexistent-initial");
+  await expect(sort).toHaveValue("name");
+  const requests: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).searchParams.has("_rsc"))
+      requests.push(request.url());
+  });
+  const historyLength = await page.evaluate(() => history.length);
+  await search.fill("nonexistent-replaced");
+  await expect(page).toHaveURL(
+    /q=nonexistent-replaced&sort=name&context=shared#ledger$/,
+  );
+  expect(await page.evaluate(() => history.length)).toBe(historyLength);
+  // Native History entries exercise Next's popstate integration on the same
+  // already-loaded ledger, including query parameters owned by other features.
+  await page.evaluate(() => {
+    const url = new URL(location.href);
+    url.searchParams.set("q", "nonexistent-forward");
+    url.searchParams.set("sort", "cap");
+    url.searchParams.set("page", "3");
+    history.pushState(null, "", url);
+  });
+  await expect(search).toHaveValue("nonexistent-forward");
+  await expect(sort).toHaveValue("cap");
+  await page.goBack();
+  await expect(search).toHaveValue("nonexistent-replaced");
+  await expect(sort).toHaveValue("name");
+  await page.goForward();
+  await expect(search).toHaveValue("nonexistent-forward");
+  await expect(sort).toHaveValue("cap");
+  await sort.selectOption("name");
+  await expect(page).toHaveURL(
+    /q=nonexistent-forward&sort=name&context=shared#ledger$/,
+  );
+  await expect(
+    page.getByText("0 matching identities", { exact: true }),
+  ).toBeVisible();
+  expect(requests, "Filters and popstate must reuse the loaded ledger").toEqual(
+    [],
+  );
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expectPageReady(page, "Alpha Radar");
+  await expect(search).toHaveValue("nonexistent-forward");
+  await expect(sort).toHaveValue("name");
 });
 test("remote or forwarded requests and cross-origin mutations are rejected", async ({
   request,
@@ -142,7 +255,7 @@ test("in-app notification and journal persist without external credentials", asy
     !process.env.DATABASE_URL,
     "Requires documented local PostgreSQL configuration",
   );
-  await page.goto("/signals");
+  await navigate(page, "/signals");
   await expectPageReady(page, "Alerts & evidence");
   await page.getByRole("button", { name: "Test in-app notification" }).click();
   await expect(
@@ -156,7 +269,7 @@ test("in-app notification and journal persist without external credentials", asy
       })
       .first(),
   ).toBeVisible();
-  await page.goto("/journal");
+  await navigate(page, "/journal");
   await expectPageReady(page, "Research Journal");
   const note = `Browser smoke test ${randomUUID()} — manual setup note, no market claim.`;
   await page

@@ -9,7 +9,7 @@ import {
 } from "@flownix/core";
 import { jsonParam, sqlClient, closeDb, setSetting } from "@flownix/db";
 import { registrySync, marketSync, scanToken } from "./ingest";
-import { reconcileScanJobs, SUPPORTED_BASELINE_CHAINS } from "./scheduler";
+import { claimNextJob, reconcileScanJobs } from "./scheduler";
 import {
   queueResearchAlerts,
   deliverNotifications,
@@ -40,9 +40,12 @@ function failureCode(error: unknown) {
 let stopping = false;
 let ownsLock = false;
 let collectorLock: Awaited<ReturnType<typeof sql.reserve>> | undefined;
-let activeJob: string | null = null;
+const activeJobs = new Set<string>();
 let drainScanAfterRegistry = false;
-let pulsing = false;
+let scanAfterMarket = false;
+let maintenanceAfterMarket = false;
+let scansSinceRetry = 0;
+let pulseInFlight: Promise<void> | undefined;
 const platform = ["oracle", "digitalocean", "gcp", "aws", "linux"].includes(
   process.env.WORKER_PLATFORM ?? "",
 )
@@ -52,9 +55,14 @@ const platform = ["oracle", "digitalocean", "gcp", "aws", "linux"].includes(
     : process.env.RENDER_SERVICE_ID
       ? "render"
       : "local";
-async function pulse() {
-  if (!ownsLock || !collectorLock || pulsing) return;
-  pulsing = true;
+function pulse() {
+  pulseInFlight ??= writePulse().finally(() => {
+    pulseInFlight = undefined;
+  });
+  return pulseInFlight;
+}
+async function writePulse() {
+  if (!ownsLock || !collectorLock) return;
   try {
     const lock =
       await collectorLock`SELECT EXISTS(SELECT 1 FROM pg_locks WHERE pid=pg_backend_pid() AND locktype='advisory' AND objid=726032) AS held`;
@@ -62,7 +70,7 @@ async function pulse() {
     await setSetting("worker_heartbeat", {
       at: new Date().toISOString(),
       owner,
-      job: activeJob,
+      job: [...activeJobs].sort().join("+") || null,
       platform,
       mode: process.argv.includes("--once") ? "one-shot" : "continuous",
       rssBytes: process.memoryUsage().rss,
@@ -70,13 +78,18 @@ async function pulse() {
         ? process.env.WORKER_RELEASE_SHA
         : null,
     });
-  } catch {
+  } catch (error) {
     stopping = true;
     ownsLock = false;
     process.exitCode = 1;
-    await closeDb();
-  } finally {
-    pulsing = false;
+    stopProviderRequests();
+    console.error(
+      JSON.stringify({
+        event: "heartbeat_failed",
+        error: failureCode(error),
+        recovery: "Cancel provider reads; drain jobs before closing SQL",
+      }),
+    );
   }
 }
 // Native database/HTTP timers may be unreferenced; the persistent collector owns its lifecycle.
@@ -93,7 +106,7 @@ const stopTimer =
         // scan afterward so a successful refresh does not consume the whole
         // run without producing any token observation.
         if (
-          activeJob === "registry" &&
+          activeJobs.has("registry") &&
           (
             process.env.WORKER_JOB_KINDS?.split(",") ?? Object.keys(intervals)
           ).includes("scan")
@@ -108,7 +121,9 @@ process.on("SIGTERM", () => {
   stopping = true;
 });
 const intervals: Record<string, number> = {
-  registry: 900,
+  // Refresh before membership expires; scheduling exactly at expiry caused
+  // avoidable STALE_MEMBERSHIP retries while the registry job became due.
+  registry: Math.max(30, Math.min(600, conf.MAX_DATA_AGE_SECONDS / 2)),
   market: 300,
   scan: config().BASELINE_SCAN_INTERVAL_SECONDS,
   notifications: 30,
@@ -127,22 +142,25 @@ async function schedule() {
   // Full current supported-chain universe; jobs persist independently and are fairly due-time scheduled.
   await reconcileScanJobs();
 }
-async function next(excluded: string[] = []) {
-  const kinds =
+async function next(
+  excluded: string[] = [],
+  preferredKinds?: string[],
+  retryOnly = false,
+) {
+  const allowedKinds =
     process.env.WORKER_JOB_KINDS?.split(",") ?? Object.keys(intervals);
+  const requestedKinds = preferredKinds
+    ? allowedKinds.filter((kind) => preferredKinds.includes(kind))
+    : allowedKinds;
+  // A locally active lane cannot reclaim its own expired lease while its
+  // prior task is still draining after a database delay.
+  const kinds = requestedKinds.filter((kind) => !activeJobs.has(kind));
   if (kinds.some((kind) => !Object.hasOwn(intervals, kind)))
     throw Error("INVALID_JOB_KINDS");
-  return sql.begin(async (tx) => {
-    const rows =
-      await tx`SELECT * FROM worker_jobs WHERE run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (kind<>'scan' OR EXISTS(SELECT 1 FROM alpha_tokens t WHERE t.id=worker_jobs.payload->>'tokenId' AND t.status='current' AND t.chain_id=ANY(${[...SUPPORTED_BASELINE_CHAINS]}))) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,CASE WHEN kind='scan' AND EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=worker_jobs.payload->>'tokenId' AND q.active) THEN 0 ELSE 1 END,key FOR UPDATE SKIP LOCKED LIMIT 1`;
-    if (!rows.length) return null;
-    const job = rows[0];
-    await tx`UPDATE worker_jobs SET status='running',owner=${owner},lease_until=now()+interval '2 minutes',updated_at=now() WHERE key=${job.key}`;
-    return job;
-  });
+  return claimNextJob(owner, kinds, excluded, sql, retryOnly);
 }
 async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
-  activeJob = job.kind;
+  activeJobs.add(job.kind);
   let forceStop: NodeJS.Timeout | undefined;
   const deadline = setTimeout(() => {
     console.error(
@@ -164,29 +182,38 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
   console.log(
     JSON.stringify({ event: "job_started", kind: job.kind, key: job.key }),
   );
+  const leasePulses = new Set<Promise<unknown>>();
   const heartbeat = setInterval(() => {
-    void Promise.all([
+    const task = Promise.allSettled([
       pulse(),
       sql`UPDATE worker_jobs SET lease_until=now()+interval '2 minutes' WHERE key=${job.key} AND owner=${owner}`,
-    ]).catch(() => {});
+    ]);
+    leasePulses.add(task);
+    void task.finally(() => leasePulses.delete(task));
   }, 15000);
   try {
+    let marketRemaining = 0;
     if (job.kind === "registry") {
       await registrySync();
       // Registry refresh can add identities. Reconcile immediately rather
       // than waiting for the next scheduler tick before scans become eligible.
       await reconcileScanJobs();
-    } else if (job.kind === "market") await marketSync();
-    else if (job.kind === "scan") await scanToken(job.payload.tokenId);
+    } else if (job.kind === "market") {
+      marketRemaining = (await marketSync()).remainingDue;
+      scanAfterMarket = true;
+      maintenanceAfterMarket = true;
+    } else if (job.kind === "scan") await scanToken(job.payload.tokenId);
     else if (job.kind === "notifications") {
       await queueResearchAlerts();
       await deliverNotifications();
     } else if (job.kind === "outcomes") await outcomesSync();
     else if (job.kind === "persistence") await persistenceSync();
     const delay =
-      job.kind === "scan" && job.payload?.chainId === "CT_501"
-        ? conf.SOLANA_BASELINE_INTERVAL_SECONDS
-        : (intervals[job.kind] ?? 300);
+      job.kind === "market" && marketRemaining > 0
+        ? 0
+        : job.kind === "scan" && job.payload?.chainId === "CT_501"
+          ? conf.SOLANA_BASELINE_INTERVAL_SECONDS
+          : (intervals[job.kind] ?? 300);
     await sql`UPDATE worker_jobs SET status='done',attempts=0,lease_until=null,owner=null,last_error=null,run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
     if (job.kind === "scan" && job.payload?.tokenId) {
       await sql`UPDATE token_investigation_queue SET last_investigated_at=now(),next_investigation_at=now()+(${delay}*interval '1 second') WHERE token_id=${job.payload.tokenId} AND active`;
@@ -194,6 +221,7 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     return true;
   } catch (error) {
     const code = failureCode(error);
+    if (code === "PROCESS_REQUEST_BUDGET_EXHAUSTED") stopping = true;
     const delay = Math.min(3600, 30 * 2 ** Math.min(Number(job.attempts), 7));
     await sql`UPDATE worker_jobs SET status='retry',attempts=attempts+1,lease_until=null,owner=null,last_error=${code},run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
     console.error(
@@ -209,18 +237,21 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
   } finally {
     clearTimeout(deadline);
     if (forceStop) clearTimeout(forceStop);
+    clearInterval(heartbeat);
+    await Promise.allSettled([...leasePulses]);
     console.log(
       JSON.stringify({ event: "job_finished", kind: job.kind, key: job.key }),
     );
-    profile.phase("idle");
-    activeJob = null;
-    clearInterval(heartbeat);
+    activeJobs.delete(job.kind);
+    profile.phase([...activeJobs].sort().join("+") || "idle");
   }
 }
 async function main() {
   // Reserve a dedicated session for advisory locking; use the direct URL, not transaction pooling.
   const lock = await sql.reserve();
   collectorLock = lock;
+  let marketTask: Promise<void> | undefined;
+  let marketRunning = false;
   try {
     const acquired =
       await lock`SELECT pg_try_advisory_lock(726032) AS acquired`;
@@ -251,8 +282,36 @@ async function main() {
         stopping = true;
         break;
       }
-      const job = await next(once ? [...seen] : []);
+      // Drain another bounded market batch while stale pairs remain, but give
+      // a due baseline scan a turn between batches. Provider pacing is unchanged.
+      const allowedKinds =
+        process.env.WORKER_JOB_KINDS?.split(",") ?? Object.keys(intervals);
+      let job =
+        scanAfterMarket && allowedKinds.includes("scan")
+          ? await next(once ? [...seen] : [], ["registry", "scan"])
+          : null;
+      scanAfterMarket = false;
+      if (!job && maintenanceAfterMarket) {
+        maintenanceAfterMarket = false;
+        job = await next(once ? [...seen] : [], [
+          "registry",
+          "notifications",
+          "outcomes",
+          "persistence",
+        ]);
+      }
+      // Reserve at most one in six scan turns for overdue retries, so a fixed
+      // provider error is rechecked without starving identities not yet scanned.
+      if (!job && scansSinceRetry >= 5) {
+        scansSinceRetry = -1;
+        job = await next(once ? [...seen] : [], ["scan"], true);
+      }
+      job ??= await next(once ? [...seen] : []);
       if (!job) {
+        if (marketRunning) {
+          await marketTask;
+          continue;
+        }
         if (once || stopping) break;
         await new Promise((r) => setTimeout(r, 30000));
         continue;
@@ -260,12 +319,42 @@ async function main() {
       if (stopping && drainScanAfterRegistry && job.kind === "scan")
         drainScanAfterRegistry = false;
       seen.add(job.key);
+      if (job.kind === "scan") scansSinceRetry++;
+      // Binance market pacing is independent from RPC pacing. Keep one
+      // market job and one foreground job at most, under this same advisory
+      // lock and durable leases. Baseline scans remain strictly serial.
+      if (job.kind === "market" && conf.WORKER_MARKET_OVERLAP) {
+        marketRunning = true;
+        marketTask = runJob(job)
+          .then((ok) => {
+            if (!ok) failed = true;
+          })
+          .catch((error) => {
+            stopping = true;
+            process.exitCode = 1;
+            console.error(
+              JSON.stringify({
+                event: "market_lane_failed",
+                error: failureCode(error),
+              }),
+            );
+          })
+          .finally(() => {
+            marketRunning = false;
+          });
+        continue;
+      }
       if (!(await runJob(job))) failed = true;
     }
+    await marketTask;
     if (once && failed) process.exitCode = 1;
   } finally {
-    if (ownsLock) await lock`SELECT pg_advisory_unlock(726032)`;
+    // Drain the market lease before releasing collector ownership or SQL.
+    await marketTask;
+    await pulseInFlight;
+    const held = ownsLock;
     ownsLock = false;
+    if (held) await lock`SELECT pg_advisory_unlock(726032)`;
     lock.release();
     await sql`UPDATE settings SET value=${jsonParam({ at: new Date().toISOString(), owner, platform, stopped: true })}::jsonb,updated_at=now() WHERE key='worker_heartbeat' AND value->>'owner'=${owner}`;
     await closeDb();

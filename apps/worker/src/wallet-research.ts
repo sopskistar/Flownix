@@ -6,6 +6,7 @@ import {
   possibleRoundTrips,
   evaluateAccumulationThesis,
   freshness,
+  providerReads,
   type Transfer,
   type ResearchSwap,
   type ResearchBalance,
@@ -19,7 +20,7 @@ export async function walletResearchSync() {
   const sql = sqlClient(),
     now = new Date().toISOString();
   const tokens =
-    await sql`SELECT t.* FROM alpha_tokens t WHERE t.deep_selected OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived)`;
+    await sql`SELECT t.* FROM alpha_tokens t WHERE t.deep_selected OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived) OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active)`;
   for (const token of tokens) {
     const [
       events,
@@ -30,7 +31,7 @@ export async function walletResearchSync() {
       monitored,
       priceRows,
       swapCoverage,
-    ] = await Promise.all([
+    ] = await providerReads([
       sql`SELECT * FROM token_transfers WHERE token_id=${token.id} AND canonical AND event_time>now()-interval '180 days' ORDER BY block_number,log_index LIMIT 100001`,
       sql`SELECT * FROM verified_swaps WHERE token_id=${token.id} AND canonical AND event_time>now()-interval '180 days' ORDER BY block_number,log_index LIMIT 50001`,
       sql`SELECT * FROM wallet_balance_snapshots WHERE token_id=${token.id} AND canonical AND block_time IS NOT NULL ORDER BY block_number LIMIT 100001`,

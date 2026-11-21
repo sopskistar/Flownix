@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T01:05:25.481Z",
+  "generatedAt": "2026-11-21T18:27:34.038Z",
   "scope": "Local Node-process measurements. No hosted worker, full production soak, 50-token or 100-token live benchmark. Socket counters approximate TCP traffic including PostgreSQL; billing differs. Large sampling gaps excluded from CPU averages. resourceUsage.maxRSS inherited before exec was 539 MiB even at startup; use Linux VmHWM where present and sampled RSS otherwise. Samples omit tsx helper, OS and Docker overhead. Database server CPU during writes was not measured.",
   "runs": [
     {
@@ -343,6 +343,597 @@
         "rpcMethod:56:eth_getCode": 5,
         "rpcMethod:56:eth_call": 5,
         "rpcMethod:56:eth_getBlockByNumber": 11
+      }
+    },
+    {
+      "file": "worker-2026-11-21T08-41-44.577Z.json",
+      "startedAt": "2026-11-21T08:41:44.577Z",
+      "measuredAt": "2026-11-21T09:11:12.385Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 363,
+      "elapsedSeconds": 1767.808,
+      "activeSampleSeconds": 1767.805,
+      "maxSampleGapSeconds": 5.101000000000113,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 145.74974173553719,
+      "peakSampleRssMiB": 163.37890625,
+      "linuxHighWaterMiB": 163.37890625,
+      "peakHeapUsedMiB": 43.0927734375,
+      "meanActiveSampleCpuPercent": 2.2228634379923125,
+      "peakIntervalCpuPercent": 44.548648648607035,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.003,
+          "meanCpuPercent": 7.293014730387255,
+          "peakRssMiB": 139.73046875
+        },
+        "registry": {
+          "activeSeconds": 38.690999999999995,
+          "meanCpuPercent": 7.624346747305576,
+          "peakRssMiB": 156.203125
+        },
+        "market": {
+          "activeSeconds": 739.952,
+          "meanCpuPercent": 2.153921200294073,
+          "peakRssMiB": 162.57421875
+        },
+        "idle": {
+          "activeSeconds": 200.4370000000004,
+          "meanCpuPercent": 2.080903725360084,
+          "peakRssMiB": 163.37890625
+        },
+        "persistence": {
+          "activeSeconds": 5.003000000000043,
+          "meanCpuPercent": 2.993983609834074,
+          "peakRssMiB": 162.4375
+        },
+        "scan": {
+          "activeSeconds": 768.7189999999996,
+          "meanCpuPercent": 1.950402032472205,
+          "peakRssMiB": 163.37890625
+        }
+      },
+      "tcpReadBytes": 3085788,
+      "tcpWrittenBytes": 23687425,
+      "logBytes": 43232,
+      "peakTcpSockets": 9,
+      "counters": {
+        "postgresQueries": 3034,
+        "requests:binance_alpha": 249,
+        "httpRequestBodyBytes": 45567,
+        "httpResponseBodyBytes": 6961161,
+        "rpcMethod:56:eth_chainId": 29,
+        "requests:rpc:56": 206,
+        "rpcMethod:56:eth_blockNumber": 29,
+        "rpcMethod:56:eth_getLogs": 29,
+        "rpcMethod:56:eth_getCode": 29,
+        "rpcMethod:56:eth_call": 29,
+        "rpcMethod:56:eth_getBlockByNumber": 61,
+        "rpcMethod:8453:eth_chainId": 3,
+        "requests:rpc:8453": 21,
+        "rpcMethod:8453:eth_blockNumber": 3,
+        "rpcMethod:8453:eth_getLogs": 3,
+        "rpcMethod:8453:eth_getCode": 3,
+        "rpcMethod:8453:eth_call": 3,
+        "rpcMethod:8453:eth_getBlockByNumber": 6,
+        "requests:rpc:CT_501": 106,
+        "requestErrors:rpc:CT_501": 2,
+        "rpcMethod:1:eth_chainId": 1,
+        "requests:rpc:1": 8,
+        "rpcMethod:1:eth_blockNumber": 1,
+        "rpcMethod:1:eth_getLogs": 1,
+        "rpcMethod:1:eth_getCode": 1,
+        "rpcMethod:1:eth_call": 1,
+        "rpcMethod:1:eth_getBlockByNumber": 3,
+        "rpcMethod:42161:eth_chainId": 1,
+        "requests:rpc:42161": 7,
+        "rpcMethod:42161:eth_blockNumber": 1,
+        "rpcMethod:42161:eth_getLogs": 1,
+        "rpcMethod:42161:eth_getCode": 1,
+        "rpcMethod:42161:eth_call": 1,
+        "rpcMethod:42161:eth_getBlockByNumber": 2
+      }
+    },
+    {
+      "file": "worker-2026-11-21T13-38-00.672Z.json",
+      "startedAt": "2026-11-21T13:38:00.672Z",
+      "measuredAt": "2026-11-21T13:56:16.567Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 229,
+      "elapsedSeconds": 1095.895,
+      "activeSampleSeconds": 1095.892,
+      "maxSampleGapSeconds": 5.0639999999999645,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 141.35026610262008,
+      "peakSampleRssMiB": 160.40625,
+      "linuxHighWaterMiB": 164.44140625,
+      "peakHeapUsedMiB": 50.10118865966797,
+      "meanActiveSampleCpuPercent": 3.0464080402083415,
+      "peakIntervalCpuPercent": 30.198920215956814,
+      "phases": {
+        "startup": {
+          "activeSeconds": 13.84,
+          "meanCpuPercent": 13.694609826589597,
+          "peakRssMiB": 126.39453125
+        },
+        "registry": {
+          "activeSeconds": 35.04599999999995,
+          "meanCpuPercent": 8.08158135022543,
+          "peakRssMiB": 155.6796875
+        },
+        "idle": {
+          "activeSeconds": 115.21699999999989,
+          "meanCpuPercent": 5.38465677807963,
+          "peakRssMiB": 159.8984375
+        },
+        "market": {
+          "activeSeconds": 505.724,
+          "meanCpuPercent": 2.0001985272599283,
+          "peakRssMiB": 154.7265625
+        },
+        "scan": {
+          "activeSeconds": 426.06500000000017,
+          "meanCpuPercent": 2.8958522760611634,
+          "peakRssMiB": 160.40625
+        }
+      },
+      "tcpReadBytes": 2347966,
+      "tcpWrittenBytes": 18141978,
+      "logBytes": 36527,
+      "peakTcpSockets": 7,
+      "counters": {
+        "postgresQueries": 2006,
+        "requests:binance_alpha": 204,
+        "httpRequestBodyBytes": 26056,
+        "httpResponseBodyBytes": 5350972,
+        "rpcMethod:56:eth_chainId": 32,
+        "requests:rpc:56": 224,
+        "alchemyRpcRequests": 232,
+        "alchemyEstimatedComputeUnits": 5168,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 32,
+        "rpcMethod:56:eth_getLogs": 32,
+        "rpcMethod:56:eth_getCode": 32,
+        "rpcMethod:56:eth_call": 32,
+        "rpcMethod:56:eth_getBlockByNumber": 64,
+        "rpcMethod:8453:eth_chainId": 1,
+        "requests:rpc:8453": 8,
+        "rpcMethod:8453:eth_blockNumber": 1,
+        "rpcMethod:8453:eth_getLogs": 1,
+        "rpcMethod:8453:eth_getCode": 1,
+        "rpcMethod:8453:eth_call": 1,
+        "rpcMethod:8453:eth_getBlockByNumber": 3
+      }
+    },
+    {
+      "file": "worker-2026-11-21T14-05-24.418Z.json",
+      "startedAt": "2026-11-21T14:05:24.418Z",
+      "measuredAt": "2026-11-21T14:23:09.843Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 223,
+      "elapsedSeconds": 1065.425,
+      "activeSampleSeconds": 1065.423,
+      "maxSampleGapSeconds": 6.228999999999928,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 139.46100756726457,
+      "peakSampleRssMiB": 166.05859375,
+      "linuxHighWaterMiB": 167.08984375,
+      "peakHeapUsedMiB": 44.05279541015625,
+      "meanActiveSampleCpuPercent": 4.895906696213617,
+      "peakIntervalCpuPercent": 28.515287769784063,
+      "phases": {
+        "startup": {
+          "activeSeconds": 13.767000000000001,
+          "meanCpuPercent": 10.873509116002033,
+          "peakRssMiB": 124.953125
+        },
+        "scan": {
+          "activeSeconds": 823.438,
+          "meanCpuPercent": 4.507900898428297,
+          "peakRssMiB": 166.05859375
+        },
+        "market": {
+          "activeSeconds": 153.8159999999999,
+          "meanCpuPercent": 5.1324342071045965,
+          "peakRssMiB": 157.80859375
+        },
+        "idle": {
+          "activeSeconds": 31.327000000000112,
+          "meanCpuPercent": 9.74882050627251,
+          "peakRssMiB": 152.96484375
+        },
+        "registry": {
+          "activeSeconds": 34.09999999999991,
+          "meanCpuPercent": 5.501099706744883,
+          "peakRssMiB": 148.08203125
+        },
+        "persistence": {
+          "activeSeconds": 8.975000000000023,
+          "meanCpuPercent": 8.033403899721428,
+          "peakRssMiB": 148.33984375
+        }
+      },
+      "tcpReadBytes": 3078971,
+      "tcpWrittenBytes": 27875483,
+      "logBytes": 58218,
+      "peakTcpSockets": 9,
+      "counters": {
+        "postgresQueries": 2761,
+        "requests:binance_alpha": 406,
+        "httpRequestBodyBytes": 51444,
+        "httpResponseBodyBytes": 7951787,
+        "rpcMethod:56:eth_chainId": 21,
+        "requests:rpc:56": 147,
+        "alchemyRpcRequests": 345,
+        "alchemyEstimatedComputeUnits": 9002,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 21,
+        "rpcMethod:56:eth_getLogs": 21,
+        "rpcMethod:56:eth_getCode": 21,
+        "rpcMethod:56:eth_call": 21,
+        "rpcMethod:56:eth_getBlockByNumber": 42,
+        "rpcMethod:8453:eth_chainId": 1,
+        "requests:rpc:8453": 7,
+        "rpcMethod:8453:eth_blockNumber": 1,
+        "rpcMethod:8453:eth_getLogs": 1,
+        "rpcMethod:8453:eth_getCode": 1,
+        "rpcMethod:8453:eth_call": 1,
+        "rpcMethod:8453:eth_getBlockByNumber": 2,
+        "requests:rpc:CT_501": 191
+      }
+    },
+    {
+      "file": "worker-2026-11-21T14-23-54.103Z.json",
+      "startedAt": "2026-11-21T14:23:54.103Z",
+      "measuredAt": "2026-11-21T15:02:15.605Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 479,
+      "elapsedSeconds": 2301.501,
+      "activeSampleSeconds": 2301.4870000000005,
+      "maxSampleGapSeconds": 6.053999999999974,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 127.55558455114823,
+      "peakSampleRssMiB": 157.2265625,
+      "linuxHighWaterMiB": 161.39453125,
+      "peakHeapUsedMiB": 52.666534423828125,
+      "meanActiveSampleCpuPercent": 4.437845618941145,
+      "peakIntervalCpuPercent": 47.06259310344828,
+      "phases": {
+        "startup": {
+          "activeSeconds": 14.036,
+          "meanCpuPercent": 11.931305215161014,
+          "peakRssMiB": 136.0078125
+        },
+        "market": {
+          "activeSeconds": 547.9040000000006,
+          "meanCpuPercent": 3.089345213760071,
+          "peakRssMiB": 156.859375
+        },
+        "scan": {
+          "activeSeconds": 1601.7509999999995,
+          "meanCpuPercent": 4.452391851167879,
+          "peakRssMiB": 157.2265625
+        },
+        "registry": {
+          "activeSeconds": 63.82900000000012,
+          "meanCpuPercent": 6.617161478324887,
+          "peakRssMiB": 151.77734375
+        },
+        "idle": {
+          "activeSeconds": 73.96699999999987,
+          "meanCpuPercent": 10.809167601768376,
+          "peakRssMiB": 144.34375
+        }
+      },
+      "tcpReadBytes": 6344391,
+      "tcpWrittenBytes": 55440677,
+      "logBytes": 105855,
+      "peakTcpSockets": 10,
+      "counters": {
+        "postgresQueries": 5191,
+        "requests:binance_alpha": 699,
+        "httpRequestBodyBytes": 92502,
+        "httpResponseBodyBytes": 16610115,
+        "rpcMethod:56:eth_chainId": 45,
+        "requests:rpc:56": 341,
+        "alchemyRpcRequests": 685,
+        "alchemyEstimatedComputeUnits": 16868,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 45,
+        "rpcMethod:56:eth_getLogs": 45,
+        "rpcMethod:56:eth_getCode": 45,
+        "rpcMethod:56:eth_call": 45,
+        "rpcMethod:56:eth_getBlockByNumber": 116,
+        "rpcMethod:8453:eth_chainId": 9,
+        "requests:rpc:8453": 65,
+        "rpcMethod:8453:eth_blockNumber": 9,
+        "rpcMethod:8453:eth_getLogs": 9,
+        "rpcMethod:8453:eth_getCode": 9,
+        "rpcMethod:8453:eth_call": 9,
+        "rpcMethod:8453:eth_getBlockByNumber": 20,
+        "rpcMethod:1:eth_chainId": 4,
+        "requests:rpc:1": 29,
+        "rpcMethod:1:eth_blockNumber": 4,
+        "rpcMethod:1:eth_getLogs": 4,
+        "rpcMethod:1:eth_getCode": 4,
+        "rpcMethod:1:eth_call": 4,
+        "rpcMethod:1:eth_getBlockByNumber": 9,
+        "requests:rpc:CT_501": 250,
+        "requestErrors:binance_alpha": 2
+      }
+    },
+    {
+      "file": "worker-2026-11-21T15-26-57.655Z.json",
+      "startedAt": "2026-11-21T15:26:57.655Z",
+      "measuredAt": "2026-11-21T16:14:33.617Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 594,
+      "elapsedSeconds": 2855.961,
+      "activeSampleSeconds": 2855.931,
+      "maxSampleGapSeconds": 7.887000000000171,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 158.06687315867003,
+      "peakSampleRssMiB": 184.8125,
+      "linuxHighWaterMiB": 186.37890625,
+      "peakHeapUsedMiB": 55.476776123046875,
+      "meanActiveSampleCpuPercent": 5.671647074106482,
+      "peakIntervalCpuPercent": 55.269404247318114,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.030000000000001,
+          "meanCpuPercent": 5.621909514304724,
+          "peakRssMiB": 128.32421875
+        },
+        "registry": {
+          "activeSeconds": 129.37000000000035,
+          "meanCpuPercent": 14.729093298291684,
+          "peakRssMiB": 177.46875
+        },
+        "scan": {
+          "activeSeconds": 2283.519999999999,
+          "meanCpuPercent": 4.913808856502245,
+          "peakRssMiB": 184.8125
+        },
+        "market": {
+          "activeSeconds": 300.8470000000009,
+          "meanCpuPercent": 5.6822986434965115,
+          "peakRssMiB": 176.1796875
+        },
+        "idle": {
+          "activeSeconds": 118.36599999999964,
+          "meanCpuPercent": 10.41710710846023,
+          "peakRssMiB": 174.80078125
+        },
+        "persistence": {
+          "activeSeconds": 3.7970000000000255,
+          "meanCpuPercent": 1.643060310771651,
+          "peakRssMiB": 164.30859375
+        },
+        "notifications": {
+          "activeSeconds": 5.000999999999749,
+          "meanCpuPercent": 7.65432913417355,
+          "peakRssMiB": 145.53125
+        }
+      },
+      "tcpReadBytes": 8871186,
+      "tcpWrittenBytes": 76805883,
+      "logBytes": 151499,
+      "peakTcpSockets": 12,
+      "counters": {
+        "postgresQueries": 7317,
+        "requests:binance_alpha": 1001,
+        "httpRequestBodyBytes": 127639,
+        "httpResponseBodyBytes": 22393507,
+        "rpcMethod:56:eth_chainId": 67,
+        "requests:rpc:56": 484,
+        "alchemyRpcRequests": 946,
+        "alchemyEstimatedComputeUnits": 23228,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 67,
+        "rpcMethod:56:eth_getLogs": 67,
+        "rpcMethod:56:eth_getCode": 67,
+        "rpcMethod:56:eth_call": 67,
+        "rpcMethod:56:eth_getBlockByNumber": 149,
+        "rpcMethod:1:eth_chainId": 11,
+        "requests:rpc:1": 83,
+        "rpcMethod:1:eth_blockNumber": 11,
+        "rpcMethod:1:eth_getLogs": 11,
+        "rpcMethod:1:eth_getCode": 11,
+        "rpcMethod:1:eth_call": 11,
+        "rpcMethod:1:eth_getBlockByNumber": 28,
+        "requests:rpc:CT_501": 344,
+        "rpcMethod:8453:eth_chainId": 4,
+        "requests:rpc:8453": 28,
+        "rpcMethod:8453:eth_blockNumber": 4,
+        "rpcMethod:8453:eth_getLogs": 4,
+        "rpcMethod:8453:eth_getCode": 4,
+        "rpcMethod:8453:eth_call": 4,
+        "rpcMethod:8453:eth_getBlockByNumber": 8,
+        "rpcMethod:42161:eth_chainId": 1,
+        "requests:rpc:42161": 7,
+        "rpcMethod:42161:eth_blockNumber": 1,
+        "rpcMethod:42161:eth_getLogs": 1,
+        "rpcMethod:42161:eth_getCode": 1,
+        "rpcMethod:42161:eth_call": 1,
+        "rpcMethod:42161:eth_getBlockByNumber": 2
+      }
+    },
+    {
+      "file": "worker-2026-11-21T17-09-45.480Z.json",
+      "startedAt": "2026-11-21T17:09:45.480Z",
+      "measuredAt": "2026-11-21T17:19:58.389Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 128,
+      "elapsedSeconds": 612.908,
+      "activeSampleSeconds": 612.8679999999999,
+      "maxSampleGapSeconds": 6.741999999999962,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 132.19808959960938,
+      "peakSampleRssMiB": 148.39453125,
+      "linuxHighWaterMiB": 156.77734375,
+      "peakHeapUsedMiB": 50.10736083984375,
+      "meanActiveSampleCpuPercent": 3.730273892583721,
+      "peakIntervalCpuPercent": 38.521871881859916,
+      "phases": {
+        "startup": {
+          "activeSeconds": 20.023,
+          "meanCpuPercent": 12.34539779253858,
+          "peakRssMiB": 117.83203125
+        },
+        "registry": {
+          "activeSeconds": 23.471,
+          "meanCpuPercent": 4.73909505347024,
+          "peakRssMiB": 146.22265625
+        },
+        "idle": {
+          "activeSeconds": 20.003999999999984,
+          "meanCpuPercent": 8.38579784043192,
+          "peakRssMiB": 142.78125
+        },
+        "scan": {
+          "activeSeconds": 512.5700000000002,
+          "meanCpuPercent": 2.937875412138829,
+          "peakRssMiB": 148.39453125
+        },
+        "market": {
+          "activeSeconds": 36.799999999999955,
+          "meanCpuPercent": 6.905597826086965,
+          "peakRssMiB": 137.14453125
+        }
+      },
+      "tcpReadBytes": 1452565,
+      "tcpWrittenBytes": 13588492,
+      "logBytes": 23977,
+      "peakTcpSockets": 10,
+      "counters": {
+        "postgresQueries": 1154,
+        "requests:binance_alpha": 174,
+        "httpRequestBodyBytes": 17377,
+        "httpResponseBodyBytes": 3931331,
+        "requests:rpc:CT_501": 54,
+        "alchemyRpcRequests": 129,
+        "alchemyEstimatedComputeUnits": 3130,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_chainId": 10,
+        "requests:rpc:56": 75,
+        "rpcMethod:56:eth_blockNumber": 10,
+        "rpcMethod:56:eth_getLogs": 10,
+        "rpcMethod:56:eth_getCode": 10,
+        "rpcMethod:56:eth_call": 10,
+        "rpcMethod:56:eth_getBlockByNumber": 25,
+        "requestErrors:binance_alpha": 4
+      }
+    },
+    {
+      "file": "worker-2026-11-21T17-39-25.126Z.json",
+      "startedAt": "2026-11-21T17:39:25.126Z",
+      "measuredAt": "2026-11-21T18:01:34.378Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 275,
+      "elapsedSeconds": 1329.252,
+      "activeSampleSeconds": 1329.2459999999999,
+      "maxSampleGapSeconds": 5.301000000000045,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 118.95183238636363,
+      "peakSampleRssMiB": 150.3046875,
+      "linuxHighWaterMiB": 156.1640625,
+      "peakHeapUsedMiB": 50.06077575683594,
+      "meanActiveSampleCpuPercent": 2.264477530870885,
+      "peakIntervalCpuPercent": 36.59856115107914,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.135,
+          "meanCpuPercent": 6.468701684836472,
+          "peakRssMiB": 113.7890625
+        },
+        "registry": {
+          "activeSeconds": 23.624000000000002,
+          "meanCpuPercent": 14.481844734168641,
+          "peakRssMiB": 150.3046875
+        },
+        "market": {
+          "activeSeconds": 45.078999999999965,
+          "meanCpuPercent": 5.039384192195927,
+          "peakRssMiB": 146.359375
+        },
+        "scan": {
+          "activeSeconds": 1231.796,
+          "meanCpuPercent": 1.807540859038347,
+          "peakRssMiB": 146.359375
+        },
+        "idle": {
+          "activeSeconds": 13.611999999999966,
+          "meanCpuPercent": 8.546341463414656,
+          "peakRssMiB": 128.58203125
+        }
+      },
+      "tcpReadBytes": 1578082,
+      "tcpWrittenBytes": 14129896,
+      "logBytes": 28743,
+      "peakTcpSockets": 8,
+      "counters": {
+        "postgresQueries": 1440,
+        "requests:binance_alpha": 203,
+        "httpRequestBodyBytes": 26036,
+        "httpResponseBodyBytes": 3963105,
+        "rpcMethod:56:eth_chainId": 10,
+        "requests:rpc:56": 70,
+        "alchemyRpcRequests": 176,
+        "alchemyEstimatedComputeUnits": 4510,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 10,
+        "rpcMethod:56:eth_getLogs": 10,
+        "rpcMethod:56:eth_getCode": 10,
+        "rpcMethod:56:eth_call": 10,
+        "rpcMethod:56:eth_getBlockByNumber": 20,
+        "requests:rpc:CT_501": 106
+      }
+    },
+    {
+      "file": "worker-2026-11-21T18-21-46.202Z.json",
+      "startedAt": "2026-11-21T18:21:46.202Z",
+      "measuredAt": "2026-11-21T18:22:21.936Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 9,
+      "elapsedSeconds": 35.734,
+      "activeSampleSeconds": 35.731,
+      "maxSampleGapSeconds": 5.023,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 104.40451388888889,
+      "peakSampleRssMiB": 105.75390625,
+      "linuxHighWaterMiB": 105.75390625,
+      "peakHeapUsedMiB": 26.92467498779297,
+      "meanActiveSampleCpuPercent": 2.9920964988385435,
+      "peakIntervalCpuPercent": 6.398467051562812,
+      "phases": {
+        "startup": {
+          "activeSeconds": 13.747,
+          "meanCpuPercent": 4.725227322324871,
+          "peakRssMiB": 104.921875
+        },
+        "registry": {
+          "activeSeconds": 21.984,
+          "meanCpuPercent": 1.9083378820960697,
+          "peakRssMiB": 105.75390625
+        }
+      },
+      "tcpReadBytes": 66140,
+      "tcpWrittenBytes": 61155,
+      "logBytes": 341,
+      "peakTcpSockets": 5,
+      "counters": {
+        "postgresQueries": 25,
+        "requests:binance_alpha": 3,
+        "httpRequestBodyBytes": 0,
+        "requestErrors:binance_alpha": 3
       }
     }
   ]

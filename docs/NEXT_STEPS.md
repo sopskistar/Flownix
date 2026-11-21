@@ -1,3 +1,11 @@
+# Latest account-recovery release
+
+See [ACCOUNT_RECOVERY_RELEASE_2026-11-21.md](ACCOUNT_RECOVERY_RELEASE_2026-11-21.md) for preserved work, the 103-test result, browser history regression, driver backport, live evidence and remaining operational gates. Older snapshots below retain their original dates.
+
+# Latest recovery continuation
+
+Use [the dated acceptance continuation](LOCAL_AUTOMATIC_ACCEPTANCE_2026-11-21.md) and `pnpm collection:status <ISO-start-time>` for current evidence. Old sandbox and missing-Alchemy statements below are historical. One local collector is recovering the full supported schedule; no persistent worker host is deployed. Distinguish recently collected tickers from source-fresh prices, successful sampled observations from near-head/full history, and historical retry rows from newly observed failures. Preserve existing cursors and the original Neon project.
+
 # Next steps — automatic discovery activation
 
 Latest live results are in [ACTIVATION_VERIFICATION.md](ACTIVATION_VERIFICATION.md). The scheduler now progresses from registry refresh into scans and recovers expired leases; this has been verified on a bounded local cycle, not a full-universe operation.
@@ -41,6 +49,7 @@ The following recorded the earlier pre-ingestion state and no longer describes c
 4. Highest-leverage research improvement: verify permitted official Alpha access and one reliable EVM RPC, then independently complete the live registry/market/transfer vertical-slice gate. Current official Alpha count is unverified and production tokens/transfers/live signals are zero. This deployment task did not start Phase 2.
 
 Do not prioritize new graphs, signal engines, redesigned screens or additional providers over genuine data acceptance. Token watchlist toggles, populated token investigations and real-data paper fills cannot be accepted end to end until verified Alpha identities and executable market evidence exist. Their current empty/unavailable states remain intentional.
+
 # Next implementation steps after the market coverage/classification update
 
 1. Owner adds Alchemy HTTPS URLs locally under `ETH_RPC_URL`, `BSC_RPC_URL`, and `BASE_RPC_URL` (do not paste values into chat). Keep the Alchemy account on Free; do not accept a PAYG prompt.

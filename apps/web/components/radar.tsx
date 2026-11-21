@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { freshness } from "@flownix/core/browser";
 import type { RadarToken, Health } from "../lib/data";
@@ -37,24 +37,31 @@ export function Radar({
   watchlist?: boolean;
 }) {
   const query = useSearchParams(),
-    router = useRouter(),
     path = usePathname();
   const [pending, setPending] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   // Share the server's initial clock across hydration. Slow requests can cross
   // a freshness boundary; recompute against real time only after hydration.
   const [now, setNow] = useState(asOf);
   useEffect(() => {
+    setHydrated(true);
     setNow(Date.now());
     const timer = globalThis.setInterval(() => setNow(Date.now()), 30_000);
     return () => globalThis.clearInterval(timer);
   }, []);
   const set = (key: string, v: string) => {
-    const params = new URLSearchParams(query.toString());
+    const params = new URLSearchParams(window.location.search);
     if (v) params.set(key, v);
     else params.delete(key);
     if (key !== "page") params.delete("page");
     setPending(true);
-    router.replace(`${path}?${params.toString()}`, { scroll: false });
+    // All filter data is already present. Next's native History integration
+    // updates useSearchParams without refetching the Neon-backed RSC page.
+    window.history.replaceState(
+      null,
+      "",
+      `${path}${params.size ? `?${params}` : ""}${window.location.hash}`,
+    );
     setTimeout(() => setPending(false), 150);
   };
   const search = (query.get("q") ?? "").toLowerCase(),
@@ -185,10 +192,11 @@ export function Radar({
           <h2>{watchlist ? "Your monitored theses" : "Universe ledger"}</h2>
           <span>{filtered.length} matching identities</span>
         </div>
-        <div className="filters">
+        <div className="filters" aria-busy={!hydrated}>
           <label className="search-filter">
             Search
             <input
+              disabled={!hydrated}
               type="search"
               value={query.get("q") ?? ""}
               onChange={(e) => set("q", e.target.value)}
@@ -198,6 +206,7 @@ export function Radar({
           <label>
             Chain
             <select
+              disabled={!hydrated}
               value={chain}
               onChange={(e) => set("chain", e.target.value)}
             >
@@ -224,6 +233,7 @@ export function Radar({
           <label>
             Membership
             <select
+              disabled={!hydrated}
               value={membership}
               onChange={(e) => set("membership", e.target.value)}
             >
@@ -237,6 +247,7 @@ export function Radar({
           <label>
             Project classification
             <select
+              disabled={!hydrated}
               value={classification}
               onChange={(e) => set("classification", e.target.value)}
             >
@@ -250,6 +261,7 @@ export function Radar({
           <label>
             Min. cap (registry)
             <select
+              disabled={!hydrated}
               value={query.get("minCap") ?? ""}
               onChange={(e) => set("minCap", e.target.value)}
             >
@@ -262,6 +274,7 @@ export function Radar({
           <label>
             Min. liquidity
             <select
+              disabled={!hydrated}
               value={query.get("minLiquidity") ?? ""}
               onChange={(e) => set("minLiquidity", e.target.value)}
             >
@@ -272,7 +285,11 @@ export function Radar({
           </label>
           <label>
             Sort by
-            <select value={sort} onChange={(e) => set("sort", e.target.value)}>
+            <select
+              disabled={!hydrated}
+              value={sort}
+              onChange={(e) => set("sort", e.target.value)}
+            >
               <option value="liquidity">Liquidity</option>
               <option value="oldest">Longest observation</option>
               <option value="activity">Unresolved activity</option>
@@ -286,6 +303,7 @@ export function Radar({
           <label>
             Lifecycle
             <select
+              disabled={!hydrated}
               value={state}
               onChange={(e) => set("state", e.target.value)}
             >
@@ -526,13 +544,13 @@ export function Radar({
           </span>
           <div>
             <button
-              disabled={safePage <= 1}
+              disabled={!hydrated || safePage <= 1}
               onClick={() => set("page", String(safePage - 1))}
             >
               Previous
             </button>
             <button
-              disabled={safePage >= pages}
+              disabled={!hydrated || safePage >= pages}
               onClick={() => set("page", String(safePage + 1))}
             >
               Next

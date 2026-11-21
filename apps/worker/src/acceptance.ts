@@ -9,6 +9,7 @@ import {
   explorerUrl,
   networkErrorCode,
   ProviderError,
+  providerReads,
   closeProviderNetwork,
 } from "@flownix/core";
 import {
@@ -76,7 +77,7 @@ async function main() {
     }
     if (["collect", "scan"].includes(command)) {
       const tokens =
-        await sql`SELECT id FROM alpha_tokens WHERE deep_selected AND status='current' ORDER BY id`;
+        await sql`SELECT id FROM alpha_tokens WHERE status='current' AND chain_id IN ('1','56','8453','42161','CT_501') ORDER BY id`;
       let refreshedAt = Date.now();
       for (const token of tokens) {
         phase = `scan:${token.id}`;
@@ -99,7 +100,7 @@ async function main() {
     }
     if (command === "replay") {
       const samples =
-        await sql`SELECT DISTINCT ON(s.token_id) s.* FROM scan_windows s JOIN alpha_tokens t ON t.id=s.token_id WHERE t.status='current' ORDER BY s.token_id,s.from_block DESC LIMIT 3`;
+        await sql`SELECT DISTINCT ON(s.token_id) s.*,t.chain_id FROM scan_windows s JOIN alpha_tokens t ON t.id=s.token_id WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161') ORDER BY s.token_id,s.from_block DESC LIMIT 3`;
       if (!samples.length) throw Error("NO_LIVE_WINDOWS_TO_REPLAY");
       for (const sample of samples) {
         phase = `replay:${sample.token_id}`;
@@ -145,7 +146,7 @@ async function main() {
     }
     if (command === "verify") {
       const events =
-        await sql`SELECT DISTINCT ON(e.token_id) e.*,t.contract,t.symbol FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id WHERE e.canonical AND t.deep_selected ORDER BY e.token_id,e.event_time DESC LIMIT 3`;
+        await sql`SELECT DISTINCT ON(e.token_id) e.*,t.contract,t.symbol FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id WHERE e.canonical AND t.status='current' ORDER BY e.token_id,e.event_time DESC LIMIT 3`;
       if (events.length < 3) throw Error("FEWER_THAN_THREE_LIVE_TOKEN_EVENTS");
       for (const event of events) {
         const rpc = new EvmProvider(
@@ -204,10 +205,10 @@ async function main() {
       history,
       replay,
       bytes,
-    ] = await Promise.all([
+    ] = await providerReads([
       sql`SELECT status,chain_id,count(*)::int AS count FROM alpha_tokens GROUP BY status,chain_id ORDER BY status,chain_id`,
       sql`SELECT source_kind,count(DISTINCT token_id)::int AS tokens,count(*)::int AS observations,max(observed_at) AS latest FROM market_snapshots GROUP BY source_kind`,
-      sql`SELECT t.id,t.symbol,t.chain_id,c.block_number::text,c.scanned_at FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id WHERE t.deep_selected ORDER BY t.chain_id,t.symbol`,
+      sql`SELECT t.id,t.symbol,t.chain_id,c.block_number::text,c.scanned_at FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161','CT_501') ORDER BY t.chain_id,t.symbol`,
       sql`SELECT chain_id,count(*)::int AS events,min(event_time) AS first_event,max(event_time) AS last_event FROM token_transfers WHERE canonical GROUP BY chain_id`,
       sql`SELECT chain_id,tx_hash,block_hash,block_number::text,observed_at,evidence FROM receipt_evidence WHERE canonical ORDER BY observed_at DESC LIMIT 3`,
       sql`SELECT token_id,rule_version,reason,computed_at,evidence FROM detection_traces ORDER BY id DESC LIMIT 3`,
@@ -220,7 +221,7 @@ async function main() {
         .filter((row) => row.status === "current")
         .reduce((sum, row) => sum + row.count, 0);
     const covered = scans.filter((row) => row.scanned_at).length;
-    const passed =
+    const verticalSlicePassed =
       count > 0 &&
       markets.some(
         (row) => row.source_kind === "alpha_market" && row.tokens >= 10,
@@ -229,14 +230,36 @@ async function main() {
       receipts.length >= 3 &&
       traces.length > 0 &&
       !!replay[0];
+    // Historical vertical-slice evidence is not a full-universe live-health
+    // certificate. Require current observations separately from receipt proof.
+    const live = (
+      await sql`SELECT
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL))) AS paired,
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL)) AND EXISTS(SELECT 1 FROM market_snapshots m WHERE m.token_id=t.id AND m.source_kind='alpha_market' AND m.observed_at>now()-interval '15 minutes' AND m.provider_time>now()-interval '15 minutes' AND m.provider_time<=now()+interval '1 minute')) AS fresh_pairs,
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161')) AS evm_supported,
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161') AND EXISTS(SELECT 1 FROM scan_windows w WHERE w.token_id=t.id AND w.complete AND w.end_time>now()-interval '15 minutes')) AS evm_near_head,
+      (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE t.status='current' AND j.status='retry') AS retries,
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id='CT_501') AS solana_supported,
+      (SELECT count(*)::int FROM alpha_tokens t JOIN settings s ON s.key='solana_coverage:'||t.id WHERE t.status='current' AND t.chain_id='CT_501' AND s.updated_at>now()-interval '6 hours') AS solana_sampled
+    `
+    )[0];
+    const passed =
+      verticalSlicePassed &&
+      live.paired > 0 &&
+      live.fresh_pairs === live.paired &&
+      live.evm_near_head === live.evm_supported &&
+      live.solana_sampled === live.solana_supported &&
+      live.retries === 0;
     const report = {
       checkedAt: new Date().toISOString(),
       command,
       stageErrors,
       passed,
+      verticalSlicePassed,
+      automaticMonitoring: live,
       universe: { observed: count, current, byStatusAndChain: tokens },
       markets,
-      deepTokens: scans,
+      baselineTokens: scans,
       canonicalTransfers: tx,
       verifiedReceipts: receipts,
       detectionTraces: traces,
@@ -254,6 +277,10 @@ async function main() {
     await mkdir("artifacts/live", { recursive: true });
     await writeFile(
       "artifacts/live/acceptance.json",
+      JSON.stringify(report, null, 2),
+    );
+    await writeFile(
+      `artifacts/live/acceptance-${report.checkedAt.replaceAll(":", "-")}-${command}.json`,
       JSON.stringify(report, null, 2),
     );
     console.log(JSON.stringify(report, null, 2));

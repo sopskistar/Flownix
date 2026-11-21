@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readdir, readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { claimNextJob } from "../apps/worker/src/scheduler";
 import {
   sqlClient,
   closeDb,
@@ -78,13 +79,45 @@ describe.skipIf(!enabled)(
           await tx`INSERT INTO worker_jobs(key,kind,payload) SELECT key,kind,payload FROM jsonb_to_recordset(${jsonParam(scanJobs)}::jsonb) AS r(key text,kind text,payload jsonb)`;
           let visited = 0;
           while (true) {
-            const batch = await tx`SELECT key FROM worker_jobs WHERE kind='scan' AND run_after<=now() ORDER BY run_after,key LIMIT 100 FOR UPDATE`;
+            const batch =
+              await tx`SELECT key FROM worker_jobs WHERE kind='scan' AND run_after<=now() ORDER BY run_after,key LIMIT 100 FOR UPDATE`;
             if (!batch.length) break;
             visited += batch.length;
             const keys = batch.map((r) => r.key);
             await tx`UPDATE worker_jobs SET run_after=now()+interval '1 day',status='done' WHERE key=ANY(${keys})`;
           }
           expect(visited).toBe(251); // More than two batches; no permanent universe cap.
+          // Exercise the actual collector claim query, including an explicit
+          // scan turn while market work is queued, lease recovery and admission.
+          const keys = universe.slice(0, 4).map((t) => `scan:${t.id}`);
+          await tx`UPDATE worker_jobs SET status='queued',run_after=now()-interval '1 hour' WHERE key=ANY(${keys})`;
+          await tx`UPDATE worker_jobs SET status='running',lease_until=now()+interval '2 minutes' WHERE key=${keys[0]}`;
+          await tx`UPDATE worker_jobs SET status='running',lease_until=now()-interval '1 second' WHERE key=${keys[1]}`;
+          await tx`UPDATE worker_jobs SET status='retry',attempts=2 WHERE key=${keys[2]}`;
+          await tx`UPDATE alpha_tokens SET status='offline' WHERE id=${universe[3].id}`;
+          await tx`INSERT INTO worker_jobs(key,kind) VALUES('market','market')`;
+          const claimClient = {
+            begin: (fn: (sp: typeof tx) => Promise<unknown>) =>
+              tx.savepoint(fn),
+          } as unknown as ReturnType<typeof sqlClient>;
+          const owner = randomUUID();
+          expect(
+            (await claimNextJob(owner, ["market", "scan"], [], claimClient))
+              ?.key,
+          ).toBe("market");
+          expect(
+            (await claimNextJob(owner, ["scan"], [], claimClient, true))?.key,
+          ).toBe(keys[2]);
+          expect(
+            (await claimNextJob(owner, ["scan"], [], claimClient))?.key,
+          ).toBe(keys[1]);
+          expect(
+            await claimNextJob(owner, ["scan"], [], claimClient),
+          ).toBeNull();
+          expect(
+            (await tx`SELECT owner FROM worker_jobs WHERE key=${keys[1]}`)[0]
+              .owner,
+          ).toBe(owner);
           for (let i = 0; i < 2; i++) {
             // ORM construction must not mutate the raw client's JSON serializers.
             database();

@@ -5,6 +5,8 @@ import {
   AlphaProvider,
   bookQuote,
   HttpClient,
+  ProviderError,
+  providerReads,
   config,
   normalizeRegistry,
   preferredAlphaPair,
@@ -100,7 +102,8 @@ export async function registrySync() {
   // Do not build a top-N research universe. Intensive work is driven by
   // manually pinned tokens and the persistent anomaly queue; baseline scans
   // are scheduled for every supported online Alpha identity.
-  const candidates = await sql`SELECT count(*)::int AS n FROM alpha_tokens WHERE deep_selected AND status='current'`;
+  const candidates =
+    await sql`SELECT count(*)::int AS n FROM alpha_tokens WHERE deep_selected AND status='current'`;
   await setSetting("registry_sync", {
     at: o.observedAt,
     count: tokens.length,
@@ -146,83 +149,96 @@ export async function marketSync() {
   // wallet research. A durable per-token cursor spreads ticker calls across
   // cycles and records missing-pair/provider-error reasons explicitly.
   const tokens = await sql`
-    SELECT t.* FROM alpha_tokens t
+    SELECT t.*,(t.deep_selected OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active) OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived)) AS intensive FROM alpha_tokens t
     LEFT JOIN market_coverage mc ON mc.token_id=t.id
     WHERE t.status='current'
-      AND (mc.checked_at IS NULL OR mc.checked_at < now() - CASE WHEN mc.status='no_pair' THEN interval '6 hours' ELSE interval '15 minutes' END)
+      AND (mc.checked_at IS NULL OR mc.checked_at < now() - CASE WHEN mc.status='no_pair' THEN interval '6 hours' ELSE interval '5 minutes' END
+        OR (mc.status='no_pair' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL))))
     ORDER BY mc.checked_at NULLS FIRST, t.deep_selected DESC, t.id
     LIMIT ${config().MARKET_TOKEN_LIMIT}`;
-  let failures = 0, observed = 0, noPair = 0;
-  for (const token of tokens) {
+  let failures = 0,
+    observed = 0,
+    noPair = 0;
+  const collectToken = async (token: (typeof tokens)[number]) => {
     // Pair preference is display-only; the actual quote asset remains attached.
     const pair = preferredAlphaPair(token.alpha_id, o.data.symbols);
     if (!pair) {
       noPair++;
       await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},NULL,NULL,'no_pair','binance_alpha',now(),NULL,'NO_ACTIVE_ALPHA_PAIR',${jsonParam({ alphaId: token.alpha_id, exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=NULL,quote_asset=NULL,status='no_pair',provider='binance_alpha',checked_at=excluded.checked_at,observed_at=NULL,error_code=excluded.error_code,raw=excluded.raw`;
-      continue;
+      return;
     }
     try {
       const ticker = await alpha.ticker(pair.symbol);
       if (ticker.data.symbol !== pair.symbol)
         throw Error("SYMBOL_RESPONSE_MISMATCH");
-      await saveSource("binance_alpha", ticker);
-      await sql`INSERT INTO market_snapshots(token_id,symbol,source,source_kind,quote_asset,observed_at,provider_time,price,change_24h,volume_24h,liquidity,market_cap,response_hash,raw) VALUES(${token.id},${pair.symbol},${ticker.source},'alpha_market',${pair.quoteAsset},${ticker.observedAt},${new Date(ticker.data.closeTime).toISOString()},${decimal(ticker.data.lastPrice)},${decimal(ticker.data.priceChangePercent)},${decimal(ticker.data.quoteVolume)},${decimal(token.metadata.liquidity)},${decimal(token.metadata.marketCap)},${ticker.hash},${jsonParam(JSON.parse(ticker.raw))}::jsonb)`;
-      await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},${pair.symbol},${pair.quoteAsset},'observed','binance_alpha',${ticker.observedAt},${ticker.observedAt},NULL,${jsonParam({ responseHash: ticker.hash, exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=excluded.pair_symbol,quote_asset=excluded.quote_asset,status='observed',provider=excluded.provider,checked_at=excluded.checked_at,observed_at=excluded.observed_at,error_code=NULL,raw=excluded.raw`;
+      // Commit provenance, observation and coverage together in one round trip.
+      // A coverage row must never advertise a ticker whose evidence failed to persist.
+      await sql`WITH source AS (
+        INSERT INTO source_responses(hash,provider,source,observed_at,server_date,payload,raw_text)
+        VALUES(${ticker.hash},'binance_alpha',${ticker.source},${ticker.observedAt},${ticker.serverDate},${jsonParam(JSON.parse(ticker.raw))}::jsonb,${ticker.raw}) ON CONFLICT(hash) DO NOTHING
+      ), snapshot AS (
+        INSERT INTO market_snapshots(token_id,symbol,source,source_kind,quote_asset,observed_at,provider_time,price,change_24h,volume_24h,liquidity,market_cap,response_hash,raw) VALUES(${token.id},${pair.symbol},${ticker.source},'alpha_market',${pair.quoteAsset},${ticker.observedAt},${new Date(ticker.data.closeTime).toISOString()},${decimal(ticker.data.lastPrice)},${decimal(ticker.data.priceChangePercent)},${decimal(ticker.data.quoteVolume)},${decimal(token.metadata.liquidity)},${decimal(token.metadata.marketCap)},${ticker.hash},${jsonParam(JSON.parse(ticker.raw))}::jsonb)
+      ) INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},${pair.symbol},${pair.quoteAsset},'observed','binance_alpha',${ticker.observedAt},${ticker.observedAt},NULL,${jsonParam({ responseHash: ticker.hash, exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=excluded.pair_symbol,quote_asset=excluded.quote_asset,status='observed',provider=excluded.provider,checked_at=excluded.checked_at,observed_at=excluded.observed_at,error_code=NULL,raw=excluded.raw`;
       observed++;
-      if (token.deep_selected) {
+      if (token.intensive) {
         try {
           const depth = await alpha.depth(pair.symbol);
           if (depth.data.symbol !== pair.symbol)
             throw Error("DEPTH_SYMBOL_MISMATCH");
           await saveSource("binance_alpha", depth);
-          const book = bookQuote(depth.data, depth.observedAt, depth.source, depth.hash);
+          const book = bookQuote(
+            depth.data,
+            depth.observedAt,
+            depth.source,
+            depth.hash,
+          );
           if (book)
             await sql`UPDATE market_snapshots SET book=${jsonParam(book)}::jsonb WHERE token_id=${token.id} AND response_hash=${ticker.hash} AND observed_at=${ticker.observedAt}`;
         } catch {
           await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${token.id},'binance_alpha','depth_unavailable','No verified fresh book quote; paper fills and outcomes remain unavailable.')`;
         }
       }
-      if (token.deep_selected) {
-      const newest = (
-        await sql`SELECT max(close_at) AS at FROM ohlcv_candles WHERE symbol=${pair.symbol}`
-      )[0]?.at;
-      const completedHourEnd = Math.floor(Date.now() / 3600000) * 3600000 - 1;
-      if (!newest || new Date(newest).getTime() < completedHourEnd) {
-        const candles = await alpha.klines(
-          pair.symbol,
-          undefined,
-          newest ? new Date(newest).getTime() + 1 : undefined,
-        );
-        await storeCandles(pair.symbol, candles);
-      }
-      // One older page per run; bounded backfill to 180 days, never before locally proven membership for signals.
-      const oldest =
-        await sql`SELECT min(open_at) AS at FROM ohlcv_candles WHERE symbol=${pair.symbol}`;
-      if (
-        oldest[0]?.at &&
-        Date.now() - new Date(oldest[0].at).getTime() < 180 * 86400000 &&
-        !(await settingsValue(`history_end:${pair.symbol}`, false)) &&
-        Date.now() -
-          Date.parse(
-            await settingsValue(
-              `history_backfill_at:${pair.symbol}`,
-              "1970-01-01T00:00:00Z",
-            ),
-          ) >
-          6 * 3600000
-      ) {
-        const older = await alpha.klines(
-          pair.symbol,
-          new Date(oldest[0].at).getTime() - 1,
-        );
-        await storeCandles(pair.symbol, older);
-        await setSetting(
-          `history_backfill_at:${pair.symbol}`,
-          older.observedAt,
-        );
-        if (!older.data.length)
-          await setSetting(`history_end:${pair.symbol}`, true);
-      }
+      if (token.intensive) {
+        const newest = (
+          await sql`SELECT max(close_at) AS at FROM ohlcv_candles WHERE symbol=${pair.symbol}`
+        )[0]?.at;
+        const completedHourEnd = Math.floor(Date.now() / 3600000) * 3600000 - 1;
+        if (!newest || new Date(newest).getTime() < completedHourEnd) {
+          const candles = await alpha.klines(
+            pair.symbol,
+            undefined,
+            newest ? new Date(newest).getTime() + 1 : undefined,
+          );
+          await storeCandles(pair.symbol, candles);
+        }
+        // One older page per run; bounded backfill to 180 days, never before locally proven membership for signals.
+        const oldest =
+          await sql`SELECT min(open_at) AS at FROM ohlcv_candles WHERE symbol=${pair.symbol}`;
+        if (
+          oldest[0]?.at &&
+          Date.now() - new Date(oldest[0].at).getTime() < 180 * 86400000 &&
+          !(await settingsValue(`history_end:${pair.symbol}`, false)) &&
+          Date.now() -
+            Date.parse(
+              await settingsValue(
+                `history_backfill_at:${pair.symbol}`,
+                "1970-01-01T00:00:00Z",
+              ),
+            ) >
+            6 * 3600000
+        ) {
+          const older = await alpha.klines(
+            pair.symbol,
+            new Date(oldest[0].at).getTime() - 1,
+          );
+          await storeCandles(pair.symbol, older);
+          await setSetting(
+            `history_backfill_at:${pair.symbol}`,
+            older.observedAt,
+          );
+          if (!older.data.length)
+            await setSetting(`history_end:${pair.symbol}`, true);
+        }
       }
       console.log(
         JSON.stringify({
@@ -235,22 +251,68 @@ export async function marketSync() {
     } catch (error) {
       failures++;
       const code = errorCode(error);
+      if (
+        error instanceof ProviderError &&
+        ["PROCESS_REQUEST_BUDGET_EXHAUSTED", "COLLECTION_STOPPED"].includes(
+          code,
+        )
+      )
+        throw error;
       await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},${pair.symbol},${pair.quoteAsset},'error','binance_alpha',now(),NULL,${code},${jsonParam({ exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=excluded.pair_symbol,quote_asset=excluded.quote_asset,status='error',provider=excluded.provider,checked_at=excluded.checked_at,error_code=excluded.error_code,raw=excluded.raw`;
       await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${token.id},'binance_alpha','market_gap','Market collection failed; earlier observations preserved.')`;
     }
-  }
+  };
+  // Two bounded consumers overlap ticker persistence with provider pacing.
+  // HttpClient still reserves every call against the shared configured rate cap.
+  let nextToken = 0,
+    aborted = false;
+  const collectLane = async () => {
+    while (!aborted) {
+      const token = tokens[nextToken++];
+      if (!token) return;
+      try {
+        await collectToken(token);
+      } catch (error) {
+        aborted = true;
+        throw error;
+      }
+    }
+  };
+  const lanes = await Promise.allSettled([collectLane(), collectLane()]);
+  for (const lane of lanes) if (lane.status === "rejected") throw lane.reason;
+  const pending = await sql`SELECT count(*)::int AS due FROM alpha_tokens t
+    LEFT JOIN market_coverage mc ON mc.token_id=t.id
+    WHERE t.status='current' AND (mc.checked_at IS NULL OR mc.checked_at < now() - CASE WHEN mc.status='no_pair' THEN interval '6 hours' ELSE interval '5 minutes' END
+      OR (mc.status='no_pair' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL))))`;
+  const remainingDue = Number(pending[0].due);
   await setSetting("market_coverage_sync", {
-    at: new Date().toISOString(), exchangeInfoAt: o.observedAt,
-    requested: tokens.length, observed, noPair, failures,
+    at: new Date().toISOString(),
+    exchangeInfoAt: o.observedAt,
+    requested: tokens.length,
+    observed,
+    noPair,
+    failures,
     requestCap: config().MARKET_TOKEN_LIMIT,
+    remainingDue,
   });
-  console.log(JSON.stringify({ event: "alpha_market_cycle", requested: tokens.length, observed, noPair, failures }));
+  console.log(
+    JSON.stringify({
+      event: "alpha_market_cycle",
+      requested: tokens.length,
+      observed,
+      noPair,
+      failures,
+    }),
+  );
+  return { remainingDue };
 }
 
 function errorCode(error: unknown) {
   return error && typeof error === "object" && "code" in error
     ? String(error.code).slice(0, 80)
-    : error instanceof Error ? error.name : "PROVIDER_ERROR";
+    : error instanceof Error
+      ? error.name
+      : "PROVIDER_ERROR";
 }
 async function storeCandles(
   symbol: string,
@@ -310,15 +372,21 @@ export async function scanToken(
   replay?: { from: number; to: number },
 ) {
   const sql = sqlClient();
-  const rows =
-    await sql`SELECT t.*,c.block_number,c.block_hash,
+  const rows = await sql`SELECT t.*,c.block_number,c.block_hash,
       (t.deep_selected OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active) OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived)) AS intensive
       FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id
       WHERE t.id=${id} AND t.status='current'`;
   const t = rows[0];
   if (!t) return;
   if (t.chain_id === "CT_501")
-    return scanSolanaToken(t as { id: string; chain_id: string; contract: string; last_seen: string });
+    return scanSolanaToken(
+      t as {
+        id: string;
+        chain_id: string;
+        contract: string;
+        last_seen: string;
+      },
+    );
   const intensive = Boolean(t.intensive);
   const c = config();
   if (
@@ -341,9 +409,10 @@ export async function scanToken(
   );
   const head = await rpc.head();
   const target = head - c.SCAN_CONFIRMATIONS;
-  const cursor = t.block_number == null
-    ? undefined
-    : { block_number: t.block_number, block_hash: t.block_hash };
+  const cursor =
+    t.block_number == null
+      ? undefined
+      : { block_number: t.block_number, block_hash: t.block_hash };
   if (cursor) {
     const b = await rpc.block(Number(cursor.block_number));
     if (b.data.hash.toLowerCase() !== cursor.block_hash) {
@@ -380,10 +449,14 @@ export async function scanToken(
   )
     throw Error("INVALID_SCAN_WINDOW");
   if (to < from) return;
-  const logs = await rpc.logs(t.contract, from, to);
-  const code = await rpc.code(t.contract, to);
+  // Independent reads share the same provider pacing and request budget.
+  // Overlap network latency without increasing the configured RPC rate.
+  const [logs, code, decimals] = await providerReads([
+    rpc.logs(t.contract, from, to),
+    rpc.code(t.contract, to),
+    rpc.decimals(t.contract, to),
+  ]);
   if (code.data === "0x") throw Error("NO_CONTRACT_CODE");
-  const decimals = await rpc.decimals(t.contract, to);
   const blocks = new Map<number, Awaited<ReturnType<EvmProvider["block"]>>>();
   for (const n of [
     ...new Set([

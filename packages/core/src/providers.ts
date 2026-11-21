@@ -29,6 +29,16 @@ export class ProviderError extends Error {
   }
 }
 export type Fetcher = typeof fetch;
+/** Drain every read, including audit writes, before propagating a failure. */
+export async function providerReads<T extends readonly unknown[] | []>(
+  reads: T,
+): Promise<{ -readonly [K in keyof T]: Awaited<T[K]> }> {
+  const results = await Promise.allSettled(reads);
+  return results.map((result) => {
+    if (result.status === "rejected") throw result.reason;
+    return result.value;
+  }) as unknown as { -readonly [K in keyof T]: Awaited<T[K]> };
+}
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let processRequestCount = 0;
 const providerNextAt = new Map<string, number>();
@@ -347,9 +357,11 @@ export function preferredAlphaPair(
   symbols: MarketSymbol[],
 ) {
   const priority: Record<string, number> = { USDT: 0, USDC: 1, U: 2 };
-  return eligiblePairs(alphaId, symbols).sort(
-    (a, b) =>
-      (priority[a.quoteAsset] ?? 10) - (priority[b.quoteAsset] ?? 10) ||
-      a.symbol.localeCompare(b.symbol),
-  )[0] ?? null;
+  return (
+    eligiblePairs(alphaId, symbols).sort(
+      (a, b) =>
+        (priority[a.quoteAsset] ?? 10) - (priority[b.quoteAsset] ?? 10) ||
+        a.symbol.localeCompare(b.symbol),
+    )[0] ?? null
+  );
 }

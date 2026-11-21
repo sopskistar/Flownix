@@ -101,14 +101,15 @@ export async function health(): Promise<Health> {
         sql`SELECT changes FROM alpha_membership_snapshots ORDER BY observed_at DESC LIMIT 1`,
         sql`SELECT count(*) FILTER(WHERE t.status='current')::int AS online,
         count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL)::int AS eligible_pairs,
-        count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND m.observed_at>now()-interval '15 minutes')::int AS fresh_prices,
-        count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND m.observed_at<=now()-interval '15 minutes')::int AS stale_prices,
+        count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND m.observed_at>now()-interval '15 minutes' AND p.provider_time>now()-interval '15 minutes' AND p.provider_time<=now()+interval '1 minute' AND p.price>0)::int AS fresh_prices,
+        count(*) FILTER(WHERE t.status='current' AND m.status='observed' AND (m.observed_at<=now()-interval '15 minutes' OR p.provider_time IS NULL OR p.provider_time<=now()-interval '15 minutes' OR p.provider_time>now()+interval '1 minute' OR p.price IS NULL OR p.price<=0))::int AS stale_prices,
         count(*) FILTER(WHERE t.status='current' AND m.status='no_pair')::int AS missing_pair,
         count(*) FILTER(WHERE t.status='current' AND m.status='error')::int AS errors,
         count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL AND m.token_id IS NULL)::int AS pending,
         (SELECT count(DISTINCT token_id)::int FROM market_snapshots WHERE source_kind='alpha_registry' AND price IS NOT NULL AND observed_at=(SELECT max(observed_at) FROM market_snapshots WHERE source_kind='alpha_registry')) AS registry_prices,
         max(m.observed_at) AS latest
         FROM alpha_tokens t LEFT JOIN market_coverage m ON m.token_id=t.id
+        LEFT JOIN LATERAL (SELECT provider_time,price FROM market_snapshots WHERE token_id=t.id AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1) p ON true
         LEFT JOIN LATERAL (SELECT 1 AS token_id FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL) LIMIT 1) s ON true`,
         sql`SELECT
         (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND chain_id IN ('56','1','8453','42161','CT_501')) AS eligible,
@@ -203,13 +204,13 @@ export async function radar(): Promise<RadarToken[]> {
   const sql = sqlClient();
   const rows =
     await sql`SELECT t.id,t.symbol,t.name,t.chain_id,t.metadata->>'chainName' AS chain_name,t.metadata,t.source,t.response_hash,t.contract,t.alpha_id,t.status,t.research_state,coalesce(rc.classification,'unclassified') AS classification,t.deep_selected,t.first_seen,t.last_seen,(w.token_id IS NOT NULL AND NOT w.archived) AS watchlisted,
-  m.price::text,m.quote_asset,m.source_kind AS price_source,m.observed_at AS price_at,m.change_24h::text,m.volume_24h::text,
+  m.price::text,m.quote_asset,m.source_kind AS price_source,least(m.observed_at,coalesce(m.provider_time,m.observed_at)) AS price_at,m.change_24h::text,m.volume_24h::text,
   t.metadata->>'liquidity' AS liquidity,t.metadata->>'marketCap' AS market_cap,c.scanned_at AS last_scan,
   (SELECT min(first_detected_at) FROM signal_events s WHERE s.token_id=t.id) AS first_signal,
   (SELECT count(*)::int FROM signal_events s WHERE s.token_id=t.id AND s.status='active') AS signal_count,
   (SELECT value->>'reason' FROM settings WHERE key='trace:'||t.id) AS baseline_trace
  FROM alpha_tokens t LEFT JOIN watchlists w ON w.token_id=t.id LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN token_project_classifications rc ON rc.token_id=t.id
- LEFT JOIN LATERAL (SELECT price,quote_asset,source_kind,observed_at,change_24h,volume_24h FROM market_snapshots WHERE token_id=t.id AND source_kind IN ('alpha_market','alpha_registry') AND price IS NOT NULL ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1) m ON true
+ LEFT JOIN LATERAL (SELECT price,quote_asset,source_kind,observed_at,provider_time,change_24h,volume_24h FROM market_snapshots WHERE token_id=t.id AND source_kind IN ('alpha_market','alpha_registry') AND price IS NOT NULL ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1) m ON true
  ORDER BY t.symbol,t.chain_id,t.id`;
   return JSON.parse(
     JSON.stringify(

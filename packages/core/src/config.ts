@@ -44,6 +44,10 @@ export const envSchema = z.object({
   PROVIDER_PROCESS_REQUEST_BUDGET: integer(0, 0, 1000000),
   WORKER_RUN_SECONDS: integer(0, 0, 86400),
   WORKER_JOB_TIMEOUT_SECONDS: integer(900, 60, 7200),
+  WORKER_MARKET_OVERLAP: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
   TRANSFER_MIN_EVENTS: integer(25),
   TRANSFER_BASELINE_MULTIPLIER: z.coerce.number().min(2).max(100).default(3),
   TRANSFER_BASELINE_WINDOWS: integer(12, 6, 100),

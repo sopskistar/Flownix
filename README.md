@@ -2,7 +2,9 @@
 
 Private, evidence-first **long-term Binance Alpha accumulation research**. Monitor chain/contract identities across days, weeks and months; preserve observations, investigate transfers and record conservative paper experiments. Independent of Binance. No live execution, trading keys, wallet signing, paid calls or fabricated performance.
 
-Phase 2 has real persisted observations: **686 official Alpha identities (378 online), 20 tokens with Alpha market quotes and 180 canonical ETH/BSC transfers**. Three receipt samples were independently checked. **The full live-data gate remains incomplete:** historical RPC replay/resume fails and Base logs are rate-limited. No genuine long-term accumulation signal or profitable strategy is claimed. See [current coverage](docs/DATA_COVERAGE.md).
+The earlier Phase 2 snapshot had real persisted observations: **686 official Alpha identities (378 online), 20 tokens with Alpha market quotes and 180 canonical ETH/BSC transfers**. Three receipt samples were independently checked. **The full live-data gate remains incomplete:** historical RPC replay/resume fails and Base logs are rate-limited. No genuine long-term accumulation signal or profitable strategy is claimed. See [current coverage](docs/DATA_COVERAGE.md).
+
+Latest recovery results and current limits: [local automatic acceptance](docs/LOCAL_AUTOMATIC_ACCEPTANCE_2026-11-21.md). Recently collected tickers and fresh provider prices are reported separately.
 
 Production dashboard: **https://flownix.xyz**, protected by GitHub OAuth for the configured owner. Existing Neon persistence and owner sign-in/logout are verified; the continuous production worker has not been deployed. Settings is included in **Data Health** (`/settings`). See [deployment](docs/DEPLOYMENT.md), [authentication](docs/AUTH_SETUP.md), and [remaining work](docs/NEXT_STEPS.md).
 
@@ -64,7 +66,7 @@ Current adapters make no paid enrichment calls. Nansen/Bitquery/Arkham are not r
 
 ## Limits and evidence
 
-Transfers do not prove buys or accumulation. No verified DEX swap adapter, complete holder census, independently verified entity registry, historical Alpha archive or realized-return advantage exists in this release. Specialized supply-lock/quiet-accumulation/distribution/farming engines and statistically valid baseline comparisons remain gated future work. Current price/candle collection defaults to 15 eligible tokens per cycle; every registry token gets metadata, and uncovered Alpha market prices stay unavailable.
+Transfers do not prove buys or accumulation. No verified DEX swap adapter, complete holder census, independently verified entity registry, historical Alpha archive or realized-return advantage exists in this release. Specialized supply-lock/quiet-accumulation/distribution/farming engines and statistically valid baseline comparisons remain gated future work. Market collection rotates bounded stale-first batches (default 100) across all active pairs; automatic investigation-queue identities also receive intensive depth/candle and wallet research. Every registry identity retains metadata, and missing or stale source prices remain explicit.
 
 See [architecture](docs/ARCHITECTURE.md), [sources](docs/SOURCES.md), [coverage](docs/DATA_COVERAGE.md), [signals](docs/SIGNALS.md), [backtest policy](docs/BACKTEST.md), [operations](docs/OPERATIONS.md), [testing](docs/TESTING.md), [JCT/BTW case](docs/CASE_STUDY_JCT_BTW.md), and [brand](docs/BRAND.md).
 

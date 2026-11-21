@@ -1,6 +1,37 @@
 # Local automatic-monitoring acceptance — 2026-11-21
 
-## Current acceptance result
+<!-- recovery-continuation:start -->
+## Recovery continuation with restored execution access
+
+Full automatic acceptance remains **not passed**. The old sandbox restrictions are resolved: Git main/remote matched `5702523855a1bd7d588b75155a954d8ed9af71b2`, both existing Neon URLs passed target/TLS verification, all four Alchemy EVM chains passed confirmed/historical block, code, decimals, balance and ten-block log probes, and Alchemy Solana passed finalized account/history/transaction probes. The existing local PostgreSQL container was started with its original volume. No production migration, reset, credential change, paid service or trading action was performed.
+
+The interrupted worker changes were retained and completed. Market provenance, snapshots and coverage now commit atomically in one statement. Two bounded market consumers share the existing request pacing; one market job can overlap the serial RPC/maintenance lane under the same collector lock. Market batches continue while due tokens remain, new pairs escape the no-pair delay, registry refresh precedes membership expiry, unchanged scan reconciliation performs no writes, and one overdue retry gets a turn after five regular scans. Request-budget exhaustion stops collection. Automatic investigation-queue identities receive intensive market and wallet research without manual selection.
+
+Solana now keeps the newest signature checkpoint, deduplicates shared transactions across sampled accounts, validates slot/metadata, counts gaps per account, and preserves checkpoints when transaction metadata is unavailable. Existing gaps remain explicit. A live v1-compatible transaction read returned two mint-specific balance deltas. This is sampled finalized evidence, not purchases, complete holder coverage or historical accumulation.
+
+The replay gate now carries chain metadata and uses the admitted supported universe rather than manual deep selection. Three actual saved EVM windows replayed without adding duplicate events, changing first availability or moving cursors. Three receipt/log/block samples were independently matched. The report separates this passing vertical slice from still-failing full automatic monitoring and keeps timestamped reports beside the latest report.
+
+Radar filters now use the supported native History API for already-loaded rows, preserving URL state without refetching the Neon-backed page per keystroke. Controls wait for hydration. Price freshness uses both observation and provider timestamps; a newly collected ticker does not turn an old last-trade price into fresh evidence. The CLI separately reports collected pairs, source-fresh pairs, per-chain observed coverage, retries and evidence added since a supplied timestamp.
+
+Validation at this checkpoint: 98 tests across 12 files passed locally, including real PostgreSQL rollback integration and bounded market concurrency/atomicity checks. The two PostgreSQL integration cases also passed against the existing Neon database inside isolated rollback schemas. Four local browser journeys passed before the final populated-data filter refinement; final browser/build/release checks are recorded below when complete. Anonymous production security, GitHub handoff, secure auth cookies and desktop/tablet/phone login checks passed. No owner-authenticated production browser session is available; no session was manufactured.
+
+### Measured recovery snapshot
+
+At **2026-11-21 14:31:17 UTC**, 687 identities were retained (378 online). All 357 supported identities remained scheduled; 280 scans were due and 29 retrying. Baseline evidence existed for 187/335 EVM identities and 9/22 Solana identities; 74 distinct supported identities had observations since the recovery start at 13:35:41 UTC. This is partial progress, not a complete current baseline pass.
+
+All 316 currently paired identities had recently collected ticker observations at that snapshot, but only **89/316** met source-price freshness using provider `closeTime`. Another 62 online identities had no active pair. Earlier observed-only freshness counts must not be interpreted as fresh last-trade prices. Recovery added six canonical transfers and 233 Solana balance observations by this snapshot, with zero new signals. Transfers/deltas are not verified buys. Six canonical receipt-evidence rows and 33 EVM balance samples were retained. Cursors were never jumped to head to hide backlog.
+
+Local process resource profiles are retained in ignored `artifacts/profiles/` and summarized in `WORKER_RESOURCE_MEASUREMENTS.json`. RPC requests and SQL queries are measured; Alchemy CUs are method-priced estimates. Account-level Alchemy usage and Neon compute/billing meters remain unavailable without an authorized management credential. PostgreSQL database size is measured directly. No provider invoice, monthly allowance or hosted-worker cost is inferred from a process profile.
+
+### Remaining operational and research gates
+
+Continue one collector until every supported identity has a genuine successful current observation; distinguish that from continuously near-head EVM coverage. Existing Alchemy ten-block windows and preserved old cursors still leave historical backlog. The 21 unsupported online identities remain in discovery. The runtime is local and bounded, not a persistent deployment. No paid host or plan has been enabled; account quotas and a suitable approved persistent runtime remain deployment gates.
+
+Whale retained holdings, Binance/Bitget beneficial-owner flows, market-maker/team identities, winner/non-winner cohorts, listing events, Rally Intelligence, chronological/out-of-sample strategy validation and forward paper fills remain gated by verified source/history/trade/label coverage described in the existing historical gap audit. No profitable strategy or accumulation finding is claimed. These requirements were not replaced by the operational fixes or another synthetic backtest.
+
+<!-- recovery-continuation:end -->
+
+## Earlier environment-limited acceptance result
 
 **Not passed.** This machine restarted, so the prior local-only collector is no longer running. A fresh read-only Neon status check from this sandbox returned `ECONNREFUSED`; this does not distinguish a remote database/network outage from the current execution network restriction. No cursor, market row, or historical evidence was reset. Do not treat the last persisted heartbeat as current.
 

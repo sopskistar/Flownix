@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   HttpClient,
   ProviderError,
+  providerReads,
   envelope,
   registryEntry,
   EvmProvider,
@@ -12,70 +13,185 @@ import {
 } from "../src/index";
 import { z } from "zod";
 describe("Bounded provider requests", () => {
+  it("drains sibling reads before propagating a provider failure", async () => {
+    let release!: () => void;
+    let peerFinished = false,
+      settled = false;
+    const peer = new Promise<void>((resolve) => {
+      release = resolve;
+    }).then(() => {
+      peerFinished = true;
+    });
+    const result = providerReads([
+      Promise.reject(new ProviderError("FIXTURE_READ_FAILED")),
+      peer,
+    ]);
+    void result.then(
+      () => {
+        settled = true;
+      },
+      () => {
+        settled = true;
+      },
+    );
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    release();
+    await expect(result).rejects.toMatchObject({ code: "FIXTURE_READ_FAILED" });
+    expect(peerFinished).toBe(true);
+  });
+  it("preserves successful parallel observation values", async () => {
+    await expect(
+      providerReads([Promise.resolve(17), Promise.resolve({ observed: true })]),
+    ).resolves.toEqual([17, { observed: true }]);
+  });
   it("decodes Solana token-account balance changes without calling them trades", () => {
     const mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
     expect(SOLANA_MINT_RE.test(mint)).toBe(true);
-    const decoded = decodeSolanaBalanceDeltas({
-      transaction: { message: { accountKeys: ["TokenAccount111111111111111111111111111111"] } },
-      meta: {
-        preTokenBalances: [{ accountIndex: 0, mint, owner: "Owner11111111111111111111111111111111", uiTokenAmount: { amount: "9007199254740993123", decimals: 6 } }],
-        postTokenBalances: [{ accountIndex: 0, mint, owner: "Owner11111111111111111111111111111111", uiTokenAmount: { amount: "9007199254740993000", decimals: 6 } }],
+    const decoded = decodeSolanaBalanceDeltas(
+      {
+        transaction: {
+          message: {
+            accountKeys: ["TokenAccount111111111111111111111111111111"],
+          },
+        },
+        meta: {
+          preTokenBalances: [
+            {
+              accountIndex: 0,
+              mint,
+              owner: "Owner11111111111111111111111111111111",
+              uiTokenAmount: { amount: "9007199254740993123", decimals: 6 },
+            },
+          ],
+          postTokenBalances: [
+            {
+              accountIndex: 0,
+              mint,
+              owner: "Owner11111111111111111111111111111111",
+              uiTokenAmount: { amount: "9007199254740993000", decimals: 6 },
+            },
+          ],
+        },
       },
-    }, mint);
-    expect(decoded).toEqual([{
-      accountIndex: 0,
-      accountAddress: "TokenAccount111111111111111111111111111111",
-      owner: "Owner11111111111111111111111111111111",
       mint,
-      preRaw: "9007199254740993123",
-      postRaw: "9007199254740993000",
-      deltaRaw: "-123",
-      decimals: 6,
-    }]);
+    );
+    expect(decoded).toEqual([
+      {
+        accountIndex: 0,
+        accountAddress: "TokenAccount111111111111111111111111111111",
+        owner: "Owner11111111111111111111111111111111",
+        mint,
+        preRaw: "9007199254740993123",
+        postRaw: "9007199254740993000",
+        deltaRaw: "-123",
+        decimals: 6,
+      },
+    ]);
   });
   it("accepts Solana transaction signatures using signature length, not mint length", async () => {
     const signature = "1".repeat(88);
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      result: [{ signature, slot: 123, blockTime: null, err: null, confirmationStatus: "finalized" }],
-    })));
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          result: [
+            {
+              signature,
+              slot: 123,
+              blockTime: null,
+              err: null,
+              confirmationStatus: "finalized",
+            },
+          ],
+        }),
+      ),
+    );
     const provider = new SolanaProvider(
       "https://solana.example.test",
-      new HttpClient("solana-test", 120, async () => {}, fetcher, async () => {}),
+      new HttpClient(
+        "solana-test",
+        120,
+        async () => {},
+        fetcher,
+        async () => {},
+      ),
     );
-    await expect(provider.signatures("11111111111111111111111111111111", 1)).resolves.toMatchObject({
+    await expect(
+      provider.signatures("11111111111111111111111111111111", 1),
+    ).resolves.toMatchObject({
       data: [{ signature, slot: 123, confirmationStatus: "finalized" }],
     });
   });
   it("opts into current Solana v1 transactions when reading token-account history", async () => {
     const signature = "1".repeat(88);
     let payload: { method?: string; params?: unknown[] } = {};
-    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (_url, init) => {
-      payload = JSON.parse(String(init?.body)) as typeof payload;
-      return new Response(JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        result: { slot: 10, meta: null, transaction: {} },
-      }));
-    });
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (_url, init) => {
+        payload = JSON.parse(String(init?.body)) as typeof payload;
+        return new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            result: { slot: 10, meta: null, transaction: {} },
+          }),
+        );
+      });
     const provider = new SolanaProvider(
       "https://solana.example.test",
-      new HttpClient("solana-test", 120, async () => {}, fetcher, async () => {}),
+      new HttpClient(
+        "solana-test",
+        120,
+        async () => {},
+        fetcher,
+        async () => {},
+      ),
     );
     await provider.transaction(signature);
     expect(payload.method).toBe("getTransaction");
-    expect(payload.params?.[1]).toMatchObject({ maxSupportedTransactionVersion: 1 });
+    expect(payload.params?.[1]).toMatchObject({
+      maxSupportedTransactionVersion: 1,
+    });
   });
   it("prefers an exact active pair deterministically while preserving its quote currency", () => {
     const symbols = [
-      { symbol: "ALPHA_17USDC", baseAsset: "ALPHA_17", quoteAsset: "USDC", status: "TRADING" },
-      { symbol: "ALPHA_17U", baseAsset: "ALPHA_17", quoteAsset: "U", status: "TRADING" },
-      { symbol: "ALPHA_17USDT", baseAsset: "ALPHA_17", quoteAsset: "USDT", status: "TRADING" },
-      { symbol: "ALPHA_18USDT", baseAsset: "ALPHA_18", quoteAsset: "USDT", status: "TRADING" },
-      { symbol: "ALPHA_17BTC", baseAsset: "ALPHA_17", quoteAsset: "BTC", status: "BREAK" },
+      {
+        symbol: "ALPHA_17USDC",
+        baseAsset: "ALPHA_17",
+        quoteAsset: "USDC",
+        status: "TRADING",
+      },
+      {
+        symbol: "ALPHA_17U",
+        baseAsset: "ALPHA_17",
+        quoteAsset: "U",
+        status: "TRADING",
+      },
+      {
+        symbol: "ALPHA_17USDT",
+        baseAsset: "ALPHA_17",
+        quoteAsset: "USDT",
+        status: "TRADING",
+      },
+      {
+        symbol: "ALPHA_18USDT",
+        baseAsset: "ALPHA_18",
+        quoteAsset: "USDT",
+        status: "TRADING",
+      },
+      {
+        symbol: "ALPHA_17BTC",
+        baseAsset: "ALPHA_17",
+        quoteAsset: "BTC",
+        status: "BREAK",
+      },
     ];
-    expect(preferredAlphaPair("ALPHA_17", symbols)).toMatchObject({ symbol: "ALPHA_17USDT", quoteAsset: "USDT" });
+    expect(preferredAlphaPair("ALPHA_17", symbols)).toMatchObject({
+      symbol: "ALPHA_17USDT",
+      quoteAsset: "USDT",
+    });
     expect(preferredAlphaPair("ALPHA_99", symbols)).toBeNull();
   });
   it("retries 429, counts actual calls and respects retry-after", async () => {
