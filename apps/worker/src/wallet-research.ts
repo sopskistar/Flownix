@@ -20,7 +20,7 @@ export async function walletResearchSync() {
   const sql = sqlClient(),
     now = new Date().toISOString();
   const tokens =
-    await sql`SELECT t.* FROM alpha_tokens t WHERE t.deep_selected OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived) OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active)`;
+    await sql`SELECT t.* FROM alpha_tokens t WHERE t.deep_selected OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived) OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active) OR EXISTS(SELECT 1 FROM wallet_monitoring m WHERE m.token_id=t.id AND m.chain_id=t.chain_id AND m.active)`;
   for (const token of tokens) {
     const [
       events,
@@ -37,7 +37,7 @@ export async function walletResearchSync() {
       sql`SELECT * FROM wallet_balance_snapshots WHERE token_id=${token.id} AND canonical AND block_time IS NOT NULL ORDER BY block_number LIMIT 100001`,
       sql`SELECT * FROM scan_windows WHERE token_id=${token.id} ORDER BY from_block LIMIT 100001`,
       sql`SELECT * FROM wallet_labels WHERE chain_id=${token.chain_id} AND (valid_to IS NULL OR valid_to>now()-interval '180 days')`,
-      sql`SELECT * FROM wallet_monitoring WHERE token_id=${token.id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`,
+      sql`SELECT * FROM wallet_monitoring WHERE token_id=${token.id} AND chain_id=${token.chain_id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`,
       sql`SELECT * FROM market_snapshots WHERE token_id=${token.id} AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1`,
       sql`SELECT count(*)::int AS windows,count(*) FILTER(WHERE p.complete)::int AS complete,min(s.start_time) AS first_time,max(s.end_time) AS last_time,
         (SELECT coalesce(sum(extract(epoch FROM upper(period)-lower(period))),0)::float8 FROM unnest((SELECT range_agg(tstzrange(greatest(w.start_time,${token.first_seen}::timestamptz),w.end_time,'[)')) FROM swap_scan_windows c JOIN scan_windows w ON w.token_id=c.token_id AND w.from_block=c.from_block AND w.to_block=c.to_block WHERE c.token_id=${token.id} AND c.complete AND w.complete AND w.end_time>greatest(w.start_time,${token.first_seen}::timestamptz))) AS period) AS covered_seconds

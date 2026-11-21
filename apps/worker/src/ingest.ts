@@ -373,6 +373,7 @@ export async function scanToken(
 ) {
   const sql = sqlClient();
   const rows = await sql`SELECT t.*,c.block_number,c.block_hash,
+      EXISTS(SELECT 1 FROM wallet_monitoring m WHERE m.token_id=t.id AND m.chain_id=t.chain_id AND m.active) AS has_monitors,
       (t.deep_selected OR EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active) OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived)) AS intensive
       FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id
       WHERE t.id=${id} AND t.status='current'`;
@@ -540,14 +541,15 @@ export async function scanToken(
     await tx`INSERT INTO block_cursors(token_id,chain_id,block_number,block_hash,scanned_at) VALUES(${id},${t.chain_id},${to},${blocks.get(to)!.data.hash.toLowerCase()},${observedAt}) ON CONFLICT(token_id) DO UPDATE SET block_number=excluded.block_number,block_hash=excluded.block_hash,scanned_at=excluded.scanned_at WHERE block_cursors.block_number<=excluded.block_number`;
     await tx`INSERT INTO scan_windows(token_id,from_block,to_block,start_time,end_time,available_at,count,complete) VALUES(${id},${from},${to},${startTime},${endTime},${observedAt},${transfers.filter((t) => t.kind === "unknown_transfer").length},true) ON CONFLICT DO NOTHING`;
   });
-  // Bounded balance samples of observed addresses, not a holder leaderboard.
-  if (intensive) {
+  // Explicit case monitors keep accumulating balance evidence independently
+  // of intensive selection. Baseline monitors add no DEX/history backfill.
+  if (intensive || t.has_monitors) {
     const monitors =
-      await sql`SELECT address FROM wallet_monitoring WHERE token_id=${id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`;
+      await sql`SELECT address FROM wallet_monitoring WHERE token_id=${id} AND chain_id=${t.chain_id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`;
     const addresses = [
       ...new Set([
         ...monitors.map((m) => String(m.address)),
-        ...transfers.flatMap((t) => [t.from, t.to]),
+        ...(intensive ? transfers.flatMap((t) => [t.from, t.to]) : []),
       ]),
     ].filter((a) => !/^0x0{40}$/.test(a));
     for (const a of addresses) {
@@ -558,12 +560,13 @@ export async function scanToken(
         await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${id},${"rpc:" + t.chain_id},'balance_unavailable','Historic balance call failed; transfer evidence remains available.')`;
       }
     }
-    await collectPassiveSwaps(
-      t as { id: string; chain_id: string; contract: string },
-      rpc,
-      from,
-      to,
-    );
+    if (intensive)
+      await collectPassiveSwaps(
+        t as { id: string; chain_id: string; contract: string },
+        rpc,
+        from,
+        to,
+      );
   }
   const market = (
     await sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1`

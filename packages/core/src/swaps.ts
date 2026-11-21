@@ -7,7 +7,7 @@ import {
 } from "./evm";
 import { isEvmAddress } from "./identity";
 import type { z } from "zod";
-import type { Observation } from "./providers";
+import { providerReads, type Observation } from "./providers";
 
 export const signatureHash = (signature: string) =>
   "0x" +
@@ -74,7 +74,7 @@ export async function verifyPancakePool(
     !isEvmAddress(target)
   )
     throw Error("UNSUPPORTED_POOL");
-  const [factory, token0, token1, fee] = await Promise.all([
+  const [factory, token0, token1, fee] = await providerReads([
     rpc.callWord(address, functionSelector("factory()"), block),
     rpc.callWord(address, functionSelector("token0()"), block),
     rpc.callWord(address, functionSelector("token1()"), block),

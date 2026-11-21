@@ -19,12 +19,39 @@ import {
   evaluateAccumulationThesis,
   logSchema,
   boundedResponseText,
+  verifyPancakePool,
+  type EvmProvider,
   type PoolIdentity,
   type Transfer,
   type ResearchSwap,
 } from "../src/index";
 const address = (n: number) => "0x" + n.toString(16).padStart(40, "0"),
   hash = (n: number) => "0x" + n.toString(16).padStart(64, "0");
+it("drains sibling pool-identity reads before a failed verification can finish", async () => {
+  const failure = Error("fixture-only provider failure");
+  let finish!: (value: never) => void;
+  const sibling = new Promise<never>((resolve) => {
+    finish = resolve;
+  });
+  const callWord = vi
+    .fn()
+    .mockRejectedValueOnce(failure)
+    .mockReturnValue(sibling);
+  let settled = false;
+  const result = verifyPancakePool(
+    { chain: "56", callWord } as unknown as EvmProvider,
+    address(4),
+    address(2),
+    100,
+  ).catch((error) => {
+    settled = true;
+    return error;
+  });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  expect(settled).toBe(false);
+  finish(undefined as never);
+  expect(await result).toBe(failure);
+});
 const actor = address(1),
   target = address(2),
   quote = address(3),
