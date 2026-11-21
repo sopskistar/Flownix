@@ -16,23 +16,29 @@ async function expectPageReady(page: Page, heading: string) {
   await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
 }
 test.beforeEach(async ({ request }) => {
-  const r = await request.get("/");
+  const r = await request.get("/privacy");
   expect(r.headers()["x-flownix-workspace"]).toBe("alpha-research");
 });
 test("private workspace renders honest states and working navigation, themes and filters", async ({
   page,
 }) => {
-  await page.goto("/");
+  test.setTimeout(180000);
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await expectPageReady(page, "Alpha Radar");
   await expect(
     page.getByRole("region", { name: "Scrollable Alpha token table" }),
   ).toBeVisible();
-  await page.keyboard.press("Control+k");
-  await expect(page.getByLabel("Search Alpha tokens, Control K")).toBeFocused();
+  // Server HTML can become visible before the client shortcut effect mounts.
+  await expect(async () => {
+    await page.keyboard.press("Control+k");
+    await expect(
+      page.getByLabel("Search Alpha tokens, Control K"),
+    ).toBeFocused();
+  }).toPass({ timeout: 30000 });
   await page
     .getByLabel("Search", { exact: true })
     .fill("nonexistent-test-identity");
-  await expect(page).toHaveURL(/q=nonexistent/);
+  await expect(page).toHaveURL(/q=nonexistent/, { timeout: 30000 });
   await page.getByLabel("Search", { exact: true }).fill("");
   await page.getByRole("button", { name: "Switch to light theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");

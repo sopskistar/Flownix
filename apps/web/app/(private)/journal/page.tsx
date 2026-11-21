@@ -4,13 +4,15 @@ import { sqlClient } from "@flownix/db";
 import { requireAccess } from "../../../lib/auth";
 import { iso } from "../../../lib/data";
 import { ResearchNote } from "../../../components/controls";
+import { tokenVisual } from "@flownix/core";
+import { TokenIdentity } from "../../../components/token-identity";
 export const metadata = { title: "Research Journal" };
 export default async function Journal() {
   await requireAccess();
   let notes: DbRows = [];
   try {
     notes =
-      await sqlClient()`SELECT n.*,t.symbol FROM manual_research_notes n LEFT JOIN alpha_tokens t ON t.id=n.token_id ORDER BY n.created_at DESC LIMIT 200`;
+      await sqlClient()`SELECT n.*,t.symbol,to_jsonb(t) AS token_identity FROM manual_research_notes n LEFT JOIN alpha_tokens t ON t.id=n.token_id ORDER BY n.created_at DESC LIMIT 200`;
   } catch {
     notes = [];
   }
@@ -48,7 +50,7 @@ export default async function Journal() {
                   <time>{iso(n.created_at)}</time>
                   <span className="tag">Manual note</span>
                   {n.token_id ? (
-                    <Link href={`/token/${n.token_id}`}>{n.symbol}</Link>
+                    <TokenIdentity token={tokenVisual(n.token_identity)} />
                   ) : null}
                 </div>
                 <p>{n.body}</p>

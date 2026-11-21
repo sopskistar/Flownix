@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAccess } from "../../../lib/auth";
 import { safeRadar } from "../../../lib/data";
+import { TokenIdentity } from "../../../components/token-identity";
 export const metadata = { title: "Historical Runner Lab" };
 const candidates = [
   "LAB",
@@ -13,6 +14,8 @@ const candidates = [
   "AIN",
   "IDOL",
   "EVAA",
+  "CAP",
+  "Q",
   "BLESS",
   "IRYS",
   "TAG",
@@ -84,10 +87,7 @@ export default async function Research() {
                       {found.length
                         ? found.map((t) => (
                             <div key={t.id}>
-                              <Link href={`/token/${t.id}`}>
-                                {t.symbol} / {t.chain_name} /{" "}
-                                {t.contract.slice(0, 12)}…
-                              </Link>
+                              <TokenIdentity token={t.visual} />
                               <small>
                                 {t.status} in latest collected snapshot
                               </small>

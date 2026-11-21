@@ -4,6 +4,8 @@ const config: NextConfig = {
   devIndicators: false,
   transpilePackages: ["@flownix/core", "@flownix/db"],
   poweredByHeader: false,
+  // Authenticated same-origin image route; arbitrary remote optimization stays disabled.
+  images: { remotePatterns: [], dangerouslyAllowSVG: false },
   serverExternalPackages: ["postgres"],
   async headers() {
     return [

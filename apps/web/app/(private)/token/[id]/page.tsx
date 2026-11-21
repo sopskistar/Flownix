@@ -6,6 +6,7 @@ import {
   evmChains,
   tokenUnits,
   researchWindows,
+  tokenVisual,
 } from "@flownix/core";
 import { requireAccess } from "../../../../lib/auth";
 import { iso, num, range } from "../../../../lib/data";
@@ -16,6 +17,7 @@ import {
 } from "../../../../components/controls";
 import { PriceChart } from "../../../../components/chart";
 import { MutationForm } from "../../../../components/forms";
+import { TokenIdentity } from "../../../../components/token-identity";
 export const metadata = { title: "Token Intelligence" };
 export default async function Token({
   params,
@@ -75,7 +77,7 @@ export default async function Token({
       <div className="page-head">
         <div>
           <h1>
-            {t.name} <span className="muted">{t.symbol}</span>
+            <TokenIdentity token={tokenVisual(t)} heading />
           </h1>
           <p>
             {t.metadata.chainName} / {t.alpha_id ?? "No Alpha ID"} / {t.status}{" "}
@@ -100,6 +102,25 @@ export default async function Token({
           <span>Explorer not configured</span>
         )}
       </div>
+      <details className="advanced-filters">
+        <summary>Token image provenance</summary>
+        <p>
+          Official Alpha registry metadata, checked {iso(t.last_seen)}. Images
+          identify this exact network and contract; missing or rejected images
+          use a symbol placeholder. Image verification does not verify a live
+          price.
+        </p>
+        <a
+          href={tokenVisual(t).source ?? undefined}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Official registry source
+        </a>
+        <p>
+          <code>{t.response_hash}</code>
+        </p>
+      </details>
       <div className="status-strip">
         <span>
           First observed <strong>{iso(t.first_seen)}</strong>
@@ -122,15 +143,68 @@ export default async function Token({
           <span>{classificationRows[0]?.classification ?? "unclassified"}</span>
         </div>
         <div className="panel-content">
-          <p>Use a project-controlled or otherwise reliable source to support this manual classification. Flownix stores the source and rationale; it does not fetch arbitrary URLs or independently certify the claim. Only owner-reviewed non-meme projects enter the default research scanner.</p>
-          <MutationForm actionName="classification" extra={{ tokenId: id }} label="Save classification review">
+          <p>
+            Use a project-controlled or otherwise reliable source to support
+            this manual classification. Flownix stores the source and rationale;
+            it does not fetch arbitrary URLs or independently certify the claim.
+            Classification is a research annotation. Automatic discovery covers
+            all eligible official Alpha identities, including meme coins.
+          </p>
+          <MutationForm
+            actionName="classification"
+            extra={{ tokenId: id }}
+            label="Save classification review"
+          >
             <div className="form-grid">
-              <label>Classification<select name="classification" defaultValue={classificationRows[0]?.classification ?? "unclassified"}><option value="verified_non_meme">Non-meme project — owner reviewed</option><option value="verified_meme_focused">Meme-focused project</option><option value="mixed_ambiguous">Mixed / ambiguous</option><option value="unclassified">Unclassified — needs review</option></select></label>
-              <label>Evidence URL<input name="evidenceUrl" type="url" defaultValue={classificationRows[0]?.evidence_url ?? ""} required maxLength={2000} /></label>
-              <label className="search-filter">Evidence and rationale<textarea name="evidenceNote" defaultValue={classificationRows[0]?.evidence_note ?? ""} minLength={10} maxLength={3000} required /></label>
+              <label>
+                Classification
+                <select
+                  name="classification"
+                  defaultValue={
+                    classificationRows[0]?.classification ?? "unclassified"
+                  }
+                >
+                  <option value="verified_non_meme">
+                    Non-meme project — owner reviewed
+                  </option>
+                  <option value="verified_meme_focused">
+                    Meme-focused project
+                  </option>
+                  <option value="mixed_ambiguous">Mixed / ambiguous</option>
+                  <option value="unclassified">
+                    Unclassified — needs review
+                  </option>
+                </select>
+              </label>
+              <label>
+                Evidence URL
+                <input
+                  name="evidenceUrl"
+                  type="url"
+                  defaultValue={classificationRows[0]?.evidence_url ?? ""}
+                  required
+                  maxLength={2000}
+                />
+              </label>
+              <label className="search-filter">
+                Evidence and rationale
+                <textarea
+                  name="evidenceNote"
+                  defaultValue={classificationRows[0]?.evidence_note ?? ""}
+                  minLength={10}
+                  maxLength={3000}
+                  required
+                />
+              </label>
             </div>
           </MutationForm>
-          {classificationRows[0] ? <p className="muted">Reviewed {iso(classificationRows[0].reviewed_at)} / {classificationRows[0].reviewed_by}. This is an owner-sourced classification, not an automated identity finding.</p> : null}
+          {classificationRows[0] ? (
+            <p className="muted">
+              Reviewed {iso(classificationRows[0].reviewed_at)} /{" "}
+              {classificationRows[0].reviewed_by}. This is an owner-sourced
+              classification, not an automated identity finding.
+            </p>
+          ) : null}
         </div>
       </section>
       <section className="workbench">
@@ -169,13 +243,11 @@ export default async function Token({
           <button>Apply range</button>
         </form>
         <PriceChart
-          points={candles
-            .toReversed()
-            .map((c) => ({
-              at: new Date(c.open_at).toISOString(),
-              price: String(c.close),
-              volume: String(c.volume),
-            }))}
+          points={candles.toReversed().map((c) => ({
+            at: new Date(c.open_at).toISOString(),
+            price: String(c.close),
+            volume: String(c.volume),
+          }))}
           quote={
             m?.quote_asset ?? symbols[0]?.quote_asset ?? "quote unavailable"
           }
@@ -219,9 +291,17 @@ export default async function Token({
           </div>
           <dl className="facts">
             <div>
-              <dt>{m?.source_kind === "alpha_market" ? "Official Alpha ticker price" : m?.source_kind === "alpha_registry" ? "Official Alpha registry price (quote unspecified)" : "Official Alpha price"}</dt>
+              <dt>
+                {m?.source_kind === "alpha_market"
+                  ? "Official Alpha ticker price"
+                  : m?.source_kind === "alpha_registry"
+                    ? "Official Alpha registry price (quote unspecified)"
+                    : "Official Alpha price"}
+              </dt>
               <dd>
-                {m ? `${num(m.price, 8)}${m.quote_asset ? ` ${m.quote_asset}` : ""}` : "Unavailable"}
+                {m
+                  ? `${num(m.price, 8)}${m.quote_asset ? ` ${m.quote_asset}` : ""}`
+                  : "Unavailable"}
               </dd>
             </div>
             <div>

@@ -15,6 +15,7 @@
     "worker:verify": "tsx --env-file=.env.worker.local apps/worker/src/index.ts --once",
     "live:gate": "tsx --env-file=.env.worker.local apps/worker/src/acceptance.ts",
     "collection:status": "tsx --env-file=.env.worker.local scripts/collection-status.ts",
+    "research:audit": "tsx --env-file=.env.worker.local scripts/research-audit.ts",
     "worker:profile": "node --env-file=.env.worker.local --import tsx apps/worker/src/index.ts --profile",
     "worker:profile:report": "node --import tsx scripts/worker-profile-report.ts",
     "worker:diagnostics": "tsx --env-file=.env.worker.local scripts/ingestion-diagnostics.ts",

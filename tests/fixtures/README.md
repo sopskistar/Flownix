@@ -1,5 +1,7 @@
 # Fixtures and provenance
 
+`alpha-visual-2026-11-21.json` is a minimal identity/image-URL subset of a real official registry response observed at its manifest time. It covers all ten returned networks. The parent SHA-256 identifies the exact response retained locally; the subset contains no image bytes, market prices, or research findings. Production never uses it as a token universe. It supplements the earlier November 16 fixture and supersedes the November 15 no-recording note only for these dated captures.
+
 No successful live Binance registry or chain-log recording was obtained on 2026-11-15. Do not describe the fixtures below as recorded live data.
 
 `alpha-doc-example.json` is a small schema fixture adapted from Binance's official Token List and exchange-info documentation, checked 2026-11-15. Its token row is an official documentation example; it does not prove current membership. Extra chain/collision rows in tests are synthetic. Source: https://developers.binance.com/en/docs/catalog/advanced-trading-alpha-trading/api/rest-api/market-data

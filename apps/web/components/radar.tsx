@@ -5,6 +5,7 @@ import Link from "next/link";
 import { freshness } from "@flownix/core/browser";
 import type { RadarToken, Health } from "../lib/data";
 import { ActionButton } from "./controls";
+import { TokenIdentity } from "./token-identity";
 const n = (v: string | null, d = 2) =>
   v !== null && v !== "" && Number.isFinite(Number(v))
     ? new Intl.NumberFormat("en-US", {
@@ -84,7 +85,18 @@ export function Radar({
                       a[sort === "cap" ? "market_cap" : "liquidity"] ?? -1,
                     ) || a.id.localeCompare(b.id),
         ),
-    [tokens, watchlist, membership, classification, chain, state, cap, liquidity, search, sort],
+    [
+      tokens,
+      watchlist,
+      membership,
+      classification,
+      chain,
+      state,
+      cap,
+      liquidity,
+      search,
+      sort,
+    ],
   );
   const pages = Math.max(1, Math.ceil(filtered.length / size)),
     safePage = Math.min(page, pages),
@@ -188,7 +200,13 @@ export function Radar({
                 .sort()
                 .map(([id, name]) => (
                   <option key={id} value={id}>
-                    {name} — {tokens.filter((t) => t.chain_id === id && t.status === "current").length} active Alpha identities · chain ID {id}
+                    {name} —{" "}
+                    {
+                      tokens.filter(
+                        (t) => t.chain_id === id && t.status === "current",
+                      ).length
+                    }{" "}
+                    active Alpha identities · chain ID {id}
                   </option>
                 ))}
             </select>
@@ -208,7 +226,10 @@ export function Radar({
           </label>
           <label>
             Project classification
-            <select value={classification} onChange={(e) => set("classification", e.target.value)}>
+            <select
+              value={classification}
+              onChange={(e) => set("classification", e.target.value)}
+            >
               <option value="">All official Alpha identities (default)</option>
               <option value="verified_non_meme">Owner-reviewed non-meme</option>
               <option value="unclassified">Unclassified</option>
@@ -268,7 +289,7 @@ export function Radar({
           </label>
         </details>
         <div
-          className="table-scroll"
+          className={`table-scroll${shown.length ? " radar-desktop" : ""}`}
           tabIndex={0}
           role="region"
           aria-label="Scrollable Alpha token table"
@@ -324,19 +345,7 @@ export function Radar({
                     </ActionButton>
                   </td>
                   <td>
-                    <Link className="token-link" href={`/token/${t.id}`}>
-                      <span className="token-monogram" aria-hidden="true">
-                        {t.symbol.slice(0, 2)}
-                      </span>
-                      <span>
-                        <strong>{t.symbol}</strong>
-                        <small>{t.name}</small>
-                        <small>
-                          {t.chain_name} / {t.contract.slice(0, 6)}…
-                          {t.contract.slice(-4)}
-                        </small>
-                      </span>
-                    </Link>
+                    <TokenIdentity token={t.visual} />
                   </td>
                   <td>
                     <code>{t.alpha_id ?? "—"}</code>
@@ -382,7 +391,12 @@ export function Radar({
                           : "warning"
                       }
                     >
-                      {freshness(t.price_at)} {t.price_source === "alpha_market" ? "Alpha ticker" : t.price_source === "alpha_registry" ? "registry metadata" : "market data"}
+                      {freshness(t.price_at)}{" "}
+                      {t.price_source === "alpha_market"
+                        ? "Alpha ticker"
+                        : t.price_source === "alpha_registry"
+                          ? "registry metadata"
+                          : "market data"}
                     </small>
                     <small className="muted">{stamp(t.price_at)}</small>
                   </td>
@@ -413,6 +427,86 @@ export function Radar({
               </Link>
             </div>
           ) : null}
+        </div>
+        <div
+          className="radar-mobile-list"
+          aria-label="Alpha token observations"
+          aria-busy={pending}
+        >
+          {shown.map((t) => (
+            <article key={t.id} className="radar-mobile-token">
+              <div className="radar-mobile-identity">
+                <TokenIdentity token={t.visual} />
+              </div>
+              <div className="radar-mobile-price">
+                <span>{n(t.price, 8)}</span>
+                <small>{t.quote_asset ?? "Quote unspecified"}</small>
+                <span
+                  className={
+                    t.change_24h === null
+                      ? "muted"
+                      : Number(t.change_24h) >= 0
+                        ? "positive"
+                        : "negative"
+                  }
+                >
+                  {t.change_24h === null ? "—" : `${n(t.change_24h)}%`}{" "}
+                  <small>24h</small>
+                </span>
+              </div>
+              <div className="radar-mobile-freshness">
+                <span
+                  className={
+                    freshness(t.price_at) === "current" ? "positive" : "warning"
+                  }
+                >
+                  {freshness(t.price_at)}{" "}
+                  {t.price_source === "alpha_market"
+                    ? "Alpha ticker"
+                    : t.price_source === "alpha_registry"
+                      ? "registry metadata"
+                      : "market data"}
+                </span>
+                <small>{stamp(t.price_at)}</small>
+              </div>
+              <ActionButton
+                payload={{
+                  action: "watch",
+                  tokenId: t.id,
+                  enabled: !t.watchlisted,
+                }}
+              >
+                {t.watchlisted ? "Saved" : "Save"}
+              </ActionButton>
+              <details className="radar-mobile-evidence">
+                <summary>Identity, statistics & evidence</summary>
+                <dl>
+                  <dt>Alpha identity</dt>
+                  <dd>
+                    {t.alpha_id ?? "Unavailable"} / {t.status}
+                  </dd>
+                  <dt>Market cap (registry)</dt>
+                  <dd>{n(t.market_cap)}</dd>
+                  <dt>Liquidity (registry)</dt>
+                  <dd>{n(t.liquidity)}</dd>
+                  <dt>24h quote volume</dt>
+                  <dd>
+                    {n(t.volume_24h)} {t.quote_asset ?? "Quote unspecified"}
+                  </dd>
+                  <dt>Research</dt>
+                  <dd>{t.research_state.replaceAll("_", " ").toLowerCase()}</dd>
+                  <dt>Evidence</dt>
+                  <dd>
+                    {t.signal_count
+                      ? `${t.signal_count} activity alerts`
+                      : "Insufficient accumulation evidence"}
+                  </dd>
+                  <dt>Observation</dt>
+                  <dd>{days(t.first_seen)} days observed</dd>
+                </dl>
+              </details>
+            </article>
+          ))}
         </div>
         <div className="pagination">
           <span>

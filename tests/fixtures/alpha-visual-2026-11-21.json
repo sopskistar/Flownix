@@ -1,0 +1,155 @@
+{
+  "manifest": {
+    "fixtureOnly": true,
+    "scope": "Dated minimal official identity and image-metadata subset; never a production universe",
+    "observedAt": "2026-11-21T08:41:05.617Z",
+    "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+    "parentResponseHash": "37ac6f55a5413de45f53835f5d4686e4d26b3b7292548207b8be421cc40a7ed3"
+  },
+  "entries": [
+    {
+      "tokenId": "295B564E26A89C513D980EDC6D91745B",
+      "alphaId": "ALPHA_1286",
+      "chainId": "1",
+      "chainName": "Ethereum",
+      "contractAddress": "0x5200f539478f58d9aea962095ba3b16b5e550e00",
+      "symbol": "CLEAR",
+      "name": "Clearpool",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/6bc2e19c3406424aa77e848145c35f1e.jpg",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250228/b549e557-76ca-4873-88ef-3a107cf2c9fe.png",
+      "offline": false
+    },
+    {
+      "tokenId": "29CEC7E6EC8356796E8E8D495D524A29",
+      "alphaId": "ALPHA_1270",
+      "chainId": "56",
+      "chainName": "BSC",
+      "contractAddress": "0xf5cb7cc90040aa717a16887c8b7d7c10a7c60984",
+      "symbol": "WARD",
+      "name": "Warden",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/61416c840e8b49bab684173dd186960d.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250228/d0216ce4-a3e9-4bda-8937-4a6aa943ccf2.png",
+      "offline": false
+    },
+    {
+      "tokenId": "6029613BEED1E45E47B7B25B2B23750B",
+      "alphaId": "ALPHA_1248",
+      "chainId": "8453",
+      "chainName": "Base",
+      "contractAddress": "0x5be75e3b0aff5d1a042a5363ae36acb1d6d755ea",
+      "symbol": "AXIS",
+      "name": "Axis Robotics",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/6e48edafc4c84577a73ccf5db1352847.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250227/f9f5b212-4e34-44da-8230-65608cee4b22.png",
+      "offline": false
+    },
+    {
+      "tokenId": "DD933DA7262383E29152C9E16F36AC98",
+      "alphaId": "ALPHA_1134",
+      "chainId": "4663",
+      "chainName": "Robinhood",
+      "contractAddress": "0x385f4f8ae47651ce5f58f5265395a669f8281e18",
+      "symbol": "MEME",
+      "name": "A Meme Coin",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/DD933DA7262383E29152C9E16F36AC98.webp",
+      "chainIconUrl": "https://bin.bnbstatic.com/static/chain-infra/robinhood.png",
+      "offline": false
+    },
+    {
+      "tokenId": "41B22024DE9ACD075A777225FA092C97",
+      "alphaId": "ALPHA_932",
+      "chainId": "42161",
+      "chainName": "Arbitrum",
+      "contractAddress": "0x0c1c1c109fe34733fca54b82d7b46b75cfb71f6e",
+      "symbol": "CHIP",
+      "name": "USD.AI",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/59851cf7002742109da14900fd828e89.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250303/63991f72-1c93-4982-94f6-a6a30df4882e.png",
+      "offline": true
+    },
+    {
+      "tokenId": "5963176AD00C83AD73DE7BE9D74CC66B",
+      "alphaId": "ALPHA_888",
+      "chainId": "CT_784",
+      "chainName": "Sui",
+      "contractAddress": "0x97c7571f4406cdd7a95f3027075ab80d3e9c937c2a567690d31e14ab1872ccee::xmn::XMN",
+      "symbol": "XMN",
+      "name": "xMoney Token",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/07584d3e2f2e45478f787d67b977bb1f.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250303/fcabdbfc-5dce-4836-8398-baabe35c4dd8.png",
+      "offline": false
+    },
+    {
+      "tokenId": "050F6150D01681DECCFA0C4FAEC2A51F",
+      "alphaId": "ALPHA_620",
+      "chainId": "CT_501",
+      "chainName": "Solana",
+      "contractAddress": "G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG",
+      "symbol": "BIRB",
+      "name": "Moonbirds",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/cd24eb2997484b72b2416fd7fd25e714.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250303/42065e0a-3808-400e-b589-61c2dbfc0eac.png",
+      "offline": false
+    },
+    {
+      "tokenId": "2CE384A05DA1B329D1BC69A9B876864C",
+      "alphaId": "ALPHA_367",
+      "chainId": "59144",
+      "chainName": "Linea",
+      "contractAddress": "0x1789e0043623282d5dcc7f213d703c6d8bafbb04",
+      "symbol": "LINEA",
+      "name": "Linea",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/73ff56e927c84857b479a70288602c98.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250303/763d876d-3568-4182-b5f3-7527a84a4a49.png",
+      "offline": true
+    },
+    {
+      "tokenId": "270EFBE44548587726AA4AE2B201047E",
+      "alphaId": "ALPHA_271",
+      "chainId": "CT_195",
+      "chainName": "TRON",
+      "contractAddress": "TXL6rJbvmjD46zeN1JssfgxvSo99qC8MRT",
+      "symbol": "SUNDOG",
+      "name": "Sundog",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/4AF070577FA719C24A71F388D52D6F52.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250303/531595e7-7726-4f75-8a90-c08665d22828.png",
+      "offline": false
+    },
+    {
+      "tokenId": "3DF90D68C8A6CF5AC3934C8355F6F9F3",
+      "alphaId": "ALPHA_216",
+      "chainId": "146",
+      "chainName": "Sonic",
+      "contractAddress": "0x6c9b3a74ae4779da5ca999371ee8950e8db3407f",
+      "symbol": "FLY",
+      "name": "fly.trade",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/b85e2a46c85d435fb6290131dab69c1f.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250603/a7f81078-518e-4e10-bcf3-aa2badc65ea0.png",
+      "offline": false
+    },
+    {
+      "tokenId": "C1A5169BAC50214A44B3CF7596479AFE",
+      "alphaId": "ALPHA_117",
+      "chainId": "56",
+      "chainName": "BSC",
+      "contractAddress": "0xcaae2a2f939f51d97cdfa9a86e79e3f085b799f3",
+      "symbol": "TUT",
+      "name": "Tutorial",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/c7c6c30b91464754a79fb89e4ba0b6ab.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250228/d0216ce4-a3e9-4bda-8937-4a6aa943ccf2.png",
+      "offline": true
+    },
+    {
+      "tokenId": "51763C5312D18DE8727BA8AC48C4298F",
+      "alphaId": "ALPHA_681",
+      "chainId": "56",
+      "chainName": "BSC",
+      "contractAddress": "0x6dc200b21894af4660b549b678ea8df22bf7cfac",
+      "symbol": "WARD",
+      "name": "Warden Protocol",
+      "iconUrl": "https://bin.bnbstatic.com/images/web3-data/public/token/logos/9218d081fbda4132b8b4fe968db5dd3e.png",
+      "chainIconUrl": "https://bin.bnbstatic.com/image/admin_mgs_image_upload/20250228/d0216ce4-a3e9-4bda-8937-4a6aa943ccf2.png",
+      "offline": true
+    }
+  ]
+}

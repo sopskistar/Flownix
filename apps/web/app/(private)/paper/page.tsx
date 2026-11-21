@@ -5,6 +5,8 @@ import { requireAccess } from "../../../lib/auth";
 import { safeRadar, iso, num } from "../../../lib/data";
 import { PaperEntry } from "../../../components/forms";
 import { ActionButton } from "../../../components/controls";
+import { tokenVisual } from "@flownix/core";
+import { TokenIdentity } from "../../../components/token-identity";
 export const metadata = { title: "Performance Lab" };
 export default async function Paper() {
   await requireAccess();
@@ -13,9 +15,9 @@ export default async function Paper() {
     outcomes: DbRows = [];
   try {
     trades =
-      await sqlClient()`SELECT p.*,t.symbol FROM paper_trades p JOIN alpha_tokens t ON t.id=p.token_id ORDER BY p.created_at DESC LIMIT 100`;
+      await sqlClient()`SELECT p.*,t.symbol,to_jsonb(t) AS token_identity FROM paper_trades p JOIN alpha_tokens t ON t.id=p.token_id ORDER BY p.created_at DESC LIMIT 100`;
     outcomes =
-      await sqlClient()`SELECT o.*,t.symbol FROM signal_outcomes o JOIN signal_events s ON s.id=o.signal_id JOIN alpha_tokens t ON t.id=s.token_id ORDER BY o.computed_at DESC LIMIT 100`;
+      await sqlClient()`SELECT o.*,t.symbol,to_jsonb(t) AS token_identity FROM signal_outcomes o JOIN signal_events s ON s.id=o.signal_id JOIN alpha_tokens t ON t.id=s.token_id ORDER BY o.computed_at DESC LIMIT 100`;
   } catch {
     trades = [];
     outcomes = [];
@@ -81,7 +83,7 @@ export default async function Paper() {
               {trades.map((t) => (
                 <tr key={t.id}>
                   <td>
-                    <Link href={`/token/${t.token_id}`}>{t.symbol}</Link>
+                    <TokenIdentity token={tokenVisual(t.token_identity)} />
                   </td>
                   <td>{iso(t.entry_at)}</td>
                   <td>
@@ -141,7 +143,9 @@ export default async function Paper() {
               <tbody>
                 {outcomes.map((o) => (
                   <tr key={`${o.signal_id}:${o.horizon_hours}`}>
-                    <td>{o.symbol}</td>
+                    <td>
+                      <TokenIdentity token={tokenVisual(o.token_identity)} />
+                    </td>
                     <td>{o.horizon_hours}h</td>
                     <td>{o.evidence.grossReturnPct}</td>
                     <td>{o.evidence.netReturnPct}</td>

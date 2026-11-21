@@ -155,7 +155,10 @@ export function SearchShortcut() {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        (e.code === "KeyK" || e.key.toLowerCase() === "k")
+      ) {
         e.preventDefault();
         ref.current?.focus();
       }

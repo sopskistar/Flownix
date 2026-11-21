@@ -1,7 +1,8 @@
 import type { DbRows } from "../../../lib/data";
 import Link from "next/link";
 import { sqlClient } from "@flownix/db";
-import { explorerUrl } from "@flownix/core";
+import { explorerUrl, tokenVisual } from "@flownix/core";
+import { TokenIdentity } from "../../../components/token-identity";
 import { requireAccess } from "../../../lib/auth";
 import { iso, num } from "../../../lib/data";
 import { ActionButton, ResearchNote } from "../../../components/controls";
@@ -18,7 +19,7 @@ export default async function Signals({
   try {
     const sql = sqlClient();
     signals =
-      await sql`SELECT s.*,t.symbol,t.chain_id,t.contract FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id WHERE s.status=${status} ORDER BY first_detected_at DESC LIMIT 100`;
+      await sql`SELECT s.*,t.symbol,t.chain_id,t.contract,to_jsonb(t) AS token_identity FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id WHERE s.status=${status} ORDER BY first_detected_at DESC LIMIT 100`;
     notifications =
       await sql`SELECT * FROM notification_deliveries ORDER BY created_at DESC LIMIT 20`;
   } catch {
@@ -88,7 +89,7 @@ export default async function Signals({
             <section key={s.id} className="workbench">
               <div className="section-top">
                 <h2>
-                  <Link href={`/token/${s.token_id}`}>{s.symbol}</Link> /{" "}
+                  <TokenIdentity token={tokenVisual(s.token_identity)} />
                   {s.kind.replaceAll("_", " ").toLowerCase()}
                 </h2>
                 <span className="tag">

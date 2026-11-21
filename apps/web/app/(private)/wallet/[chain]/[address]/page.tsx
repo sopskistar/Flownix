@@ -6,11 +6,13 @@ import {
   evmChains,
   explorerUrl,
   tokenUnits,
+  tokenVisual,
 } from "@flownix/core";
 import { requireAccess } from "../../../../../lib/auth";
 import { iso, num } from "../../../../../lib/data";
 import { CopyAddress, ResearchNote } from "../../../../../components/controls";
 import { MutationForm } from "../../../../../components/forms";
+import { TokenIdentity } from "../../../../../components/token-identity";
 export const metadata = { title: "Wallet Detective" };
 export default async function Wallet({
   params,
@@ -23,8 +25,8 @@ export default async function Wallet({
   const address = input.toLowerCase(),
     sql = sqlClient();
   const [transfers, balances, labels, notes] = await Promise.all([
-    sql`SELECT e.*,t.symbol FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id WHERE e.chain_id=${chain} AND (from_address=${address} OR to_address=${address}) AND e.canonical ORDER BY event_time DESC LIMIT 100`,
-    sql`SELECT DISTINCT ON (b.token_id) b.*,t.symbol,t.metadata->>'decimals' AS decimals FROM wallet_balance_snapshots b JOIN alpha_tokens t ON t.id=b.token_id WHERE b.chain_id=${chain} AND b.address=${address} AND b.canonical ORDER BY b.token_id,b.observed_at DESC`,
+    sql`SELECT e.*,t.symbol,to_jsonb(t) AS token_identity FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id WHERE e.chain_id=${chain} AND (from_address=${address} OR to_address=${address}) AND e.canonical ORDER BY event_time DESC LIMIT 100`,
+    sql`SELECT DISTINCT ON (b.token_id) b.*,t.symbol,to_jsonb(t) AS token_identity,t.metadata->>'decimals' AS decimals FROM wallet_balance_snapshots b JOIN alpha_tokens t ON t.id=b.token_id WHERE b.chain_id=${chain} AND b.address=${address} AND b.canonical ORDER BY b.token_id,b.observed_at DESC`,
     sql`SELECT * FROM wallet_labels WHERE chain_id=${chain} AND address=${address} ORDER BY created_at DESC`,
     sql`SELECT * FROM manual_research_notes WHERE chain_id=${chain} AND address=${address} ORDER BY created_at DESC LIMIT 50`,
   ]);
@@ -78,7 +80,7 @@ export default async function Wallet({
               {balances.map((b) => (
                 <tr key={b.token_id}>
                   <td>
-                    <Link href={`/token/${b.token_id}`}>{b.symbol}</Link>
+                    <TokenIdentity token={tokenVisual(b.token_identity)} />
                   </td>
                   <td>
                     <code>{b.raw_quantity}</code>
@@ -127,7 +129,7 @@ export default async function Wallet({
                 return (
                   <tr key={`${t.tx_hash}:${t.log_index}`}>
                     <td>
-                      <Link href={`/token/${t.token_id}`}>{t.symbol}</Link>
+                      <TokenIdentity token={tokenVisual(t.token_identity)} />
                       <small>{iso(t.event_time)}</small>
                     </td>
                     <td>

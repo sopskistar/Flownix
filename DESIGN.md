@@ -212,7 +212,7 @@ Depth comes from background, surface and raised tones plus one-pixel borders. Th
 
 ## Shapes
 
-Controls have restrained rounded corners; workbenches and notices use the surface radius; tags use the smaller tag radius. Circular token monograms identify data rows and disappear on phones. Borders use the current theme line role. The original flow mark comprises three time-separated observations converging into a single inspectable flow, anchored by the vertical stroke of an open F. It has no coin, shield, hexagon or Binance motif. Preserve paths and proportions, a quarter-mark clear space, and the 20px minimum mark size; use the icon below a 120px horizontal logo width.
+Controls have restrained rounded corners; workbenches and notices use the surface radius; tags use the smaller tag radius. Circular token portraits identify data rows and remain visible on phones. Borders use the current theme line role. The original flow mark comprises three time-separated observations converging into a single inspectable flow, anchored by the vertical stroke of an open F. It has no coin, shield, hexagon or Binance motif. Preserve paths and proportions, a quarter-mark clear space, and the 20px minimum mark size; use the icon below a 120px horizontal logo width.
 
 ## Components
 
@@ -258,3 +258,10 @@ Every focus-visible element uses a 2px theme focus outline with a 3px offset. Bu
 - **Don't** invent provider coverage, metrics, profit probabilities or live chart data.
 - **Don't** use status colors to imply returns or Binance endorsement.
 - **Don't** add decorative motion, marketing heroes or unsupported performance charts.
+
+
+## Token identity refinement — 2026-11-21
+
+The shared token identity displays the official symbol, full project name, chain/contract context and a 36px token portrait with an 18px bottom-right chain badge. Portrait and badge remain visible on phones. Official registry provenance is bound to the exact chain/contract identity; missing, rejected, loading or broken images show neutral UI initials. Brand colors, typography, focus and reduced-motion behavior remain unchanged. No Binance interface or brand mark is copied.
+
+Desktop and tablet retain the table ledger. At 700px and below Radar/Watchlist use flat compact rows with identity, price, quote, 24h change and freshness visible together; expandable statistics retain identity, market data and research evidence. This supersedes the earlier phone monogram/table behavior only for these lists. Other evidence tables retain labelled horizontal scrolling.
