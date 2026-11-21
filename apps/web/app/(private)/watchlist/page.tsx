@@ -8,7 +8,7 @@ export default async function Watchlist() {
   const [h, tokens] = await Promise.all([health(), safeRadar()]);
   return (
     <Suspense fallback={<p>Loading watchlist…</p>}>
-      <Radar tokens={tokens} health={h} watchlist />
+      <Radar tokens={tokens} health={h} asOf={Date.now()} watchlist />
     </Suspense>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { freshness } from "@flownix/core/browser";
@@ -23,21 +23,31 @@ const stamp = (s: string | null) =>
         minute: "2-digit",
       }) + " UTC"
     : "Unavailable";
-const days = (at: string) =>
-  Math.max(0, Math.floor((Date.now() - Date.parse(at)) / 86400000));
+const days = (at: string, now: number) =>
+  Math.max(0, Math.floor((now - Date.parse(at)) / 86400000));
 export function Radar({
   tokens,
   health,
+  asOf,
   watchlist = false,
 }: {
   tokens: RadarToken[];
   health: Health;
+  asOf: number;
   watchlist?: boolean;
 }) {
   const query = useSearchParams(),
     router = useRouter(),
     path = usePathname();
   const [pending, setPending] = useState(false);
+  // Share the server's initial clock across hydration. Slow requests can cross
+  // a freshness boundary; recompute against real time only after hydration.
+  const [now, setNow] = useState(asOf);
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = globalThis.setInterval(() => setNow(Date.now()), 30_000);
+    return () => globalThis.clearInterval(timer);
+  }, []);
   const set = (key: string, v: string) => {
     const params = new URLSearchParams(query.toString());
     if (v) params.set(key, v);
@@ -102,11 +112,11 @@ export function Radar({
     safePage = Math.min(page, pages),
     shown = filtered.slice((safePage - 1) * size, safePage * size);
   const isFresh =
-    health.registry && freshness(health.registry.at) === "current";
+    health.registry && freshness(health.registry.at, now) === "current";
   const workerLive =
     health.heartbeat &&
     !health.heartbeat.stopped &&
-    freshness(health.heartbeat.at, Date.now(), 90) === "current";
+    freshness(health.heartbeat.at, now, 90) === "current";
   return (
     <>
       <div className="page-head">
@@ -383,15 +393,15 @@ export function Radar({
                     </small>
                   </td>
                   <td className="secondary">
-                    <span>{days(t.first_seen)} days observed</span>
+                    <span>{days(t.first_seen, now)} days observed</span>
                     <small
                       className={
-                        freshness(t.price_at) === "current"
+                        freshness(t.price_at, now) === "current"
                           ? "positive"
                           : "warning"
                       }
                     >
-                      {freshness(t.price_at)}{" "}
+                      {freshness(t.price_at, now)}{" "}
                       {t.price_source === "alpha_market"
                         ? "Alpha ticker"
                         : t.price_source === "alpha_registry"
@@ -457,10 +467,12 @@ export function Radar({
               <div className="radar-mobile-freshness">
                 <span
                   className={
-                    freshness(t.price_at) === "current" ? "positive" : "warning"
+                    freshness(t.price_at, now) === "current"
+                      ? "positive"
+                      : "warning"
                   }
                 >
-                  {freshness(t.price_at)}{" "}
+                  {freshness(t.price_at, now)}{" "}
                   {t.price_source === "alpha_market"
                     ? "Alpha ticker"
                     : t.price_source === "alpha_registry"
@@ -502,7 +514,7 @@ export function Radar({
                       : "Insufficient accumulation evidence"}
                   </dd>
                   <dt>Observation</dt>
-                  <dd>{days(t.first_seen)} days observed</dd>
+                  <dd>{days(t.first_seen, now)} days observed</dd>
                 </dl>
               </details>
             </article>

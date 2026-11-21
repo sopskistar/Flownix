@@ -7,7 +7,7 @@ export default async function Home() {
   const [h, tokens] = await Promise.all([health(), safeRadar()]);
   return (
     <Suspense fallback={<p>Loading universe…</p>}>
-      <Radar tokens={tokens} health={h} />
+      <Radar tokens={tokens} health={h} asOf={Date.now()} />
     </Suspense>
   );
 }

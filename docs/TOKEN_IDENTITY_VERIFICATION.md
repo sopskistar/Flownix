@@ -52,3 +52,15 @@ Verification results and deployment provenance are appended after the final loca
 
 
 Final local checks: typecheck and ESLint passed; the complete deterministic suite passed 86 tests, and the isolated database integration test passed separately in 54.4 seconds with a bounded 60-second timeout after intermittent Neon connection/time-limit failures. The earlier complete 84-test run also passed. Default 20-second database-test timing is appropriate for CI's local PostgreSQL but was unreliable against this remote Neon session. Real asset/layout QA passed for 12 identities/10 networks with zero browser page errors. Production builds passed; release/GitHub verification is recorded below when available.
+
+
+### Release verification follow-up
+
+Commit `7dbe933e1717d6a02d00eea9a86f3abfa977858d` was pushed to main. [GitHub Actions run 44889728813](https://github.com/sopskistar/Flownix/actions/runs/44889728813) passed the complete migration/typecheck/lint/test/build and browser suite, using CI's isolated PostgreSQL. Vercel reported a successful deployment for that exact SHA. Subsequent local repetitions against Neon experienced 90–180 second page timeouts despite earlier successful screenshot/interaction runs; those repetitions are not reported as passing.
+
+Actual browser diagnostics also exposed a freshness-boundary hydration mismatch on slow requests. The follow-up uses one server-provided initial clock for Radar/Watchlist, then updates freshness after hydration and every 30 seconds. This preserves source timestamps and prevents server/client initial HTML disagreements without relabeling stale prices as live. A focused regression checks identical initial HTML when the clock crosses the freshness threshold.
+
+
+At **10:05:15 UTC**, the continuing local collector still had one advisory lock and a fresh heartbeat. The database held 195 canonical transfers and 93,978,624 bytes; all 357 supported identities still had jobs, 317 were due and 27 retrying. There were 173 recently checked ticker identities out of 316 online identities with active pairs; this is partial freshness, not a full-universe freshness pass. Unsupported online identities remain 21.
+
+Public production verification at **09:57:02 UTC** confirmed flownix.xyz login 200, the new token/network and mobile identity CSS, and 401 for an unauthenticated token image request. Private production screens were not accessed with a fabricated session. The focused clock-boundary regression and 20 image/identity cases pass (21 tests). The freshness follow-up also passed local typecheck/lint and production build; its exact deployed commit and final CI status are reported in the task completion message.
