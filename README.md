@@ -74,12 +74,42 @@ Delivery details and exact verification limits: [build report](docs/BUILD_REPORT
 
 ---
 
-## Engineering portfolio: cloud, backend and reliability
+## Cloud Engineering & DevOps
 
-**Deployed architecture:** GitHub repository and GitHub Actions validation → Vercel-hosted Next.js web application → Neon PostgreSQL; separately runnable TypeScript worker with durable jobs, leased execution, retry/backoff, heartbeat and RPC/market provider integrations. **The production worker is not yet running continuously**; container and portable worker hosting instructions are development/operations material, not evidence of a live 24/7 collector.
+*Project-specific implementation record for technical interviews and portfolio review. Items below distinguish completed work from unverified or planned infrastructure.*
 
-**Tools used:** TypeScript, Next.js, pnpm, PostgreSQL, Drizzle, Neon, Vercel, GitHub OAuth, GitHub Actions, Docker Compose (local environment), Vitest, Playwright, ESLint, RPC/HTTP APIs and DNS/custom-domain configuration.
+### Cloud platforms
+- Production web application hosted on Vercel with managed PostgreSQL on Neon; GitHub OAuth protects owner-only research routes.
+- Custom domain flownix.xyz with documented DNS/TLS and environment/secrets configuration.
+- A separately runnable ingestion worker exists; **continuous production worker hosting is pending**.
 
-**Engineering evidence:** [Architecture](docs/ARCHITECTURE.md) · [Deployments](docs/DEPLOYMENT.md) · [Worker deployment](docs/WORKER_DEPLOYMENT.md) · [Operations](docs/OPERATIONS.md) · [Data coverage and current limitations](docs/DATA_COVERAGE.md) · [CI workflow](.github/workflows/ci.yml).
+### DevOps & CI/CD
+- GitHub Actions validates code; repository documents typechecking, lint, tests and browser journeys.
+- Docker Compose supports the **local** PostgreSQL/development environment; portable worker container/host procedures are documented, not represented as a proven 24/7 deployment.
+- PostgreSQL migrations, Drizzle persistence, leased background jobs, retry/backoff and worker heartbeat are implemented.
 
-**Operational constraints:** provider rate limits and historical replay limitations are documented; no claim is made that long-term signals or continuous worker operations have passed production acceptance. Terraform and Kubernetes are not claimed as implemented.
+### Networking & API engineering
+- Server-side market-data and ETH/BSC/Base RPC integrations with explicit provider failures, quota limits and source provenance.
+- GitHub OAuth, protected API routes and session boundaries; external HTTP/TLS and custom-domain troubleshooting are documented.
+
+### Monitoring & reliability
+- Data Health diagnostics, job heartbeat, freshness checks, source coverage and cost counters support investigations.
+- Production provider limits, RPC replay and historical-coverage failures remain disclosed; no verified database restore drill or full production availability target is claimed.
+
+### Architecture & infrastructure diagram
+
+```mermaid
+flowchart LR
+  U[Authenticated owner] --> V[Next.js on Vercel]
+  V --> A[Protected API and research views]
+  A --> N[(Neon PostgreSQL)]
+  W[Independent TypeScript worker - production hosting pending] --> N
+  W --> E[Binance market and chain RPC providers]
+  GH[GitHub Actions] --> V
+```
+
+**Deployment:** https://flownix.xyz
+
+**Technical documentation and proof:** [Architecture](docs/ARCHITECTURE.md) · [Deployment](docs/DEPLOYMENT.md) · [Worker procedures](docs/WORKER_DEPLOYMENT.md) · [Operations](docs/OPERATIONS.md) · [Evidence limits](docs/DATA_COVERAGE.md) · [CI](.github/workflows/ci.yml).
+
+**Evidence boundary:** The current worker is not a continuously operating production collector. Terraform, Kubernetes, Redis queues and proven backup/restore are **not** claimed unless later implemented and tested.
