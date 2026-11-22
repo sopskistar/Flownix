@@ -1,3 +1,5 @@
+> Current milestone: [24/7 worker readiness and cost controls (2026-11-22)](WORKER_READINESS_2026-11-22.md). This supersedes older cost/coverage snapshots below; hosting remains unactivated pending approval.
+
 # Portable private worker — deployment deferred
 
 No worker host has been approved. These are prepared procedures, **not evidence of deployment**. Vercel continues to host flownix.xyz, and the existing Neon database is the only production database. Never activate a paid plan without the owner's approval.

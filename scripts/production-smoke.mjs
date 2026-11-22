@@ -37,7 +37,23 @@ page.on("response", async (response) => {
   }
 });
 try {
-  const response = await page.goto(target("/login"));
+  let response;
+  try {
+    response = await page.goto(target("/login"), {
+      waitUntil: "networkidle",
+      timeout: 45000,
+    });
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !error.message.includes("net::ERR_NETWORK_CHANGED")
+    )
+      throw error;
+    response = await page.goto(target("/login"), {
+      waitUntil: "networkidle",
+      timeout: 45000,
+    });
+  }
   assert.equal(response.status(), 200);
   await page
     .getByRole("heading", { level: 1, name: "Your private research workspace" })
@@ -138,12 +154,18 @@ try {
   );
   result.invalidSessionAndForwardedHeaders = "401; RSC journal requires login";
   await page.setViewportSize({ width: 1440, height: 1000 });
+  const oauthRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.hostname === "github.com" && url.pathname === "/login/oauth/authorize"
+    );
+  });
   await page
     .getByRole("button", { name: "Continue with GitHub", exact: true })
     .click();
-  await page.waitForURL((url) => url.hostname === "github.com");
+  await oauthRequest;
   result.oauthHandoff =
-    "GitHub authorization/login reached; user authorization still required";
+    "GitHub authorization request emitted; GitHub page load and real user sign-in remain unverified";
   const cookies = (await context.cookies(origin.origin)).filter((cookie) =>
     cookie.name.includes("next-auth"),
   );

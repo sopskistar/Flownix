@@ -1,3 +1,5 @@
+> Current milestone: [24/7 worker readiness and cost controls (2026-11-22)](WORKER_READINESS_2026-11-22.md). This supersedes older cost/coverage snapshots below; hosting remains unactivated pending approval.
+
 # Latest account-recovery release
 
 See [ACCOUNT_RECOVERY_RELEASE_2026-11-21.md](ACCOUNT_RECOVERY_RELEASE_2026-11-21.md) for preserved work, the 107-test result, browser history regression, driver backport, live evidence and remaining operational gates. Older snapshots below retain their original dates.

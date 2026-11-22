@@ -1,12 +1,39 @@
 import { sqlClient, closeDb } from "../packages/db/src/index";
+import { readFileSync } from "node:fs";
 process.env.DATABASE_URL =
   process.env.DATABASE_URL_WORKER ?? process.env.DATABASE_URL;
 try {
-  const rows =
-    await sqlClient()`SELECT value FROM settings WHERE key='worker_heartbeat'`;
-  const h = rows[0]?.value;
-  if (!h || h.stopped || Date.now() - Date.parse(h.at) > 90000)
-    process.exitCode = 1;
+  if (!process.argv.includes("--remote")) {
+    // Container-local liveness: no extra Neon wakeup or acceptance of another worker's heartbeat.
+    const h = JSON.parse(
+      readFileSync("/tmp/flownix-worker-health.json", "utf8"),
+    );
+    if (
+      !Number.isInteger(h.pid) ||
+      !Number.isFinite(Date.parse(h.at)) ||
+      Date.now() - Date.parse(h.at) > 90000 ||
+      Date.parse(h.at) > Date.now() + 5000
+    )
+      throw Error("STALE_HEARTBEAT");
+    process.kill(h.pid, 0);
+  } else {
+    const rows =
+      await sqlClient()`SELECT value FROM settings WHERE key='worker_heartbeat'`;
+    const h = rows[0]?.value;
+    if (
+      !h ||
+      h.stopped ||
+      !Number.isFinite(Date.parse(h.at)) ||
+      Date.now() - Date.parse(h.at) > 90000 ||
+      Date.parse(h.at) > Date.now() + 5000
+    )
+      process.exitCode = 1;
+    if (process.argv.includes("--strict")) {
+      const alerts =
+        await sqlClient()`SELECT code FROM worker_operational_alerts WHERE resolved_at IS NULL AND severity='critical'`;
+      if (alerts.length) process.exitCode = 1;
+    }
+  }
 } catch {
   process.exitCode = 1;
 } finally {

@@ -12,6 +12,7 @@ EnvironmentFile=/etc/flownix/release.env
 ExecStart=/usr/bin/docker run --rm --name flownix-worker --init --read-only --tmpfs /tmp:rw,nosuid,nodev,mode=1777,size=128m --cap-drop=ALL --security-opt=no-new-privileges:true --pids-limit=128 --memory=768m --cpus=0.75 --log-opt=max-size=10m --log-opt=max-file=3 --env-file=/etc/flownix/worker.env ${FLOWNIX_WORKER_IMAGE}
 ExecStop=/usr/bin/docker stop --time=90 flownix-worker
 Restart=on-failure
+RestartPreventExitStatus=78
 RestartSec=15
 TimeoutStartSec=120
 TimeoutStopSec=100

@@ -4,6 +4,7 @@
   "dependencies": {
     "@flownix/core": "workspace:*",
     "@flownix/db": "workspace:*",
+    "tsx": "^4.20.6",
     "zod": "^4.1.12"
   }
 }

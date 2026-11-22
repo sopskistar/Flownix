@@ -1,3 +1,5 @@
+> Current milestone: [24/7 worker readiness and cost controls (2026-11-22)](WORKER_READINESS_2026-11-22.md). This supersedes older cost/coverage snapshots below; hosting remains unactivated pending approval.
+
 # Worker hosting decision — not selected or deployed
 
 Checked 2026-11-16–17 UTC. Oracle registration failed after card verification; support review is pending. **No paid plan, cloud VM or hosted worker was activated.** Vercel and the existing Neon project remain in place. Prices below exclude tax, optional backups and Neon/RPC subscriptions. Confirm the checkout quote before approving a host.

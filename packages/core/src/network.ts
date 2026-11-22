@@ -154,7 +154,7 @@ export function networkErrorCode(error: unknown): string {
     if (typeof e.code === "string" && allowed.has(e.code)) return e.code;
     if (
       typeof e.code === "string" &&
-      /^(HTTP_[1-5]\d\d|RPC_-?\d+|SCHEMA_MISMATCH|AUDIT_PERSISTENCE_FAILED|RECEIPT_MISMATCH_OR_FAILED|BLOCK_NUMBER_MISMATCH|CHAIN_ID_MISMATCH)$/.test(
+      /^(HTTP_[1-5]\d\d|(?:SOLANA_)?RPC_-?\d+|SCHEMA_MISMATCH|AUDIT_PERSISTENCE_FAILED|RECEIPT_MISMATCH_OR_FAILED|BLOCK_NUMBER_MISMATCH|CHAIN_ID_MISMATCH)$/.test(
         e.code,
       )
     )

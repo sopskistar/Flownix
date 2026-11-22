@@ -1,3 +1,5 @@
+> Current milestone: [24/7 worker readiness and cost controls (2026-11-22)](WORKER_READINESS_2026-11-22.md). This supersedes older cost/coverage snapshots below; hosting remains unactivated pending approval.
+
 # Operations
 
 ## Current operating state and changes (2026-11-16–17 UTC)

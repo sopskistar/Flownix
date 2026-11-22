@@ -1,0 +1,37 @@
+# Prepared only. Creating this paid service requires owner approval.
+services:
+  - type: worker
+    name: flownix-worker
+    runtime: docker
+    region: virginia
+    plan: starter
+    numInstances: 1
+    dockerfilePath: ./Dockerfile.worker
+    dockerContext: .
+    autoDeployTrigger: off
+    maxShutdownDelaySeconds: 90
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_WORKER
+        sync: false
+      - key: BSC_RPC_URL
+        sync: false
+      - key: ETH_RPC_URL
+        sync: false
+      - key: BASE_RPC_URL
+        sync: false
+      - key: ARBITRUM_RPC_URL
+        sync: false
+      - key: SOLANA_RPC_URL
+        sync: false
+      - key: ALCHEMY_MONTHLY_UNTRACKED_CU
+        sync: false
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=256
+      - key: TELEGRAM_ENABLED
+        value: "false"
+      - key: PAID_ENRICHMENT_ENABLED
+        value: "false"
+      - key: PAID_DAILY_BUDGET_USD
+        value: "0"

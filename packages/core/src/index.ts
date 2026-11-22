@@ -13,5 +13,6 @@ export * from "./swaps";
 export * from "./wallet-intelligence";
 export * from "./thesis";
 export * from "./telemetry";
+export * from "./request-policy";
 export * from "./solana";
 export * from "./token-visual";

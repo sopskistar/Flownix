@@ -11,6 +11,10 @@ const fixture = vi.hoisted(() => ({
   closeDb: vi.fn(),
   stopRequests: vi.fn(),
 }));
+vi.mock("node:fs", async (original) => ({
+  ...(await original<typeof import("node:fs")>()),
+  writeFileSync: vi.fn(),
+}));
 vi.mock("@flownix/core", async (original) => {
   const core = await original<typeof import("@flownix/core")>();
   return {
@@ -30,6 +34,7 @@ vi.mock("@flownix/db", () => ({
   jsonParam: (value: unknown) => value,
   closeDb: fixture.closeDb,
   setSetting: vi.fn(),
+  workerRequestPolicy: () => ({ reserve: vi.fn(), complete: vi.fn() }),
 }));
 vi.mock("../src/ingest", () => ({
   registrySync: vi.fn(),

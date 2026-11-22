@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { monitorWorker } from "./operations";
 import { startWorkerProfile } from "./profile";
 import {
   config,
@@ -6,8 +8,15 @@ import {
   networkErrorCode,
   closeProviderNetwork,
   stopProviderRequests,
+  installRequestPolicy,
 } from "@flownix/core";
-import { jsonParam, sqlClient, closeDb, setSetting } from "@flownix/db";
+import {
+  jsonParam,
+  sqlClient,
+  closeDb,
+  setSetting,
+  workerRequestPolicy,
+} from "@flownix/db";
 import { registrySync, marketSync, scanToken } from "./ingest";
 import { claimNextJob, reconcileScanJobs } from "./scheduler";
 import {
@@ -17,11 +26,31 @@ import {
   persistenceSync,
 } from "./services";
 const conf = config();
+const jobKeyArgument = process.argv.indexOf("--job-key");
+const diagnosticJobKey =
+  jobKeyArgument >= 0 ? process.argv[jobKeyArgument + 1] : undefined;
+if (
+  jobKeyArgument >= 0 &&
+  (!process.argv.includes("--once") ||
+    !/^scan:[a-f0-9]{32}$/.test(diagnosticJobKey ?? ""))
+)
+  throw Error("INVALID_DIAGNOSTIC_JOB_KEY");
 if (conf.DATABASE_URL_WORKER)
   process.env.DATABASE_URL = conf.DATABASE_URL_WORKER;
 const sql = sqlClient(),
   owner = randomUUID();
+installRequestPolicy(workerRequestPolicy(sql));
 const profile = startWorkerProfile();
+// No jobs can have started before ownership is established. Bound even a
+// stalled native connection/lock handshake, which has no heartbeat to watch.
+const startupDeadline = setTimeout(() => {
+  if (!ownsLock) {
+    console.error(
+      JSON.stringify({ event: "startup_watchdog", error: "STARTUP_STALLED" }),
+    );
+    process.exit(1);
+  }
+}, conf.WORKER_STARTUP_TIMEOUT_SECONDS * 1000);
 function failureCode(error: unknown) {
   if (
     error instanceof Error &&
@@ -46,6 +75,7 @@ let scanAfterMarket = false;
 let maintenanceAfterMarket = false;
 let scansSinceRetry = 0;
 let pulseInFlight: Promise<void> | undefined;
+let lastPulseAt = Date.now();
 const platform = ["oracle", "digitalocean", "gcp", "aws", "linux"].includes(
   process.env.WORKER_PLATFORM ?? "",
 )
@@ -74,10 +104,23 @@ async function writePulse() {
       platform,
       mode: process.argv.includes("--once") ? "one-shot" : "continuous",
       rssBytes: process.memoryUsage().rss,
-      release: /^[a-f0-9]{40}$/.test(process.env.WORKER_RELEASE_SHA ?? "")
-        ? process.env.WORKER_RELEASE_SHA
+      release: /^[a-f0-9]{40}$/.test(
+        process.env.RAILWAY_GIT_COMMIT_SHA ??
+          process.env.RENDER_GIT_COMMIT ??
+          process.env.WORKER_RELEASE_SHA ??
+          "",
+      )
+        ? (process.env.RAILWAY_GIT_COMMIT_SHA ??
+          process.env.RENDER_GIT_COMMIT ??
+          process.env.WORKER_RELEASE_SHA)
         : null,
     });
+    writeFileSync(
+      "/tmp/flownix-worker-health.json",
+      JSON.stringify({ owner, at: new Date().toISOString(), pid: process.pid }),
+      { mode: 0o600 },
+    );
+    lastPulseAt = Date.now();
   } catch (error) {
     stopping = true;
     ownsLock = false;
@@ -94,6 +137,16 @@ async function writePulse() {
 }
 // Native database/HTTP timers may be unreferenced; the persistent collector owns its lifecycle.
 const lifecycle = setInterval(() => {
+  if (ownsLock && !stopping && Date.now() - lastPulseAt > 90000) {
+    process.exitCode = 1;
+    shutdown();
+    console.error(
+      JSON.stringify({
+        event: "heartbeat_watchdog",
+        error: "HEARTBEAT_STALLED",
+      }),
+    );
+  }
   void pulse();
 }, 30000);
 const duration = Number(process.env.WORKER_RUN_SECONDS ?? 0);
@@ -114,12 +167,15 @@ const stopTimer =
           drainScanAfterRegistry = true;
       }, duration * 1000)
     : undefined;
-process.on("SIGINT", () => {
+let shutdownDeadline: NodeJS.Timeout | undefined;
+function shutdown() {
   stopping = true;
-});
-process.on("SIGTERM", () => {
-  stopping = true;
-});
+  drainScanAfterRegistry = false;
+  stopProviderRequests();
+  shutdownDeadline ??= setTimeout(() => process.exit(1), 75000);
+}
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 const intervals: Record<string, number> = {
   // Refresh before membership expires; scheduling exactly at expiry caused
   // avoidable STALE_MEMBERSHIP retries while the registry job became due.
@@ -129,6 +185,7 @@ const intervals: Record<string, number> = {
   notifications: 30,
   outcomes: 3600,
   persistence: 3600,
+  operations: 300,
 };
 async function schedule() {
   for (const kind of [
@@ -137,6 +194,7 @@ async function schedule() {
     "notifications",
     "outcomes",
     "persistence",
+    "operations",
   ])
     await sql`INSERT INTO worker_jobs(key,kind) VALUES(${kind},${kind}) ON CONFLICT DO NOTHING`;
   // Full current supported-chain universe; jobs persist independently and are fairly due-time scheduled.
@@ -157,7 +215,7 @@ async function next(
   const kinds = requestedKinds.filter((kind) => !activeJobs.has(kind));
   if (kinds.some((kind) => !Object.hasOwn(intervals, kind)))
     throw Error("INVALID_JOB_KINDS");
-  return claimNextJob(owner, kinds, excluded, sql, retryOnly);
+  return claimNextJob(owner, kinds, excluded, sql, retryOnly, diagnosticJobKey);
 }
 async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
   activeJobs.add(job.kind);
@@ -208,6 +266,7 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
       await deliverNotifications();
     } else if (job.kind === "outcomes") await outcomesSync();
     else if (job.kind === "persistence") await persistenceSync();
+    else if (job.kind === "operations") await monitorWorker();
     const delay =
       job.kind === "market" && marketRemaining > 0
         ? 0
@@ -222,15 +281,27 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
   } catch (error) {
     const code = failureCode(error);
     if (code === "PROCESS_REQUEST_BUDGET_EXHAUSTED") stopping = true;
-    const delay = Math.min(3600, 30 * 2 ** Math.min(Number(job.attempts), 7));
-    await sql`UPDATE worker_jobs SET status='retry',attempts=attempts+1,lease_until=null,owner=null,last_error=${code},run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
+    const interrupted = code === "COLLECTION_STOPPED";
+    const retryAt = error instanceof ProviderError ? error.retryAt : undefined;
+    const deferred = interrupted || !!retryAt;
+    const delay = interrupted
+      ? 1
+      : retryAt
+        ? Math.max(1, Math.ceil((+retryAt - Date.now()) / 1000))
+        : code === "SOLANA_RPC_-32015"
+          ? 21600
+          : Math.min(3600, 30 * 2 ** Math.min(Number(job.attempts), 7));
+    await sql`UPDATE worker_jobs SET status='retry',attempts=attempts+${deferred ? 0 : 1},lease_until=null,owner=null,last_error=${code},run_after=now()+(${delay}*interval '1 second'),updated_at=now() WHERE key=${job.key} AND owner=${owner}`;
     console.error(
       JSON.stringify({
-        event: "job_failed",
+        event: deferred ? "job_deferred" : "job_failed",
         kind: job.kind,
         key: job.key,
         retryInSeconds: delay,
         error: code,
+        ...(error instanceof ProviderError && error.cause
+          ? { cause: networkErrorCode(error.cause) }
+          : {}),
       }),
     );
     return false;
@@ -253,34 +324,45 @@ async function main() {
   let marketTask: Promise<void> | undefined;
   let marketRunning = false;
   try {
-    const acquired =
-      await lock`SELECT pg_try_advisory_lock(726032) AS acquired`;
-    if (!acquired[0].acquired) throw Error("COLLECTOR_BUSY");
+    const lockDeadline =
+      Date.now() + (process.argv.includes("--once") ? 0 : 120000);
+    while (
+      !(await lock`SELECT pg_try_advisory_lock(726032) AS acquired`)[0].acquired
+    ) {
+      if (stopping || Date.now() >= lockDeadline) throw Error("COLLECTOR_BUSY");
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
     ownsLock = true;
+    clearTimeout(startupDeadline);
     await pulse();
     const once = process.argv.includes("--once");
     const seen = new Set<string>();
     let failed = false;
     let scheduledAt = 0;
+    let storageCheckedAt = 0;
     while (!stopping || drainScanAfterRegistry) {
       if (process.argv.includes("--idle")) {
         profile.phase("idle");
         await new Promise((r) => setTimeout(r, 1000));
         continue;
       }
-      if (Date.now() - scheduledAt > 30000) {
+      if (Date.now() - scheduledAt > 300000) {
         await schedule();
         scheduledAt = Date.now();
       }
-      const size =
-        await sql`SELECT pg_database_size(current_database())::text AS bytes`;
-      if (
-        BigInt(size[0].bytes) >
-        BigInt(conf.DATABASE_STORAGE_LIMIT_MB) * 1024n * 1024n
-      ) {
-        await sql`INSERT INTO data_quality_issues(provider,kind,detail) VALUES('database','storage_guard','Configured storage guard halted ingestion; existing research was retained. Check account storage and compute quotas before resuming.')`;
-        stopping = true;
-        break;
+      if (Date.now() - storageCheckedAt > 300000) {
+        const size =
+          await sql`SELECT pg_database_size(current_database())::text AS bytes`;
+        storageCheckedAt = Date.now();
+        if (
+          BigInt(size[0].bytes) >
+          BigInt(conf.DATABASE_STORAGE_LIMIT_MB) * 1024n * 1024n
+        ) {
+          await sql`INSERT INTO data_quality_issues(provider,kind,detail) VALUES('database','storage_guard','Configured storage guard halted ingestion; existing research was retained. Check account storage and compute quotas before resuming.')`;
+          stopping = true;
+          process.exitCode = 78;
+          break;
+        }
       }
       // Drain another bounded market batch while stale pairs remain, but give
       // a due baseline scan a turn between batches. Provider pacing is unchanged.
@@ -370,7 +452,10 @@ main()
   })
   .finally(async () => {
     clearInterval(lifecycle);
+    clearTimeout(startupDeadline);
     if (stopTimer) clearTimeout(stopTimer);
+    if (shutdownDeadline) clearTimeout(shutdownDeadline);
+    installRequestPolicy(undefined);
     await closeDb();
     await closeProviderNetwork();
     profile.stop();

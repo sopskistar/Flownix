@@ -106,6 +106,16 @@ describe.skipIf(!enabled)(
               ?.key,
           ).toBe("market");
           expect(
+            await claimNextJob(
+              owner,
+              ["scan"],
+              [],
+              claimClient,
+              false,
+              "scan:missing-diagnostic-key",
+            ),
+          ).toBeNull();
+          expect(
             (await claimNextJob(owner, ["scan"], [], claimClient, true))?.key,
           ).toBe(keys[2]);
           expect(

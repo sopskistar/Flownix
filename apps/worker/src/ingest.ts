@@ -79,25 +79,31 @@ export async function registrySync() {
     SELECT id,chain_id,contract,symbol,name,token_id,alpha_id,status,listing_time,first_seen,last_seen,source,response_hash,metadata
     FROM jsonb_to_recordset(${jsonParam(records)}::jsonb) AS r(id text,chain_id text,contract text,symbol text,name text,token_id text,alpha_id text,status text,listing_time timestamptz,first_seen timestamptz,last_seen timestamptz,source text,response_hash text,metadata jsonb) WHERE true
     ON CONFLICT(id) DO UPDATE SET symbol=excluded.symbol,name=excluded.name,token_id=excluded.token_id,alpha_id=excluded.alpha_id,status=excluded.status,listing_time=excluded.listing_time,last_seen=excluded.last_seen,source=excluded.source,response_hash=excluded.response_hash,metadata=excluded.metadata`;
-    const metrics = tokens.map((t) => ({
-      token_id: t.id,
-      price: decimal(t.price),
-      change_24h: decimal(t.percentChange24h),
-      volume_24h: decimal(t.volume24h),
-      liquidity: decimal(t.liquidity),
-      market_cap: decimal(t.marketCap),
-      // Full exact registry bytes are retained once in source_responses and in
-      // the membership snapshot. Avoid repeating every token's full metadata in
-      // each 15-minute price row; this reference preserves reprocessing provenance.
-      raw: { registryResponseHash: o.hash, identity: t.id },
-    }));
+    // Offline identities remain in the exact registry source/membership evidence.
+    // Only current eligible identities need a new periodic market metric row.
+    const metrics = tokens
+      .filter((t) => t.status === "current")
+      .map((t) => ({
+        token_id: t.id,
+        price: decimal(t.price),
+        change_24h: decimal(t.percentChange24h),
+        volume_24h: decimal(t.volume24h),
+        liquidity: decimal(t.liquidity),
+        market_cap: decimal(t.marketCap),
+        // Full exact registry bytes are retained once in source_responses and in
+        // the membership snapshot. Avoid repeating every token's full metadata in
+        // each 15-minute price row; this reference preserves reprocessing provenance.
+        raw: { registryResponseHash: o.hash, identity: t.id },
+      }));
     await tx`INSERT INTO market_snapshots(token_id,source,source_kind,observed_at,price,change_24h,volume_24h,liquidity,market_cap,response_hash,raw)
     SELECT token_id,${o.source},'alpha_registry',${o.observedAt}::timestamptz,price,change_24h,volume_24h,liquidity,market_cap,${o.hash},raw FROM jsonb_to_recordset(${jsonParam(metrics)}::jsonb) AS r(token_id text,price numeric,change_24h numeric,volume_24h numeric,liquidity numeric,market_cap numeric,raw jsonb)`;
     const discovered = tokens.filter((t) => !old.has(t.id)).map((t) => t.id);
     if (discovered.length)
       await tx`INSERT INTO research_state_history(token_id,to_state,observed_at,rule_version,evidence,reason) SELECT unnest(${discovered}::text[]),'DISCOVERY',${o.observedAt}::timestamptz,'membership/1',${jsonParam({ responseHash: o.hash })}::jsonb,'First provable local registry observation; listingTime is a separate provider claim.'`;
     await tx`UPDATE alpha_tokens SET status='removed',deep_selected=false WHERE NOT (id=ANY(${ids}))`;
-    await tx`INSERT INTO alpha_membership_snapshots(observed_at,source,response_hash,raw,token_count,changes) VALUES(${o.observedAt},${o.source},${o.hash},${jsonParam(JSON.parse(o.raw))}::jsonb,${tokens.length},${jsonParam(changes)}::jsonb)`;
+    // Exact bytes already persisted in source_responses before this transaction.
+    // Reference them rather than duplicating the full universe every refresh.
+    await tx`INSERT INTO alpha_membership_snapshots(observed_at,source,response_hash,raw,token_count,changes) VALUES(${o.observedAt},${o.source},${o.hash},${jsonParam({ format: "source_reference/1", registryResponseHash: o.hash })}::jsonb,${tokens.length},${jsonParam(changes)}::jsonb)`;
   });
   // Do not build a top-N research universe. Intensive work is driven by
   // manually pinned tokens and the persistent anomaly queue; baseline scans
@@ -253,9 +259,10 @@ export async function marketSync() {
       const code = errorCode(error);
       if (
         error instanceof ProviderError &&
-        ["PROCESS_REQUEST_BUDGET_EXHAUSTED", "COLLECTION_STOPPED"].includes(
-          code,
-        )
+        (error.retryAt ||
+          ["PROCESS_REQUEST_BUDGET_EXHAUSTED", "COLLECTION_STOPPED"].includes(
+            code,
+          ))
       )
         throw error;
       await sql`INSERT INTO market_coverage(token_id,pair_symbol,quote_asset,status,provider,checked_at,observed_at,error_code,raw) VALUES(${token.id},${pair.symbol},${pair.quoteAsset},'error','binance_alpha',now(),NULL,${code},${jsonParam({ exchangeInfoAt: o.observedAt })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET pair_symbol=excluded.pair_symbol,quote_asset=excluded.quote_asset,status='error',provider=excluded.provider,checked_at=excluded.checked_at,error_code=excluded.error_code,raw=excluded.raw`;

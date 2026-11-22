@@ -15,10 +15,11 @@ export async function claimNextJob(
   excluded: string[] = [],
   client = sqlClient(),
   retryOnly = false,
+  jobKey?: string,
 ) {
   return client.begin(async (tx) => {
     const rows =
-      await tx`SELECT * FROM worker_jobs WHERE (NOT ${retryOnly} OR status='retry') AND run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND (kind<>'scan' OR EXISTS(SELECT 1 FROM alpha_tokens t WHERE t.id=worker_jobs.payload->>'tokenId' AND t.status='current' AND t.chain_id=ANY(${[...SUPPORTED_BASELINE_CHAINS]}))) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'market' THEN 1 ELSE 2 END,run_after,CASE WHEN kind='scan' AND EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=worker_jobs.payload->>'tokenId' AND q.active) THEN 0 ELSE 1 END,key FOR UPDATE SKIP LOCKED LIMIT 1`;
+      await tx`SELECT * FROM worker_jobs WHERE (${jobKey ?? null}::text IS NULL OR key=${jobKey ?? null}) AND (NOT ${retryOnly} OR status='retry') AND run_after<=now() AND kind=ANY(${kinds}) AND NOT(key=ANY(${excluded})) AND NOT EXISTS(SELECT 1 FROM worker_provider_state ps WHERE ps.provider=CASE WHEN worker_jobs.kind IN ('registry','market') THEN 'binance_alpha' WHEN worker_jobs.kind='scan' THEN 'rpc:'||(worker_jobs.payload->>'chainId') ELSE worker_jobs.kind END AND ps.blocked_until>now()) AND (kind<>'scan' OR EXISTS(SELECT 1 FROM alpha_tokens t WHERE t.id=worker_jobs.payload->>'tokenId' AND t.status='current' AND t.chain_id=ANY(${[...SUPPORTED_BASELINE_CHAINS]}))) AND (status IN ('queued','done','retry') OR (status='running' AND lease_until<now())) ORDER BY CASE kind WHEN 'registry' THEN 0 WHEN 'operations' THEN 1 WHEN 'market' THEN 2 ELSE 3 END,run_after,CASE WHEN kind='scan' AND EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=worker_jobs.payload->>'tokenId' AND q.active) THEN 0 ELSE 1 END,key FOR UPDATE SKIP LOCKED LIMIT 1`;
     if (!rows.length) return null;
     const job = rows[0];
     await tx`UPDATE worker_jobs SET status='running',owner=${owner},lease_until=now()+interval '2 minutes',updated_at=now() WHERE key=${job.key}`;

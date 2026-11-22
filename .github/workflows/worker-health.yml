@@ -1,0 +1,27 @@
+name: worker health
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+permissions:
+  contents: read
+concurrency:
+  group: worker-health
+  cancel-in-progress: true
+jobs:
+  monitor:
+    # Opt-in only, after a worker is approved and activated. No secret is added by this change.
+    if: vars.FLOWNIX_WORKER_HEALTH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DATABASE_URL: ${{ secrets.FLOWNIX_MONITOR_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: pnpm install --frozen-lockfile --prod --filter @flownix/worker...
+      - name: Require fresh worker heartbeat and no critical operational alerts
+        working-directory: apps/worker
+        run: node --import tsx ../../scripts/worker-health.ts --remote --strict

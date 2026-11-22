@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T18:27:34.038Z",
+  "generatedAt": "2026-11-22T18:32:59.444Z",
   "scope": "Local Node-process measurements. No hosted worker, full production soak, 50-token or 100-token live benchmark. Socket counters approximate TCP traffic including PostgreSQL; billing differs. Large sampling gaps excluded from CPU averages. resourceUsage.maxRSS inherited before exec was 539 MiB even at startup; use Linux VmHWM where present and sampled RSS otherwise. Samples omit tsx helper, OS and Docker overhead. Database server CPU during writes was not measured.",
   "runs": [
     {
@@ -934,6 +934,316 @@
         "requests:binance_alpha": 3,
         "httpRequestBodyBytes": 0,
         "requestErrors:binance_alpha": 3
+      }
+    },
+    {
+      "file": "worker-2026-11-22T17-26-24.135Z.json",
+      "startedAt": "2026-11-22T17:26:24.135Z",
+      "measuredAt": "2026-11-22T17:29:03.960Z",
+      "arch": "x64",
+      "node": "v24.22.2",
+      "samples": 32,
+      "elapsedSeconds": 159.825,
+      "activeSampleSeconds": 159.82399999999998,
+      "maxSampleGapSeconds": 6.9879999999999995,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 158.9488525390625,
+      "peakSampleRssMiB": 173.90234375,
+      "linuxHighWaterMiB": 183.234375,
+      "peakHeapUsedMiB": 37.55628967285156,
+      "meanActiveSampleCpuPercent": 1.8177783061367507,
+      "peakIntervalCpuPercent": 8.359930313589086,
+      "phases": {
+        "startup": {
+          "activeSeconds": 16.480000000000004,
+          "meanCpuPercent": 3.7322936893203877,
+          "peakRssMiB": 164.109375
+        },
+        "registry": {
+          "activeSeconds": 15.000999999999998,
+          "meanCpuPercent": 2.748950069995334,
+          "peakRssMiB": 173.90234375
+        },
+        "idle": {
+          "activeSeconds": 10.573999999999984,
+          "meanCpuPercent": 3.4608095328163473,
+          "peakRssMiB": 166.7734375
+        },
+        "scan": {
+          "activeSeconds": 93.917,
+          "meanCpuPercent": 1.0690663032251881,
+          "peakRssMiB": 166.515625
+        },
+        "market": {
+          "activeSeconds": 23.852000000000004,
+          "meanCpuPercent": 2.12901643468053,
+          "peakRssMiB": 166.515625
+        }
+      },
+      "tcpReadBytes": 842448,
+      "tcpWrittenBytes": 12147572,
+      "logBytes": 3368,
+      "peakTcpSockets": 7,
+      "counters": {
+        "postgresQueries": 395,
+        "requests:binance_alpha": 8,
+        "httpRequestBodyBytes": 1668,
+        "httpResponseBodyBytes": 3350712,
+        "rpcMethod:56:eth_chainId": 7,
+        "requests:rpc:56": 15,
+        "alchemyRpcRequests": 17,
+        "alchemyEstimatedComputeUnits": 272,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 6,
+        "rpcMethod:56:eth_getLogs": 2,
+        "rpcMethod:56:eth_getCode": 2,
+        "rpcMethod:56:eth_call": 2,
+        "rpcMethod:56:eth_getBlockByNumber": 2,
+        "requests:rpc:CT_501": 2,
+        "requestErrors:rpc:56": 1,
+        "requestErrors:binance_alpha": 3
+      }
+    },
+    {
+      "file": "worker-2026-11-22T17-34-57.279Z.json",
+      "startedAt": "2026-11-22T17:34:57.279Z",
+      "measuredAt": "2026-11-22T17:41:33.087Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 79,
+      "elapsedSeconds": 395.808,
+      "activeSampleSeconds": 395.795,
+      "maxSampleGapSeconds": 6.539999999999999,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 111.8279766613924,
+      "peakSampleRssMiB": 132.41015625,
+      "linuxHighWaterMiB": 135.34375,
+      "peakHeapUsedMiB": 34.81719207763672,
+      "meanActiveSampleCpuPercent": 0.5983349966523074,
+      "peakIntervalCpuPercent": 8.196024464831805,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.005,
+          "meanCpuPercent": 3.210456514495168,
+          "peakRssMiB": 123.7890625
+        },
+        "registry": {
+          "activeSeconds": 21.540999999999997,
+          "meanCpuPercent": 4.190492549092429,
+          "peakRssMiB": 131.375
+        },
+        "idle": {
+          "activeSeconds": 25.00800000000001,
+          "meanCpuPercent": 0.24039107485604594,
+          "peakRssMiB": 131.62890625
+        },
+        "operations": {
+          "activeSeconds": 21.366,
+          "meanCpuPercent": 0.23682486193016944,
+          "peakRssMiB": 131.375
+        },
+        "market": {
+          "activeSeconds": 20.00399999999999,
+          "meanCpuPercent": 0.2516896620675866,
+          "peakRssMiB": 131.609375
+        },
+        "scan": {
+          "activeSeconds": 292.871,
+          "meanCpuPercent": 0.2809127568110192,
+          "peakRssMiB": 132.41015625
+        }
+      },
+      "tcpReadBytes": 353325,
+      "tcpWrittenBytes": 4327873,
+      "logBytes": 1245,
+      "peakTcpSockets": 7,
+      "counters": {
+        "postgresQueries": 184,
+        "requests:binance_alpha": 2,
+        "httpRequestBodyBytes": 59,
+        "httpResponseBodyBytes": 860545,
+        "rpcMethod:56:eth_chainId": 1,
+        "requestErrors:binance_alpha": 1,
+        "requests:rpc:56": 1,
+        "alchemyRpcRequests": 1,
+        "alchemyEstimatedComputeUnits": 0,
+        "alchemyUnpricedMethods": 0
+      }
+    },
+    {
+      "file": "worker-2026-11-22T17-40-39.855Z.json",
+      "startedAt": "2026-11-22T17:40:39.855Z",
+      "measuredAt": "2026-11-22T17:52:57.297Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 143,
+      "elapsedSeconds": 737.442,
+      "activeSampleSeconds": 737.415,
+      "maxSampleGapSeconds": 6.9640000000000555,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 138.4634506118881,
+      "peakSampleRssMiB": 157.42578125,
+      "linuxHighWaterMiB": 157.42578125,
+      "peakHeapUsedMiB": 43.32635498046875,
+      "meanActiveSampleCpuPercent": 1.437268566546653,
+      "peakIntervalCpuPercent": 11.924,
+      "phases": {
+        "startup": {
+          "activeSeconds": 124.15,
+          "meanCpuPercent": 0.46504712041884816,
+          "peakRssMiB": 113.80078125
+        },
+        "operations": {
+          "activeSeconds": 20.000999999999962,
+          "meanCpuPercent": 0.36015199240038065,
+          "peakRssMiB": 147.76171875
+        },
+        "idle": {
+          "activeSeconds": 20.61200000000005,
+          "meanCpuPercent": 0.7448039976712576,
+          "peakRssMiB": 150.1796875
+        },
+        "registry": {
+          "activeSeconds": 57.795000000000044,
+          "meanCpuPercent": 3.1491340081321892,
+          "peakRssMiB": 157.42578125
+        },
+        "scan": {
+          "activeSeconds": 411.676,
+          "meanCpuPercent": 1.5750539259028944,
+          "peakRssMiB": 153
+        },
+        "market": {
+          "activeSeconds": 71.59199999999998,
+          "meanCpuPercent": 1.7103028271315233,
+          "peakRssMiB": 153.0078125
+        },
+        "persistence": {
+          "activeSeconds": 31.589,
+          "meanCpuPercent": 0.845623476526639,
+          "peakRssMiB": 147.76171875
+        }
+      },
+      "tcpReadBytes": 1963281,
+      "tcpWrittenBytes": 19270891,
+      "logBytes": 29262,
+      "peakTcpSockets": 6,
+      "counters": {
+        "postgresQueries": 2907,
+        "requests:binance_alpha": 208,
+        "httpRequestBodyBytes": 11081,
+        "httpResponseBodyBytes": 4942772,
+        "rpcMethod:56:eth_chainId": 10,
+        "requests:rpc:56": 77,
+        "alchemyRpcRequests": 101,
+        "alchemyEstimatedComputeUnits": 2228,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:56:eth_blockNumber": 10,
+        "rpcMethod:56:eth_getLogs": 10,
+        "rpcMethod:56:eth_getCode": 10,
+        "rpcMethod:56:eth_call": 10,
+        "rpcMethod:56:eth_getBlockByNumber": 27,
+        "rpcMethod:1:eth_chainId": 2,
+        "requests:rpc:1": 16,
+        "rpcMethod:1:eth_blockNumber": 2,
+        "rpcMethod:1:eth_getBlockByNumber": 6,
+        "rpcMethod:1:eth_getLogs": 2,
+        "rpcMethod:1:eth_getCode": 2,
+        "rpcMethod:1:eth_call": 2,
+        "rpcMethod:8453:eth_chainId": 1,
+        "requests:rpc:8453": 8,
+        "rpcMethod:8453:eth_blockNumber": 1,
+        "rpcMethod:8453:eth_getBlockByNumber": 3,
+        "rpcMethod:8453:eth_getLogs": 1,
+        "rpcMethod:8453:eth_getCode": 1,
+        "rpcMethod:8453:eth_call": 1,
+        "requestErrors:binance_alpha": 3
+      }
+    },
+    {
+      "file": "worker-2026-11-22T17-53-40.912Z.json",
+      "startedAt": "2026-11-22T17:53:40.912Z",
+      "measuredAt": "2026-11-22T17:54:16.169Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 8,
+      "elapsedSeconds": 35.257,
+      "activeSampleSeconds": 35.256,
+      "maxSampleGapSeconds": 6.6789999999999985,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 106.7294921875,
+      "peakSampleRssMiB": 119.46484375,
+      "linuxHighWaterMiB": 120.46484375,
+      "peakHeapUsedMiB": 27.055938720703125,
+      "meanActiveSampleCpuPercent": 1.943660653505786,
+      "peakIntervalCpuPercent": 4.529074185162968,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.003,
+          "meanCpuPercent": 2.390481903619276,
+          "peakRssMiB": 119.46484375
+        },
+        "scan": {
+          "activeSeconds": 20.253,
+          "meanCpuPercent": 1.612664790401422,
+          "peakRssMiB": 105.234375
+        }
+      },
+      "tcpReadBytes": 58007,
+      "tcpWrittenBytes": 68082,
+      "logBytes": 298,
+      "peakTcpSockets": 3,
+      "counters": {
+        "postgresQueries": 46,
+        "requests:rpc:CT_501": 2,
+        "alchemyRpcRequests": 2,
+        "alchemyEstimatedComputeUnits": 40,
+        "alchemyUnpricedMethods": 0,
+        "httpRequestBodyBytes": 202,
+        "httpResponseBodyBytes": 3344
+      }
+    },
+    {
+      "file": "worker-2026-11-22T17-55-54.229Z.json",
+      "startedAt": "2026-11-22T17:55:54.229Z",
+      "measuredAt": "2026-11-22T18:00:47.683Z",
+      "arch": "x64",
+      "node": "v22.23.1",
+      "samples": 57,
+      "elapsedSeconds": 293.454,
+      "activeSampleSeconds": 293.45300000000003,
+      "maxSampleGapSeconds": 12.824999999999989,
+      "suspendedOrStalled": false,
+      "meanSampleRssMiB": 99.5718201754386,
+      "peakSampleRssMiB": 103.4921875,
+      "linuxHighWaterMiB": 106.1875,
+      "peakHeapUsedMiB": 28.82701873779297,
+      "meanActiveSampleCpuPercent": 0.565815309436264,
+      "peakIntervalCpuPercent": 6.2016,
+      "phases": {
+        "startup": {
+          "activeSeconds": 15.002,
+          "meanCpuPercent": 2.566071190507932,
+          "peakRssMiB": 103.4921875
+        },
+        "scan": {
+          "activeSeconds": 278.451,
+          "meanCpuPercent": 0.45804827420264244,
+          "peakRssMiB": 101.12109375
+        }
+      },
+      "tcpReadBytes": 140235,
+      "tcpWrittenBytes": 272060,
+      "logBytes": 261,
+      "peakTcpSockets": 5,
+      "counters": {
+        "postgresQueries": 310,
+        "requests:rpc:CT_501": 24,
+        "alchemyRpcRequests": 24,
+        "alchemyEstimatedComputeUnits": 660,
+        "alchemyUnpricedMethods": 0,
+        "httpRequestBodyBytes": 4057,
+        "httpResponseBodyBytes": 45624
       }
     }
   ]

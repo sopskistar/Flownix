@@ -1,0 +1,340 @@
+{
+  "snapshotAt": "2026-11-22T17:56:05.444Z",
+  "since": "2026-11-22T17:25:00.000Z",
+  "counts": {
+    "identities": 687,
+    "alpha_ids": 687,
+    "online_alpha_ids": 378,
+    "online": 378,
+    "offline": 309,
+    "unknown": 0,
+    "online_with_active_pair": 316,
+    "registry_metadata_prices": 378,
+    "symbols": 1469,
+    "quoted_tokens": 318,
+    "candles": 65068,
+    "transfers": 318,
+    "swap_interpretations": 18,
+    "database_bytes": "136880128"
+  },
+  "activeMarkets": {
+    "paired": 316,
+    "collected_pairs": 198,
+    "fresh_pairs": 45,
+    "no_pair": 62
+  },
+  "baselineCoverage": [
+    {
+      "chain_id": "1",
+      "online": 19,
+      "ever_observed": 18,
+      "observed_since": 2,
+      "latest_evm_scan": "2026-11-22T17:46:16.830Z",
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "146",
+      "online": 4,
+      "ever_observed": 0,
+      "observed_since": 0,
+      "latest_evm_scan": null,
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "42161",
+      "online": 2,
+      "ever_observed": 2,
+      "observed_since": 0,
+      "latest_evm_scan": "2026-11-21T16:00:10.091Z",
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "4663",
+      "online": 5,
+      "ever_observed": 0,
+      "observed_since": 0,
+      "latest_evm_scan": null,
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "56",
+      "online": 288,
+      "ever_observed": 280,
+      "observed_since": 10,
+      "latest_evm_scan": "2026-11-22T17:51:58.635Z",
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "8453",
+      "online": 26,
+      "ever_observed": 26,
+      "observed_since": 1,
+      "latest_evm_scan": "2026-11-22T17:50:27.068Z",
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "CT_195",
+      "online": 3,
+      "ever_observed": 0,
+      "observed_since": 0,
+      "latest_evm_scan": null,
+      "latest_solana_sample": null
+    },
+    {
+      "chain_id": "CT_501",
+      "online": 22,
+      "ever_observed": 20,
+      "observed_since": 0,
+      "latest_evm_scan": null,
+      "latest_solana_sample": "2026-11-21T17:44:43.738Z"
+    },
+    {
+      "chain_id": "CT_784",
+      "online": 9,
+      "ever_observed": 0,
+      "observed_since": 0,
+      "latest_evm_scan": null,
+      "latest_solana_sample": null
+    }
+  ],
+  "scanQueue": {
+    "supported_online": 357,
+    "scheduled": 357,
+    "due": 344,
+    "retrying": 10,
+    "unsupported": 21,
+    "intensive": 0
+  },
+  "recentScans": [
+    {
+      "chain_id": "1",
+      "completed_windows": 2,
+      "observed_tokens": 2,
+      "transfer_events": 0
+    },
+    {
+      "chain_id": "56",
+      "completed_windows": 10,
+      "observed_tokens": 10,
+      "transfer_events": 0
+    },
+    {
+      "chain_id": "8453",
+      "completed_windows": 1,
+      "observed_tokens": 1,
+      "transfer_events": 0
+    }
+  ],
+  "evidence": {
+    "new_canonical_transfers": 0,
+    "new_solana_observations": 0,
+    "canonical_receipts": 6,
+    "evm_balance_samples": 33,
+    "new_signals": 0
+  },
+  "solanaRecovery": {
+    "account_checkpoints": 417,
+    "tokens": 22,
+    "account_gaps": 417,
+    "checked_since": 0,
+    "latest": "2026-11-21T17:48:54.893Z"
+  },
+  "retryCounts": [
+    {
+      "chain_id": "56",
+      "last_error": "PROVIDER_DEFERRED",
+      "jobs": 7
+    },
+    {
+      "chain_id": "56",
+      "last_error": "STALE_MEMBERSHIP",
+      "jobs": 1
+    },
+    {
+      "chain_id": "CT_501",
+      "last_error": "CONNECT_TIMEOUT",
+      "jobs": 1
+    },
+    {
+      "chain_id": "CT_501",
+      "last_error": "PROVIDER_DEFERRED",
+      "jobs": 1
+    }
+  ],
+  "usageSnapshotAt": "2026-11-22T17:56:10.870Z",
+  "usage": [
+    {
+      "scope": "alchemy:day",
+      "period_start": "2026-11-22T00:00:00.000Z",
+      "used": "2560",
+      "updated_at": "2026-11-22T17:56:08.923Z"
+    },
+    {
+      "scope": "requests:binance_alpha",
+      "period_start": "2026-11-22T00:00:00.000Z",
+      "used": "218",
+      "updated_at": "2026-11-22T17:52:53.233Z"
+    },
+    {
+      "scope": "requests:rpc:1",
+      "period_start": "2026-11-22T00:00:00.000Z",
+      "used": "16",
+      "updated_at": "2026-11-22T17:46:12.242Z"
+    },
+    {
+      "scope": "requests:rpc:56",
+      "period_start": "2026-11-22T00:00:00.000Z",
+      "used": "93",
+      "updated_at": "2026-11-22T17:51:56.023Z"
+    },
+    {
+      "scope": "requests:rpc:8453",
+      "period_start": "2026-11-22T00:00:00.000Z",
+      "used": "8",
+      "updated_at": "2026-11-22T17:50:24.893Z"
+    },
+    {
+      "scope": "requests:rpc:CT_501",
+      "period_start": "2026-11-22T00:00:00.000Z",
+      "used": "5",
+      "updated_at": "2026-11-22T17:56:08.923Z"
+    },
+    {
+      "scope": "alchemy:month",
+      "period_start": "2026-11-01T00:00:00.000Z",
+      "used": "2560",
+      "updated_at": "2026-11-22T17:56:08.923Z"
+    }
+  ],
+  "alerts": [
+    {
+      "code": "evm_stalled",
+      "severity": "critical",
+      "resolved_at": "2026-11-22T17:48:46.214Z"
+    },
+    {
+      "code": "leases_expired",
+      "severity": "warning",
+      "resolved_at": null
+    },
+    {
+      "code": "market_stale",
+      "severity": "warning",
+      "resolved_at": null
+    },
+    {
+      "code": "scans_overdue",
+      "severity": "warning",
+      "resolved_at": null
+    },
+    {
+      "code": "solana_stalled",
+      "severity": "warning",
+      "resolved_at": null
+    }
+  ],
+  "solanaProviderProbe": {
+    "at": "2026-11-22T18:18:02.436Z",
+    "scope": "Read-only provider diagnostic. No database writes, no balance history or market signals inferred.",
+    "tokens": [
+      {
+        "symbol": "TROLL",
+        "currentOfficialIdentity": true,
+        "steps": [
+          {
+            "method": "getTokenLargestAccounts",
+            "ok": true,
+            "slot": 472638535,
+            "accounts": 20
+          },
+          {
+            "method": "getSignaturesForAddress",
+            "ok": true,
+            "signatures": 1
+          },
+          {
+            "method": "getTransaction",
+            "maxSupportedTransactionVersion": 1,
+            "ok": true,
+            "metadataAvailable": true
+          }
+        ]
+      },
+      {
+        "symbol": "MEW",
+        "currentOfficialIdentity": true,
+        "steps": [
+          {
+            "method": "getTokenLargestAccounts",
+            "ok": true,
+            "slot": 472638556,
+            "accounts": 20
+          },
+          {
+            "method": "getSignaturesForAddress",
+            "ok": true,
+            "signatures": 1
+          },
+          {
+            "method": "getTransaction",
+            "maxSupportedTransactionVersion": 1,
+            "ok": true,
+            "metadataAvailable": true
+          }
+        ]
+      }
+    ],
+    "registryHash": "456de8a2176149600ec3cbcfaa34c493ffddaf13431a9a29fd95128d57f91ab6",
+    "metrics": {
+      "requests:binance_alpha": 1,
+      "httpRequestBodyBytes": 1070,
+      "httpResponseBodyBytes": 900276,
+      "requests:rpc:CT_501": 6,
+      "alchemyRpcRequests": 6,
+      "alchemyEstimatedComputeUnits": 200,
+      "alchemyUnpricedMethods": 0
+    }
+  },
+  "limitations": [
+    "Main snapshot precedes final MEW diagnostic. A later HTTPS SQL read confirmed 19 new Solana observations, six updated account cursors and zero collector locks after native reads timed out.",
+    "The main run completed 13 EVM windows; observed zero new transfer events or signals is a valid empty-window result.",
+    "Provider probes did not ingest or prove complete Solana balance history.",
+    "Native worker diagnostics encountered connection stalls; the liveness watchdog exited with code 1.",
+    "No continuously running paid worker, hosting purchase, API upgrade or billing change."
+  ],
+  "finalReadOnlyNeonConfirmation": {
+    "at": "2026-11-22T18:29:47.185113+00:00",
+    "collectorLocks": 0,
+    "heartbeat": {
+      "at": "2026-11-22T17:58:15.067Z",
+      "job": "scan",
+      "mode": "one-shot",
+      "owner": "44fb6323-9b2b-432f-a001-983e6f8827b3",
+      "release": null,
+      "platform": "local",
+      "rssBytes": 105492480
+    },
+    "newSolanaObservations": 19,
+    "recentSolanaCursors": 6,
+    "databaseBytes": 136986624,
+    "targetedJobs": [
+      {
+        "key": "scan:4fd4c74c53b5b985f360857f71423815",
+        "status": "running",
+        "last_error": "PROVIDER_DEFERRED",
+        "attempts": 1,
+        "run_after": "2026-11-22T17:28:10.012119+00:00",
+        "lease_until": "2026-11-22T18:00:15.368672+00:00"
+      },
+      {
+        "key": "scan:319323e6324fac07203f609b55e8bb4a",
+        "status": "retry",
+        "last_error": "CONNECT_TIMEOUT",
+        "attempts": 2,
+        "run_after": "2026-11-22T17:55:13.145787+00:00",
+        "lease_until": null
+      }
+    ],
+    "newRegistryReferenceRows": 0
+  }
+}

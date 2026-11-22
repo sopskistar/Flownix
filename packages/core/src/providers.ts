@@ -3,6 +3,7 @@ import { depthSchema } from "./quotes";
 import { hashResponse, contractIdentity, tokenKey } from "./identity";
 import { providerFetch, networkErrorCode } from "./network";
 import { countMetric, estimateAlchemyComputeUnits } from "./telemetry";
+import { requestPolicy } from "./request-policy";
 export type Observation<T> = {
   data: T;
   source: string;
@@ -18,12 +19,14 @@ export type RequestAudit = {
   ok: boolean;
   error: string | null;
   latencyMs: number;
+  retryAfterSeconds?: number;
 };
 export class ProviderError extends Error {
   constructor(
     public code: string,
     public status: number | null = null,
     cause?: unknown,
+    public retryAt?: Date,
   ) {
     super(code, { cause });
   }
@@ -78,6 +81,7 @@ export class HttpClient {
   private async record(audit: RequestAudit) {
     try {
       await this.audit(audit);
+      await requestPolicy()?.complete(audit);
     } catch (cause) {
       throw new ProviderError("AUDIT_PERSISTENCE_FAILED", audit.status, cause);
     }
@@ -102,12 +106,18 @@ export class HttpClient {
       const budget = Number(process.env.PROVIDER_PROCESS_REQUEST_BUDGET ?? 0);
       if (budget > 0 && processRequestCount >= budget)
         throw new ProviderError("PROCESS_REQUEST_BUDGET_EXHAUSTED");
-      processRequestCount++;
-      countMetric(`requests:${this.provider}`);
       const alchemyUsage = estimateAlchemyComputeUnits(
         url,
         typeof init.body === "string" ? init.body : undefined,
       );
+      await requestPolicy()?.reserve({
+        provider: this.provider,
+        alchemyRequests: alchemyUsage.requests,
+        alchemyUnits: alchemyUsage.units,
+        unpriced: alchemyUsage.unpriced,
+      });
+      processRequestCount++;
+      countMetric(`requests:${this.provider}`);
       if (alchemyUsage.requests) {
         countMetric("alchemyRpcRequests", alchemyUsage.requests);
         countMetric("alchemyEstimatedComputeUnits", alchemyUsage.units);
@@ -119,6 +129,7 @@ export class HttpClient {
       );
       const start = Date.now();
       let status: number | null = null;
+      let retryAfterSeconds: number | undefined;
       try {
         const r = await this.fetcher(url, {
           ...init,
@@ -128,7 +139,16 @@ export class HttpClient {
         });
         status = r.status;
         if (!r.ok) {
-          const retry = Number(r.headers.get("retry-after"));
+          const header = r.headers.get("retry-after");
+          const retry =
+            header && /^\d+$/.test(header)
+              ? Number(header)
+              : header
+                ? Math.max(0, (Date.parse(header) - Date.now()) / 1000)
+                : 0;
+          retryAfterSeconds = Number.isFinite(retry)
+            ? Math.min(86400, retry)
+            : undefined;
           if (r.status === 429 && retry > 0)
             this.nextAt = Math.max(
               this.nextAt,
@@ -150,6 +170,7 @@ export class HttpClient {
           ok: true,
           error: null,
           latencyMs: Date.now() - start,
+          retryAfterSeconds,
         });
         return {
           data,
@@ -182,9 +203,12 @@ export class HttpClient {
           ok: false,
           error: code,
           latencyMs: Date.now() - start,
+          retryAfterSeconds,
         });
         if (
           attempt === 2 ||
+          code === "COLLECTION_STOPPED" ||
+          /^(SOLANA_RPC_|RPC_)/.test(code) ||
           (status !== null && status < 500 && status !== 429)
         )
           throw new ProviderError(code, status);

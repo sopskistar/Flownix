@@ -6,6 +6,7 @@ const fixture = vi.hoisted(() => ({
     ReturnType<typeof import("@flownix/db").sqlClient> | undefined,
   exchange: vi.fn(),
   ticker: vi.fn(),
+  registry: vi.fn(),
 }));
 vi.mock("@flownix/core", async (original) => {
   const core = await original<typeof import("@flownix/core")>();
@@ -15,6 +16,7 @@ vi.mock("@flownix/core", async (original) => {
     AlphaProvider: class {
       exchange = fixture.exchange;
       ticker = fixture.ticker;
+      registry = fixture.registry;
     },
   };
 });
@@ -27,14 +29,96 @@ vi.mock("@flownix/db", async (original) => {
   return {
     ...db,
     sqlClient: scoped,
-    saveSource: async () => {},
+    saveSource: async (
+      provider: string,
+      o: { hash: string; source: string; observedAt: string; raw: string },
+    ) => {
+      await scoped()`INSERT INTO source_responses(hash,provider,source,observed_at,payload,raw_text) VALUES(${o.hash},${provider},${o.source},${o.observedAt},${db.jsonParam(JSON.parse(o.raw))}::jsonb,${o.raw}) ON CONFLICT DO NOTHING`;
+    },
     setSetting: async (key: string, value: unknown) => {
       await scoped()`INSERT INTO settings(key,value) VALUES(${key},${db.jsonParam(value)}::jsonb) ON CONFLICT(key) DO UPDATE SET value=excluded.value`;
     },
   };
 });
-import { marketSync } from "../src/ingest";
+import { marketSync, registrySync } from "../src/ingest";
 import { hashResponse } from "@flownix/core";
+
+it.skipIf(!process.env.DATABASE_URL)(
+  "retains the complete registry source once while sampling every current identity including memes",
+  async () => {
+    const db =
+      await vi.importActual<typeof import("@flownix/db")>("@flownix/db");
+    const sql = db.sqlClient();
+    const data = [false, true].map((offline, i) => ({
+      tokenId: String(i),
+      alphaId: `ALPHA_${i + 100}`,
+      chainId: "56",
+      chainName: "BSC",
+      contractAddress: "0x" + String(i + 1).repeat(40),
+      symbol: offline ? "OLD" : "MEME",
+      name: "Rollback-only fixture",
+      offline,
+      price: "1",
+    }));
+    const raw = JSON.stringify({ code: "000000", data });
+    const hash = hashResponse(raw);
+    fixture.registry.mockResolvedValue({
+      data,
+      raw,
+      hash,
+      source: "fixture-only",
+      observedAt: new Date().toISOString(),
+      serverDate: null,
+    });
+    let verified = false;
+    try {
+      await sql.begin(async (tx) => {
+        const schema = "registry_" + randomUUID().replaceAll("-", "");
+        await tx.unsafe(`CREATE SCHEMA ${schema}`);
+        await tx.unsafe(`SET LOCAL search_path TO ${schema}`);
+        for (const name of (await readdir("packages/db/migrations"))
+          .filter((n) => n.endsWith(".sql"))
+          .sort())
+          await tx.unsafe(
+            await readFile(`packages/db/migrations/${name}`, "utf8"),
+          );
+        fixture.client = Object.assign(tx, {
+          begin: tx.savepoint.bind(tx),
+        }) as unknown as typeof sql;
+        await registrySync();
+        expect(
+          (await tx`SELECT count(*)::int AS n FROM alpha_tokens`)[0].n,
+        ).toBe(2);
+        expect(
+          (
+            await tx`SELECT t.symbol FROM market_snapshots m JOIN alpha_tokens t ON t.id=m.token_id`
+          )[0].symbol,
+        ).toBe("MEME");
+        const membership = (
+          await tx`SELECT m.token_count,m.raw,s.raw_text FROM alpha_membership_snapshots m JOIN source_responses s ON s.hash=m.response_hash`
+        )[0];
+        expect(membership.token_count).toBe(2);
+        expect(membership.raw).toEqual({
+          format: "source_reference/1",
+          registryResponseHash: hash,
+        });
+        expect(membership.raw_text).toBe(raw);
+        verified = true;
+        throw Error("ROLLBACK_REGISTRY_FIXTURE");
+      });
+    } catch (error) {
+      if (
+        !(error instanceof Error) ||
+        error.message !== "ROLLBACK_REGISTRY_FIXTURE"
+      )
+        throw error;
+    } finally {
+      fixture.client = undefined;
+      await db.closeDb();
+    }
+    expect(verified).toBe(true);
+  },
+);
 
 describe.skipIf(!process.env.DATABASE_URL)(
   "Market progression — isolated PostgreSQL rollback",

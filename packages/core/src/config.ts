@@ -32,7 +32,7 @@ export const envSchema = z.object({
   SCAN_CONFIRMATIONS: integer(20, 12, 1000),
   // Per-cycle batch size only. The persistent cursor rotates through the entire universe.
   MARKET_TOKEN_LIMIT: integer(100, 1, 1000),
-  BASELINE_SCAN_INTERVAL_SECONDS: integer(3600, 60, 86400),
+  BASELINE_SCAN_INTERVAL_SECONDS: integer(21600, 60, 86400),
   SOLANA_BASELINE_INTERVAL_SECONDS: integer(21600, 3600, 604800),
   PASSIVE_SWAPS_ENABLED: z
     .enum(["true", "false"])
@@ -42,8 +42,14 @@ export const envSchema = z.object({
   DATABASE_STORAGE_LIMIT_MB: integer(750, 50, 100000),
   ALPHA_REQUESTS_PER_MINUTE: integer(30, 1, 120),
   PROVIDER_PROCESS_REQUEST_BUDGET: integer(0, 0, 1000000),
+  ALPHA_DAILY_REQUEST_LIMIT: integer(40000, 1, 1000000),
+  RPC_DAILY_REQUEST_LIMIT: integer(50000, 1, 1000000),
+  ALCHEMY_DAILY_CU_LIMIT: integer(900000, 1, 1000000000),
+  ALCHEMY_MONTHLY_CU_LIMIT: integer(27000000, 1, 1000000000),
+  ALCHEMY_MONTHLY_UNTRACKED_CU: integer(0, 0, 1000000000),
   WORKER_RUN_SECONDS: integer(0, 0, 86400),
   WORKER_JOB_TIMEOUT_SECONDS: integer(900, 60, 7200),
+  WORKER_STARTUP_TIMEOUT_SECONDS: integer(180, 1, 600),
   WORKER_MARKET_OVERLAP: z
     .enum(["true", "false"])
     .default("true")

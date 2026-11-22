@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import type { Observation, RequestAudit } from "@flownix/core";
 import { providerLookup, countMetric } from "@flownix/core";
+export * from "./worker-operations";
 export type DbRows = postgres.Row[];
 let client: ReturnType<typeof postgres> | undefined;
 let ormClient: ReturnType<typeof postgres> | undefined;
@@ -116,17 +117,9 @@ export async function closeDb() {
   }
 }
 export async function auditRequest(a: RequestAudit) {
-  await database()
-    .insert(schema.providerRuns)
-    .values({
-      provider: a.provider,
-      startedAt: new Date(a.at),
-      ok: a.ok,
-      httpStatus: a.status,
-      error: a.error,
-      latencyMs: a.latencyMs,
-      costUsd: "0",
-    });
+  // Use the collector's existing SQL pool. Opening a separate ORM connection
+  // for each request lane adds connection pressure and cannot improve durability.
+  await sqlClient()`INSERT INTO provider_runs(provider,started_at,ok,http_status,error,latency_ms,cost_usd) VALUES(${a.provider},${new Date(a.at)},${a.ok},${a.status},${a.error},${a.latencyMs},'0')`;
 }
 export async function saveSource<T>(provider: string, o: Observation<T>) {
   await sqlClient()`INSERT INTO source_responses(hash,provider,source,observed_at,server_date,payload,raw_text) VALUES(${o.hash},${provider},${o.source},${o.observedAt},${o.serverDate},${jsonParam(JSON.parse(o.raw))}::jsonb,${o.raw}) ON CONFLICT(hash) DO NOTHING`;
