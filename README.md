@@ -71,3 +71,15 @@ Transfers do not prove buys or accumulation. No verified DEX swap adapter, compl
 See [architecture](docs/ARCHITECTURE.md), [sources](docs/SOURCES.md), [coverage](docs/DATA_COVERAGE.md), [signals](docs/SIGNALS.md), [backtest policy](docs/BACKTEST.md), [operations](docs/OPERATIONS.md), [testing](docs/TESTING.md), [JCT/BTW case](docs/CASE_STUDY_JCT_BTW.md), and [brand](docs/BRAND.md).
 
 Delivery details and exact verification limits: [build report](docs/BUILD_REPORT.md). pnpm 11 reserves the bare `doctor` command; use `pnpm run doctor` for the Flownix diagnostic.
+
+---
+
+## Engineering portfolio: cloud, backend and reliability
+
+**Deployed architecture:** GitHub repository and GitHub Actions validation → Vercel-hosted Next.js web application → Neon PostgreSQL; separately runnable TypeScript worker with durable jobs, leased execution, retry/backoff, heartbeat and RPC/market provider integrations. **The production worker is not yet running continuously**; container and portable worker hosting instructions are development/operations material, not evidence of a live 24/7 collector.
+
+**Tools used:** TypeScript, Next.js, pnpm, PostgreSQL, Drizzle, Neon, Vercel, GitHub OAuth, GitHub Actions, Docker Compose (local environment), Vitest, Playwright, ESLint, RPC/HTTP APIs and DNS/custom-domain configuration.
+
+**Engineering evidence:** [Architecture](docs/ARCHITECTURE.md) · [Deployments](docs/DEPLOYMENT.md) · [Worker deployment](docs/WORKER_DEPLOYMENT.md) · [Operations](docs/OPERATIONS.md) · [Data coverage and current limitations](docs/DATA_COVERAGE.md) · [CI workflow](.github/workflows/ci.yml).
+
+**Operational constraints:** provider rate limits and historical replay limitations are documented; no claim is made that long-term signals or continuous worker operations have passed production acceptance. Terraform and Kubernetes are not claimed as implemented.
