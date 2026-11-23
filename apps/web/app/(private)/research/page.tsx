@@ -237,7 +237,7 @@ export default async function Research() {
       <section className="workbench">
         <div className="section-top">
           <h2>Incentive-driven volume research</h2>
-          <span>Adapter unavailable</span>
+          <span>Intent classification unavailable</span>
         </div>
         <div className="panel-content">
           <p>
@@ -253,9 +253,10 @@ export default async function Research() {
             documented research reference, not proof about other tokens.
           </p>
           <p>
-            Flownix does not currently decode verified swaps. Farming or
-            wash-volume classification remains unavailable; turnover alone is
-            not called accumulation or manipulation. Public posts by
+            Flownix decodes supported-pool swaps when receipts, pool identity
+            and token direction are verified. Farming or wash-like intent
+            remains unverified; turnover alone is not called accumulation or
+            manipulation. Public posts by
             @Eveningtraders and @JuliusElum can be added as journal leads with
             original URLs; no posts were scraped or treated as facts.
           </p>
