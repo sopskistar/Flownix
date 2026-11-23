@@ -32,6 +32,7 @@
     "research:context": "node --env-file=.env.worker.local --import tsx apps/worker/src/context-refresh.ts",
     "research:derivatives": "node --env-file=.env.worker.local --import tsx apps/worker/src/context-refresh.ts --derivatives",
     "research:listings": "node --env-file=.env.worker.local --import tsx scripts/listing-research.ts",
+    "research:episodes": "node --env-file=.env.worker.local --import tsx scripts/historical-research.ts",
     "research:summary": "node --env-file=.env.worker.local --import tsx scripts/research-summary.ts",
     "research:futures-associate": "node --env-file=.env.worker.local --import tsx scripts/futures-associate.ts",
     "db:migrate:production": "tsx --env-file=.env.worker.local packages/db/src/migrate.ts",

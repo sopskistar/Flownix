@@ -39,8 +39,10 @@ const alpha = new AlphaProvider(
 );
 const decimal = (v: unknown) =>
   typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v) ? v : null;
-export async function registrySync() {
-  const o = await alpha.registry();
+export async function registrySync(
+  provided?: Awaited<ReturnType<AlphaProvider["registry"]>>,
+) {
+  const o = provided ?? (await alpha.registry());
   const tokens = normalizeRegistry(o.data);
   const sql = sqlClient();
   await saveSource("binance_alpha", o);

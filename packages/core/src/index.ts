@@ -19,5 +19,6 @@ export * from "./market-context";
 export * from "./research-intake";
 export * from "./scan-planning";
 export * from "./listing-study";
+export * from "./historical-episodes";
 export * from "./solana";
 export * from "./token-visual";

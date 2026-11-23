@@ -1,0 +1,190 @@
+{
+  "version": "historical-cohort/1",
+  "windowStart": "2025-08-01T00:00:00Z",
+  "windowEnd": "2026-11-23T00:00:00Z",
+  "controlAnchor": "2026-11-17T00:00:00Z",
+  "controlOutcomeEnd": "2026-11-23T00:00:00Z",
+  "chronologicalCutoff": "2026-11-01T00:00:00Z",
+  "claims": [
+    {
+      "symbol": "AGT",
+      "chain": "56",
+      "suppliedContract": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {},
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "AKE",
+      "chain": "56",
+      "suppliedContract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {
+        "reportedLow": "0.000174",
+        "reportedHigh": "0.1467"
+      },
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "ARIA",
+      "chain": "56",
+      "suppliedContract": "0x5d3a12c42e5372b2cc3264ab3cdcf660a1555238",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {},
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "BLESS",
+      "chain": "56",
+      "suppliedContract": "0x7c8217517ed4711fe2deccdfeffe8d906b9ae11f",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {},
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "BTW",
+      "chain": "56",
+      "suppliedContract": "0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {
+        "reportedLow": "0.0077",
+        "reportedHigh": "2.75"
+      },
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "EVAA",
+      "chain": "56",
+      "suppliedContract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {},
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "IDOL",
+      "chain": "56",
+      "suppliedContract": "0x3b4de3c7855c03bb9f50ea252cd2c9fa1125ab07",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {},
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "LAB",
+      "chain": "56",
+      "suppliedContract": "0x7ec43cf65f1663f820427c62a5780b8f2e25593a",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {
+        "reportedHigh": "27.22"
+      },
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "PIEVERSE",
+      "chain": "56",
+      "suppliedContract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {
+        "reportedLowRange": ["0.11", "0.13"],
+        "reportedHigh": "5.24"
+      },
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    },
+    {
+      "symbol": "Q",
+      "chain": "56",
+      "suppliedContract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+      "status": "unverified_user_relayed_grok_claim",
+      "originalSourceUrl": null,
+      "publisher": "Grok research relayed by owner",
+      "claimedPrices": {},
+      "notes": "Never a predictive label; exact identity must independently match the official registry."
+    }
+  ],
+  "ambiguousLeads": [
+    {
+      "symbol": "NES",
+      "suppliedContract": null,
+      "reason": "Two official historical Nesa contracts/Alpha IDs; migration relation unverified; do not pick by ticker."
+    }
+  ],
+  "sources": [
+    {
+      "symbol": "LAB",
+      "kind": "forensic_claim",
+      "sourceUrl": "https://x.com/zachxbt/status/2054898749923860819",
+      "author": "ZachXBT",
+      "claimedPublishedAt": null,
+      "eventAt": null,
+      "status": "manual_lead",
+      "body": "Original investigation URL linked by The Block on 2026-05-14. Direct X retrieval returned 403. Claims of >95% supply control, 226M deposits and 100M withdrawals are unverified allegations; no independently verified beneficial ownership or full transaction reconciliation."
+    },
+    {
+      "symbol": "LAB",
+      "kind": "forensic_claim",
+      "sourceUrl": "https://www.bitget.com/news/detail/12560605412219",
+      "author": "Odaily syndicated by Bitget News",
+      "claimedPublishedAt": null,
+      "eventAt": null,
+      "status": "verified_source",
+      "body": "Secondary report repeats 226M LAB deposits during March\u2013April and 100M withdrawals. Source publication timezone not independently verified; timestamp remains claimed. No transaction hashes/full addresses supplied in this article; exchange custody/operational routing alternatives remain. Verified_source means the publication was read, not that allegations were proven. Correction: the displayed 2026-05-14 12:21 has an unverified timezone; no UTC publication timestamp is asserted."
+    },
+    {
+      "symbol": "BLESS",
+      "kind": "alpha_admission",
+      "sourceUrl": "https://www.binance.com/en/support/announcement/detail/0927ee2f460a4041a5e6a871a4ad9d4b",
+      "author": "Binance",
+      "claimedPublishedAt": "2025-09-21T03:00:00Z",
+      "eventAt": "2025-09-23T09:00:00Z",
+      "status": "verified_source",
+      "body": "Official announcement schedules Alpha 2025-09-23 09:00 UTC and Futures BLESSUSDT 09:30. Project-level chronology; native Solana versus current BSC representation timing remains unresolved. Do not backdate BSC membership or instrument association from this notice alone."
+    },
+    {
+      "symbol": "LAB",
+      "kind": "forensic_claim",
+      "sourceUrl": "https://www.theblock.co/news/ecosystems/2026-05-14-zachxbt-alleges-95-insider-control-of-lab-token-in-investigation-into-ai-terminals-6-billion-fdv-project-401290",
+      "author": "The Block",
+      "claimedPublishedAt": "2026-05-14T14:34:00Z",
+      "eventAt": null,
+      "status": "verified_source",
+      "body": "Secondary reporting links the original ZachXBT thread. Publication displays May 14, 2026 10:34 EDT. Reports allegations, not a verified beneficial-owner census. Original thread retrieval is blocked; no reconciled transaction-hash ledger was obtained. Claims cannot become historical ownership labels."
+    },
+    {
+      "symbol": "LAB",
+      "kind": "project_announcement",
+      "sourceUrl": "https://www.binance.com/en-AE/support/announcement/detail/21fab8e9db5f4dd8a1446e1a3eb6ceb1",
+      "author": "Binance",
+      "claimedPublishedAt": "2025-11-28T14:00:00Z",
+      "eventAt": "2025-11-28T16:00:00Z",
+      "status": "verified_source",
+      "body": "Official LAB Alpha buying competition scheduled Nov 28 through Dec 12, 2025. Buys count, sells do not. Project-level earlier Alpha activity conflicts with current registry listingTime in March 2026; representation/metadata chronology remains unresolved. Incentivized gross buying is not proof of retained accumulation."
+    },
+    {
+      "symbol": "BLESS",
+      "kind": "project_announcement",
+      "sourceUrl": "https://bless.network/mica/whitepaper.pdf",
+      "author": "Bless Network",
+      "claimedPublishedAt": null,
+      "eventAt": null,
+      "status": "verified_source",
+      "body": "Project whitepaper describes native Solana SPL issuance. The current official Alpha registry includes a BSC representation. Bridging, historical representation admission and supply accounting must be verified before treating them as independently issued supply."
+    }
+  ]
+}

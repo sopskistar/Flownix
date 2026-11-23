@@ -133,3 +133,7 @@ Point-in-time enforcement currently protects specific signal and fill paths, **n
 6. P3: historical bulk indexing or ML only after verified sample size, permissions, account quota and projected costs. No LLM price-pump oracle.
 
 The collector profiler measures local RPC/SQL requests, memory, CPU and approximate socket bytes. Provider cost fields defaulting to zero are **not billing evidence**. Alchemy CU balance, Neon compute-hours, account network/storage quotas and continuously hosted worker usage remain unavailable without account telemetry. Read the final verification report for actual measured process totals and database size. No paid plan or API was activated.
+
+## Additive historical episode milestone — 23 November 2026
+
+The complete original research requirements above remain intact. [Historical episodes and failure research](HISTORICAL_EPISODES_2026-11-23.md) extends the existing engine with immutable standardized episodes, pre-cutoff feature audits, preselected controls, grouped chronological purging and a source correction register. It does not close the missing contemporaneous wallet/depth/ownership evidence or promote an executable strategy. See the linked acceptance evidence for measured coverage and release checks.

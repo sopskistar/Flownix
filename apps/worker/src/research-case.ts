@@ -72,7 +72,7 @@ async function main() {
   const rows =
     await sql`SELECT id,symbol,chain_id,contract,alpha_id,status,listing_time,first_seen,last_seen,source,response_hash FROM alpha_tokens WHERE upper(symbol)=ANY(${candidates}) ORDER BY symbol,chain_id,contract`;
   for (const token of rows)
-    await sql`INSERT INTO research_case_candidates(token_id,source,observed_at,hypothesis,evidence) VALUES(${token.id},'User-supplied investigation candidate',${now},'Reported Alpha runner: historical inclusion and any pre-rally signal must be independently established',${jsonParam({ identity: token, priorAlphaMembershipProven: false, runnerClassificationVerified: false, historicalSignalVerified: false })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET observed_at=excluded.observed_at,evidence=excluded.evidence`;
+    await sql`INSERT INTO research_case_candidates(token_id,source,observed_at,hypothesis,evidence) VALUES(${token.id},'User-supplied investigation candidate',${now},'Reported Alpha runner: historical inclusion and any pre-rally signal must be independently established',${jsonParam({ identity: token, priorAlphaMembershipProven: false, runnerClassificationVerified: false, historicalSignalVerified: false })}::jsonb) ON CONFLICT(token_id) DO UPDATE SET evidence=research_case_candidates.evidence||jsonb_build_object('latestIdentityReview',excluded.evidence)`;
   const unverified = candidates.filter(
     (symbol) => !rows.some((row) => row.symbol.toUpperCase() === symbol),
   );

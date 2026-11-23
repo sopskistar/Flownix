@@ -152,6 +152,7 @@ export function chronologicalSplit<T extends { at: string }>(
 
 export type PatternExample = {
   tokenId: string;
+  projectKey?: string;
   setupAt: string;
   membershipAvailableAt: string;
   featureAvailableAt: string;
@@ -168,7 +169,10 @@ export function researchPatternComparison(
   cutoff: string,
   asOf: string,
   multipliers = [2, 3, 5, 10, 20, 50, 100],
+  embargoDays = 0,
 ) {
+  if (!Number.isFinite(embargoDays) || embargoDays < 0)
+    throw Error("INVALID_EMBARGO");
   if (multipliers.some((m) => !Number.isFinite(m) || m < 2))
     throw Error("INVALID_RETURN_MULTIPLIER");
   const eligible = rows
@@ -196,10 +200,21 @@ export function researchPatternComparison(
   ];
   const split = chronologicalSplit(unique, new Date(cutoff).toISOString());
   const purged = split.train.filter(
-    (r) => Date.parse(r.outcomeAvailableAt) > Date.parse(cutoff),
+    (r) =>
+      Date.parse(r.outcomeAvailableAt) >
+      Date.parse(cutoff) - embargoDays * 86400000,
   );
   split.train = split.train.filter(
-    (r) => Date.parse(r.outcomeAvailableAt) <= Date.parse(cutoff),
+    (r) =>
+      Date.parse(r.outcomeAvailableAt) <=
+      Date.parse(cutoff) - embargoDays * 86400000,
+  );
+  const testGroups = new Set(split.test.map((r) => r.projectKey ?? r.tokenId));
+  const sharedGroups = split.train.filter((r) =>
+    testGroups.has(r.projectKey ?? r.tokenId),
+  );
+  split.train = split.train.filter(
+    (r) => !testGroups.has(r.projectKey ?? r.tokenId),
   );
   const summarize = (examples: typeof unique) => ({
     examples: examples.length,
@@ -246,6 +261,9 @@ export function researchPatternComparison(
     forwardTested: false,
     rejectedForCoverageOrTiming: rows.length - unique.length,
     purgedOverlappingOutcomes: purged.length,
+    purgedSharedProjectExamples: sharedGroups.length,
+    embargoDays,
+    multipleTestingAdjusted: false,
     train: summarize(split.train),
     unseenPeriod: summarize(split.test),
     caveat:

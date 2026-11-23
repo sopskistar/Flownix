@@ -1,0 +1,1562 @@
+{
+  "version": "historical-episodes-acceptance/1",
+  "observedAt": "2026-11-23T09:47:22.157Z",
+  "baseCommit": "526e8f060c7647931ee5a35e3b3fcead728c4a7c",
+  "runHash": "ad8eedcebd9b21b21edb964fc52f03013c8071fba5dbe0c57e516045132da1fb",
+  "manifest": "HISTORICAL_COHORT_V1.json",
+  "windowStart": "2025-08-01T00:00:00Z",
+  "windowEnd": "2026-11-23T00:00:00Z",
+  "identityClaims": [
+    {
+      "lead": {
+        "symbol": "AGT",
+        "chain": "56",
+        "suppliedContract": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {},
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "024dee9c4237443005fea01e23288720",
+          "chain": "56",
+          "contract": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+          "alphaId": "ALPHA_191",
+          "symbol": "AGT",
+          "name": "Alaya Governance Token",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "AKE",
+        "chain": "56",
+        "suppliedContract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {
+          "reportedLow": "0.000174",
+          "reportedHigh": "0.1467"
+        },
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+          "chain": "56",
+          "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+          "alphaId": "ALPHA_331",
+          "symbol": "AKE",
+          "name": "AKE",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "ARIA",
+        "chain": "56",
+        "suppliedContract": "0x5d3a12c42e5372b2cc3264ab3cdcf660a1555238",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {},
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "bad032bbb19df139345a56782db210bf",
+          "chain": "56",
+          "contract": "0x5d3a12c42e5372b2cc3264ab3cdcf660a1555238",
+          "alphaId": "ALPHA_332",
+          "symbol": "ARIA",
+          "name": "AriaAI",
+          "status": "offline",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "BLESS",
+        "chain": "56",
+        "suppliedContract": "0x7c8217517ed4711fe2deccdfeffe8d906b9ae11f",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {},
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "02b8607a08c873612d66ec9bce1fb7bb",
+          "chain": "56",
+          "contract": "0x7c8217517ed4711fe2deccdfeffe8d906b9ae11f",
+          "alphaId": "ALPHA_389",
+          "symbol": "BLESS",
+          "name": "Bless",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "BTW",
+        "chain": "56",
+        "suppliedContract": "0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {
+          "reportedLow": "0.0077",
+          "reportedHigh": "2.75"
+        },
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "807847af26de99a0b0a25b27595867fc",
+          "chain": "56",
+          "contract": "0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa",
+          "alphaId": "ALPHA_778",
+          "symbol": "BTW",
+          "name": "Bitway",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "EVAA",
+        "chain": "56",
+        "suppliedContract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {},
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+          "chain": "56",
+          "contract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+          "alphaId": "ALPHA_409",
+          "symbol": "EVAA",
+          "name": "EVAA",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "IDOL",
+        "chain": "56",
+        "suppliedContract": "0x3b4de3c7855c03bb9f50ea252cd2c9fa1125ab07",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {},
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "9fa56c3f224ffc45e061fc5f91a7a509",
+          "chain": "56",
+          "contract": "0x3b4de3c7855c03bb9f50ea252cd2c9fa1125ab07",
+          "alphaId": "ALPHA_223",
+          "symbol": "IDOL",
+          "name": "MEET48 Token",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "LAB",
+        "chain": "56",
+        "suppliedContract": "0x7ec43cf65f1663f820427c62a5780b8f2e25593a",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {
+          "reportedHigh": "27.22"
+        },
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "1e6bef01671cf458649a5c2fc3196b42",
+          "chain": "56",
+          "contract": "0x7ec43cf65f1663f820427c62a5780b8f2e25593a",
+          "alphaId": "ALPHA_428",
+          "symbol": "LAB",
+          "name": "LAB",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "PIEVERSE",
+        "chain": "56",
+        "suppliedContract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {
+          "reportedLowRange": ["0.11", "0.13"],
+          "reportedHigh": "5.24"
+        },
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+          "chain": "56",
+          "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+          "alphaId": "ALPHA_469",
+          "symbol": "PIEVERSE",
+          "name": "Pieverse",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    },
+    {
+      "lead": {
+        "symbol": "Q",
+        "chain": "56",
+        "suppliedContract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+        "status": "unverified_user_relayed_grok_claim",
+        "originalSourceUrl": null,
+        "publisher": "Grok research relayed by owner",
+        "claimedPrices": {},
+        "notes": "Never a predictive label; exact identity must independently match the official registry."
+      },
+      "matches": [
+        {
+          "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+          "chain": "56",
+          "contract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+          "alphaId": "ALPHA_349",
+          "symbol": "Q",
+          "name": "Quack AI",
+          "status": "current",
+          "sourceHash": "dda5cc3ae1ae7b08b6bca7ba37f17cdb1f01fa7679f4ca397ebf92add081358a"
+        }
+      ],
+      "status": "official_identity_matched"
+    }
+  ],
+  "ambiguousLeads": [
+    {
+      "symbol": "NES",
+      "suppliedContract": null,
+      "reason": "Two official historical Nesa contracts/Alpha IDs; migration relation unverified; do not pick by ticker.",
+      "matches": [
+        {
+          "tokenId": "6d538f0ad99ca90ac3ae842bf7a93c87",
+          "contract": "0x3131f6b80c26936ab03f7d9d29eb4ddf36ac3fb5",
+          "alphaId": "ALPHA_994",
+          "status": "offline"
+        },
+        {
+          "tokenId": "7597c1f27c9ebdfd6ef6f5769dde7bf6",
+          "contract": "0x097acf27503753e77bca940277806156c5925b81",
+          "alphaId": "ALPHA_1156",
+          "status": "offline"
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "officialIdentities": 687,
+    "withHourlySeries": 33,
+    "asOfRiskSet": 377,
+    "malformedMembershipSnapshots": 0
+  },
+  "independence": {
+    "ruleEpisodes": 200,
+    "distinctConfirmations": 177,
+    "projects": 24,
+    "warning": "Overlapping definitions and repeated episodes of one project are not independent token examples. Earlier episodes lack matched contemporaneous controls where local coverage did not exist."
+  },
+  "eligibility": {
+    "unproven_before_membership_bound": 166,
+    "documented_known_by_bound": 34
+  },
+  "definitions": {
+    "rolling_7d_low": 94,
+    "rolling_30d_low": 78,
+    "consolidation_breakout": 28
+  },
+  "observedLandmarks": [
+    {
+      "symbol": "AGT",
+      "identity": {
+        "tokenId": "024dee9c4237443005fea01e23288720",
+        "chain": "56",
+        "contract": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+        "projectKey": "ALPHA_191",
+        "market": "ALPHA_191USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-08-01T00:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.00255122",
+          "at": "2025-11-22T08:00:00.000Z"
+        },
+        "high": {
+          "price": "0.11363408",
+          "at": "2026-10-18T02:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "44.541074",
+        "lowPrecedesHigh": true,
+        "bars": 11496,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 15
+    },
+    {
+      "symbol": "BLESS",
+      "identity": {
+        "tokenId": "02b8607a08c873612d66ec9bce1fb7bb",
+        "chain": "56",
+        "contract": "0x7c8217517ed4711fe2deccdfeffe8d906b9ae11f",
+        "projectKey": "ALPHA_389",
+        "market": "ALPHA_389USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-09-23T09:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.00397803",
+          "at": "2026-06-05T18:00:00.000Z"
+        },
+        "high": {
+          "price": "0.22580611",
+          "at": "2025-10-15T21:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "56.763300",
+        "lowPrecedesHigh": false,
+        "bars": 10215,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 19
+    },
+    {
+      "symbol": "LAB",
+      "identity": {
+        "tokenId": "1e6bef01671cf458649a5c2fc3196b42",
+        "chain": "56",
+        "contract": "0x7ec43cf65f1663f820427c62a5780b8f2e25593a",
+        "projectKey": "ALPHA_428",
+        "market": "ALPHA_428USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-10-14T11:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.02925719",
+          "at": "2026-11-20T20:00:00.000Z"
+        },
+        "high": {
+          "price": "27.50000000",
+          "at": "2026-06-02T21:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "939.939892",
+        "lowPrecedesHigh": false,
+        "bars": 9709,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 15
+    },
+    {
+      "symbol": "PIEVERSE",
+      "identity": {
+        "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+        "chain": "56",
+        "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+        "projectKey": "ALPHA_469",
+        "market": "ALPHA_469USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-11-14T11:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.11272965",
+          "at": "2025-11-14T18:00:00.000Z"
+        },
+        "high": {
+          "price": "5.33000000",
+          "at": "2026-11-22T10:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "47.281261",
+        "lowPrecedesHigh": true,
+        "bars": 8965,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 13
+    },
+    {
+      "symbol": "BTW",
+      "identity": {
+        "tokenId": "807847af26de99a0b0a25b27595867fc",
+        "chain": "56",
+        "contract": "0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa",
+        "projectKey": "ALPHA_778",
+        "market": "ALPHA_778USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2026-03-02T08:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.00500000",
+          "at": "2026-03-02T08:00:00.000Z"
+        },
+        "high": {
+          "price": "2.74962951",
+          "at": "2026-10-14T03:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "549.925902",
+        "lowPrecedesHigh": true,
+        "bars": 6376,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 17
+    },
+    {
+      "symbol": "IDOL",
+      "identity": {
+        "tokenId": "9fa56c3f224ffc45e061fc5f91a7a509",
+        "chain": "56",
+        "contract": "0x3b4de3c7855c03bb9f50ea252cd2c9fa1125ab07",
+        "projectKey": "ALPHA_223",
+        "market": "ALPHA_223USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-08-01T00:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.00686917",
+          "at": "2026-10-18T19:00:00.000Z"
+        },
+        "high": {
+          "price": "0.04763333",
+          "at": "2026-11-21T22:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "6.934365",
+        "lowPrecedesHigh": true,
+        "bars": 11496,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 12
+    },
+    {
+      "symbol": "Q",
+      "identity": {
+        "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+        "chain": "56",
+        "contract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+        "projectKey": "ALPHA_349",
+        "market": "ALPHA_349USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-09-02T07:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.00521952",
+          "at": "2026-03-28T01:00:00.000Z"
+        },
+        "high": {
+          "price": "0.23262887",
+          "at": "2026-10-27T02:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "44.569016",
+        "lowPrecedesHigh": true,
+        "bars": 10721,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 18
+    },
+    {
+      "symbol": "ARIA",
+      "identity": {
+        "tokenId": "bad032bbb19df139345a56782db210bf",
+        "chain": "56",
+        "contract": "0x5d3a12c42e5372b2cc3264ab3cdcf660a1555238",
+        "projectKey": "ALPHA_332",
+        "market": "ALPHA_332USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-08-21T12:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.02103614",
+          "at": "2026-07-08T18:00:00.000Z"
+        },
+        "high": {
+          "price": "1.16000000",
+          "at": "2026-04-14T13:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "55.143196",
+        "lowPrecedesHigh": false,
+        "bars": 11004,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 19
+    },
+    {
+      "symbol": "EVAA",
+      "identity": {
+        "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+        "chain": "56",
+        "contract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+        "projectKey": "ALPHA_409",
+        "market": "ALPHA_409USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-10-03T08:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.28060948",
+          "at": "2026-06-05T06:00:00.000Z"
+        },
+        "high": {
+          "price": "13.71201300",
+          "at": "2025-10-27T01:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "48.865110",
+        "lowPrecedesHigh": false,
+        "bars": 9976,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 16
+    },
+    {
+      "symbol": "AKE",
+      "identity": {
+        "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+        "chain": "56",
+        "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+        "projectKey": "ALPHA_331",
+        "market": "ALPHA_331USDT",
+        "quote": "USDT"
+      },
+      "landmarks": {
+        "definition": "observed_window_extrema",
+        "first": "2025-08-21T10:00:00.000Z",
+        "last": "2026-11-22T23:59:59.999Z",
+        "low": {
+          "price": "0.00017273",
+          "at": "2026-07-10T12:00:00.000Z"
+        },
+        "high": {
+          "price": "0.15781161",
+          "at": "2026-09-20T10:00:00.000Z"
+        },
+        "unorderedHighLowMultiple": "913.631737",
+        "lowPrecedesHigh": true,
+        "bars": 11006,
+        "gaps": 0,
+        "lifetimeAtlAthVerified": false,
+        "executable": false
+      },
+      "episodes": 19
+    }
+  ],
+  "descriptiveForward7d": {
+    "observed": 194,
+    "censored": 6,
+    "positive": 81,
+    "negative": 113,
+    "zero": 0,
+    "medianRawCloseReturnPct": -5.6141965,
+    "inference": "Overlapping descriptive rule episodes, often before proven Alpha eligibility; no independent statistical test or executable strategy result. Late reconstructed features cannot be promoted."
+  },
+  "controls": [
+    {
+      "targetSymbol": "AGT",
+      "target": "024dee9c4237443005fea01e23288720",
+      "suppressed": "No comparable as-of risk-set observations",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "AKE",
+      "target": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+      "suppressed": "Target lacks point-in-time membership/liquidity",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "ARIA",
+      "target": "bad032bbb19df139345a56782db210bf",
+      "suppressed": "No as-of matched risk-set record",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "BLESS",
+      "target": "02b8607a08c873612d66ec9bce1fb7bb",
+      "suppressed": "No comparable as-of risk-set observations",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "BTW",
+      "target": "807847af26de99a0b0a25b27595867fc",
+      "suppressed": "Target lacks point-in-time membership/liquidity",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "EVAA",
+      "target": "ca7500bd474bdbee663a1c1fc147f41c",
+      "suppressed": "Target lacks point-in-time membership/liquidity",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "IDOL",
+      "target": "9fa56c3f224ffc45e061fc5f91a7a509",
+      "suppressed": "Target lacks point-in-time membership/liquidity",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "LAB",
+      "target": "1e6bef01671cf458649a5c2fc3196b42",
+      "suppressed": "Target lacks point-in-time membership/liquidity",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    },
+    {
+      "targetSymbol": "PIEVERSE",
+      "target": "4b0a9eee412fc1c1bb8e069480d30a6e",
+      "suppressed": null,
+      "selectedBeforeOutcome": [
+        {
+          "tokenId": "1ffbe11d3749980e8938290d7ec2a708",
+          "projectKey": "ALPHA_1185",
+          "chain": "56",
+          "quote": "USDT",
+          "marketSymbol": "ALPHA_1185USDT",
+          "anchor": "2026-11-17T00:00:00Z",
+          "membershipAt": "2026-11-16T15:12:35.520Z",
+          "membershipAvailableAt": "2026-11-16T18:33:13.359Z",
+          "liquidity": "2660750.43885642082799458382539169325",
+          "liquidityAvailableAt": "2026-11-16T18:33:13.359Z",
+          "coverage": "partial_observed"
+        },
+        {
+          "tokenId": "8433c1585fa7a3da14435955ec5ba087",
+          "projectKey": "ALPHA_991",
+          "chain": "56",
+          "quote": "USDT",
+          "marketSymbol": "ALPHA_991USDT",
+          "anchor": "2026-11-17T00:00:00Z",
+          "membershipAt": "2026-11-16T15:12:35.520Z",
+          "membershipAvailableAt": "2026-11-16T18:33:13.359Z",
+          "liquidity": "2658065.71421691191700670167878098254911",
+          "liquidityAvailableAt": "2026-11-16T18:34:26.773Z",
+          "coverage": "partial_observed"
+        },
+        {
+          "tokenId": "89f0f6b561eef86f60a4fcf2bf9ba551",
+          "projectKey": "ALPHA_158",
+          "chain": "56",
+          "quote": "USDT",
+          "marketSymbol": "ALPHA_158USDT",
+          "anchor": "2026-11-17T00:00:00Z",
+          "membershipAt": "2026-11-16T15:12:35.520Z",
+          "membershipAvailableAt": "2026-11-16T18:33:13.359Z",
+          "liquidity": "2321892.7971880250809671997418548165169",
+          "liquidityAvailableAt": "2026-11-16T18:33:13.359Z",
+          "coverage": "partial_observed"
+        }
+      ],
+      "outcomes": [
+        {
+          "symbol": "DGAI",
+          "tokenId": "1ffbe11d3749980e8938290d7ec2a708",
+          "status": "retrospective_price_outcome",
+          "returnPct": "42.632577",
+          "mfePct": "48.737328",
+          "maePct": "-2.879888",
+          "coverageBars": 144,
+          "expectedBars": 144,
+          "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+          "confirmed2x": false,
+          "peak2xObserved": false,
+          "non2xPeakControl": true,
+          "control": true,
+          "featureKnowableAtSetup": false,
+          "signalVerified": false,
+          "executableOutcome": false
+        },
+        {
+          "symbol": "O",
+          "tokenId": "8433c1585fa7a3da14435955ec5ba087",
+          "status": "retrospective_price_outcome",
+          "returnPct": "11.545362",
+          "mfePct": "16.062361",
+          "maePct": "-7.651537",
+          "coverageBars": 144,
+          "expectedBars": 144,
+          "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+          "confirmed2x": false,
+          "peak2xObserved": false,
+          "non2xPeakControl": true,
+          "control": true,
+          "featureKnowableAtSetup": false,
+          "signalVerified": false,
+          "executableOutcome": false
+        },
+        {
+          "symbol": "AIOT",
+          "tokenId": "89f0f6b561eef86f60a4fcf2bf9ba551",
+          "status": "retrospective_price_outcome",
+          "returnPct": "-26.669727",
+          "mfePct": "30.625710",
+          "maePct": "-28.376401",
+          "coverageBars": 144,
+          "expectedBars": 144,
+          "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+          "confirmed2x": false,
+          "peak2xObserved": false,
+          "non2xPeakControl": true,
+          "control": true,
+          "featureKnowableAtSetup": false,
+          "signalVerified": false,
+          "executableOutcome": false
+        }
+      ]
+    },
+    {
+      "targetSymbol": "Q",
+      "target": "ae221b235227fa3ad23ecfb78a01a71d",
+      "suppressed": "Target lacks point-in-time membership/liquidity",
+      "selectedBeforeOutcome": [],
+      "outcomes": []
+    }
+  ],
+  "fixedWindowRanking": {
+    "definition": "All stored exact Alpha series; fixed baseline close before anchor to final close. Membership unproven at anchor stays censored. No best-low/best-high ranking.",
+    "anchor": "2026-11-17T00:00:00Z",
+    "end": "2026-11-23T00:00:00Z",
+    "results": [
+      {
+        "tokenId": "807847af26de99a0b0a25b27595867fc",
+        "status": "retrospective_price_outcome",
+        "returnPct": "95.494353",
+        "mfePct": "109.339222",
+        "maePct": "-9.609231",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+        "status": "retrospective_price_outcome",
+        "returnPct": "88.154780",
+        "mfePct": "171.695601",
+        "maePct": "-9.262542",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "1ffbe11d3749980e8938290d7ec2a708",
+        "status": "retrospective_price_outcome",
+        "returnPct": "42.632577",
+        "mfePct": "48.737328",
+        "maePct": "-2.879888",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "cc7f0a11ac103b548563ea9159886b49",
+        "status": "retrospective_price_outcome",
+        "returnPct": "12.987535",
+        "mfePct": "32.771663",
+        "maePct": "-3.337843",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "8433c1585fa7a3da14435955ec5ba087",
+        "status": "retrospective_price_outcome",
+        "returnPct": "11.545362",
+        "mfePct": "16.062361",
+        "maePct": "-7.651537",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+        "status": "retrospective_price_outcome",
+        "returnPct": "4.982979",
+        "mfePct": "10.436014",
+        "maePct": "-4.596812",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "1e6bef01671cf458649a5c2fc3196b42",
+        "status": "retrospective_price_outcome",
+        "returnPct": "4.554185",
+        "mfePct": "18.280580",
+        "maePct": "-6.469475",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "9f634f944a5ce7264203223fba63cf99",
+        "status": "retrospective_price_outcome",
+        "returnPct": "0.000000",
+        "mfePct": "0.000000",
+        "maePct": "0.000000",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-0.798690",
+        "mfePct": "9.507641",
+        "maePct": "-7.050464",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "5a6e431d13faffaedc71f54b37bf7ad1",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-8.437299",
+        "mfePct": "2.917817",
+        "maePct": "-20.787983",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "024dee9c4237443005fea01e23288720",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-8.661773",
+        "mfePct": "16.219122",
+        "maePct": "-19.891114",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "022f9a82ed9979ec1f5d5509d3240c7f",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-10.621148",
+        "mfePct": "0.000000",
+        "maePct": "-12.107764",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "02b8607a08c873612d66ec9bce1fb7bb",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-15.120695",
+        "mfePct": "14.327511",
+        "maePct": "-49.376364",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "9fa56c3f224ffc45e061fc5f91a7a509",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-15.943237",
+        "mfePct": "165.371472",
+        "maePct": "-24.862059",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "89f0f6b561eef86f60a4fcf2bf9ba551",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-26.669727",
+        "mfePct": "30.625710",
+        "maePct": "-28.376401",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "f65e2525432feb7d8bc92849316813b5",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-28.716540",
+        "mfePct": "5.073073",
+        "maePct": "-36.284758",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-28.812436",
+        "mfePct": "103.553875",
+        "maePct": "-32.643702",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-72.986961",
+        "mfePct": "10.994997",
+        "maePct": "-75.569734",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "0217e3b11210497241a8ba33877158f4",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "02478c35db6dcef59726bb4cc0481d38",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "02c5bced7d2c54a7ef14a5ac5aa10e7f",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "1cfe69eb6dd08cc4644537019f5a8192",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "39693a44dadce20449886411c4f8cfab",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "54e969a4213c2db86c5d9fe802812d1f",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "585604ba571f1539675c25c38d59ed24",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "848545d06eb30cb73d8b17a983bd6c50",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "849148296948883365e076a2d1deafdf",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "8cc83528501b37a6501e2a94323a217e",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "adc38ccc94978607e3487b98b40dd31c",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "bad032bbb19df139345a56782db210bf",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "bbe3daeeccbe5273e4a1f742a6a872de",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "d64cba43ce469c53ea5b63ca3dba6148",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "e0feb4f8e059265615c2d8b26752b65e",
+        "status": "unavailable",
+        "returnPct": null,
+        "mfePct": null,
+        "maePct": null,
+        "coverageBars": 0,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": false,
+        "control": false,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      }
+    ]
+  },
+  "validation": {
+    "stage": "candidate_hypothesis",
+    "validated": false,
+    "forwardTested": false,
+    "rejectedForCoverageOrTiming": 0,
+    "purgedOverlappingOutcomes": 0,
+    "purgedSharedProjectExamples": 0,
+    "embargoDays": 1,
+    "multipleTestingAdjusted": false,
+    "train": {
+      "examples": 0,
+      "independentTokenExamples": 0,
+      "featurePresent": 0,
+      "featureAbsent": 0,
+      "outcomes": [
+        {
+          "multiple": 2,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 3,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 5,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 10,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 20,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 50,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 100,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        }
+      ],
+      "meanIncrementalNetReturnPct": null,
+      "worstObservedDrawdownPct": null
+    },
+    "unseenPeriod": {
+      "examples": 0,
+      "independentTokenExamples": 0,
+      "featurePresent": 0,
+      "featureAbsent": 0,
+      "outcomes": [
+        {
+          "multiple": 2,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 3,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 5,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 10,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 20,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 50,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        },
+        {
+          "multiple": 100,
+          "withFeature": 0,
+          "featureWithoutThisReturn": 0,
+          "withoutFeature": 0
+        }
+      ],
+      "meanIncrementalNetReturnPct": null,
+      "worstObservedDrawdownPct": null
+    },
+    "caveat": "Winner/non-winner counts and baseline differences are descriptive. Repeated setups on one token are not independent token examples; out-of-sample and forward evidence must precede strategy validation.",
+    "eligibleHistoricalSignals": 0,
+    "suppression": "Reconstructed conditions have late availability; historical costs/depth, retained acquisition and independent ownership are not established. No net strategy returns or model fitted.",
+    "predeclaredRuleHorizonComparisons": 21,
+    "multiplicityCorrectionApplied": false
+  },
+  "measurements": {
+    "replay": {
+      "peakRssBytes": 369664000,
+      "elapsedSeconds": 264.802,
+      "counters": {
+        "postgresQueries": 91
+      },
+      "databaseBytesBefore": "238018560",
+      "databaseBytesAfter": "238018560"
+    },
+    "inventory": {
+      "database_bytes": "238346240",
+      "all_candles": 230101,
+      "hourly_candles": 169128,
+      "official_identities": 687,
+      "current_identities": 377,
+      "canonical_transfers": 318,
+      "canonical_swaps": 18,
+      "relationships": 162,
+      "signals": 0,
+      "research_leads": 9
+    },
+    "databaseBytesBeforeMilestone": 178126848,
+    "databaseGrowthBytes": 60219392,
+    "trackedAlchemyEstimatedCUs": 8474,
+    "newAlchemyRPCs": 0,
+    "binancePhysicalRequests": 94,
+    "requestMeasurementScope": "89 initial collection including retries; 5 control collection; final replay 0 provider requests. Other pre-existing workloads and web source research excluded.",
+    "measuredSQLQueriesAcrossThreeRuns": 872,
+    "incrementalPaidProviderActivationCostUSD": 0,
+    "neonAccountCUHours": "Unavailable without account billing meter; SQL counts are not compute hours",
+    "replayPeakMiB": 352.5390625,
+    "beforeStreamingReplayPeakMiB": 521.71484375
+  },
+  "evidenceIntegrity": {
+    "nativeJSONReadback": {
+      "run_hash": "ad8eedcebd9b21b21edb964fc52f03013c8071fba5dbe0c57e516045132da1fb",
+      "manifest_type": "object",
+      "report_type": "object"
+    },
+    "canonicalTransfersPreserved": 318,
+    "verifiedSwapsPreserved": 18,
+    "relationshipsPreserved": 162,
+    "newChainEvidence": 0,
+    "newSignals": 0,
+    "LABBeneficialOwnershipVerified": false,
+    "LABReportedExchangeAmountsReconciled": false,
+    "sourceLeadRows": 9,
+    "sourceRevisionRows": 3
+  },
+  "verification": {
+    "automatedTests": 159,
+    "postgresIntegration": "Passed in isolated rollback schemas",
+    "browser": "All eight authenticated local journeys passed across final suite (seven) and corrected intake rerun (one); exact-run export, malformed JSON preservation, desktop/tablet/phone screenshots and disabled no-JavaScript form checks passed. Earlier failed assertions and interrupted fixture were resolved, not suppressed.",
+    "typecheck": "Passed",
+    "lint": "Passed",
+    "build": "Passed final production webpack build",
+    "ownerAuthenticatedProduction": "Unavailable; not claimed",
+    "screenshotsInspected": [
+      "historical-episodes-desktop.png",
+      "historical-episodes-tablet.png",
+      "historical-episodes-phone.png"
+    ],
+    "productionAuthConfigurationChanged": false
+  },
+  "remaining": [
+    "Original admission and bridge/representation history beyond reviewed known-by bounds",
+    "Contemporaneous holder census, wallet retention, historical liquidity/depth and exchange-label provenance",
+    "Original LAB thread and reconciled full transaction hashes",
+    "Earlier episode-specific matching; observation-age proxy is not verified token age",
+    "Multiple-testing correction and powered chronological independent-project validation",
+    "Approved hosted worker capacity, native database soak, near-head/full-cycle acceptance, Solana gaps and remaining chain adapters"
+  ]
+}

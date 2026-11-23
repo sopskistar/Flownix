@@ -2,7 +2,10 @@ import { it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { sqlClient, closeDb } from "../packages/db/src/index";
-import { persistListingStudy } from "../apps/worker/src/listing-storage";
+import {
+  persistListingStudy,
+  persistHistoricalStudy,
+} from "../apps/worker/src/listing-storage";
 it.skipIf(!process.env.DATABASE_URL)(
   "preserves immutable event studies and existing case annotations atomically",
   async () => {
@@ -55,6 +58,43 @@ it.skipIf(!process.env.DATABASE_URL)(
           evidence: {
             originalAnnotation: "preserve",
             eventStudyRun: hash,
+            runnerClassificationVerified: true,
+          },
+          hypothesis: "Original hypothesis",
+        });
+        const historicalHash = "c".repeat(64);
+        await persistHistoricalStudy(
+          {
+            runHash: historicalHash,
+            manifest: { fixed: true },
+            report: { episodes: [], censored: true },
+            tokenIds: [id],
+          },
+          client,
+        );
+        await persistHistoricalStudy(
+          {
+            runHash: historicalHash,
+            manifest: {},
+            report: { overwritten: true },
+            tokenIds: [id],
+          },
+          client,
+        );
+        expect(
+          (
+            await tx`SELECT report FROM event_study_runs WHERE run_hash=${historicalHash}`
+          )[0].report,
+        ).toEqual({ episodes: [], censored: true });
+        expect(
+          (
+            await tx`SELECT evidence,hypothesis FROM research_case_candidates`
+          )[0],
+        ).toMatchObject({
+          evidence: {
+            originalAnnotation: "preserve",
+            eventStudyRun: hash,
+            historicalRun: historicalHash,
             runnerClassificationVerified: true,
           },
           hypothesis: "Original hypothesis",

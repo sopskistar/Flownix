@@ -63,7 +63,7 @@ export const listingStudySpec = {
 const millis = (s: string) => Date.parse(s);
 const pct = (n: string, base: string) =>
   new Decimal(n).div(base).minus(1).mul(100).toFixed(6);
-function usable(rows: StudyCandle[], asOf: string) {
+export function usableStudyCandles(rows: StudyCandle[], asOf: string) {
   const byOpen = new Map<string, StudyCandle>(),
     conflicts = new Set<string>();
   for (const r of rows) {
@@ -97,6 +97,7 @@ function usable(rows: StudyCandle[], asOf: string) {
     .filter((r) => !conflicts.has(r.openAt))
     .sort((a, b) => millis(a.openAt) - millis(b.openAt));
 }
+const usable = usableStudyCandles;
 /** Retrospective price reaction, never an executable fill, past live signal or causal estimate. */
 export function listingEventStudy(
   event: ListingEvent,

@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { sqlClient, closeDb } from "../../packages/db/src/index";
+import { historicalEpisodes, tokenKey } from "../../packages/core/src/index";
 
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -300,13 +301,46 @@ test("token research intake preserves claims, revisions and Solana wallet identi
   if (!["localhost", "127.0.0.1"].includes(host))
     throw Error("Browser fixtures require local PostgreSQL");
   const sql = sqlClient(),
-    contract = "0x" + "f".repeat(40),
+    contract =
+      "0x" +
+      createHash("sha256").update(randomUUID()).digest("hex").slice(0, 40),
     id = createHash("sha256")
       .update(`56:${contract}`)
       .digest("hex")
       .slice(0, 32);
   try {
     await sql`INSERT INTO alpha_tokens(id,chain_id,contract,symbol,name,token_id,alpha_id,status,first_seen,last_seen,source,response_hash,metadata) VALUES(${id},'56',${contract},'LOCAL_TEST','Local browser fixture','local-browser-only','LOCAL_TEST','current',now(),now(),'local-test-only','local-test-only','{}')`;
+    const noScript = await page
+      .context()
+      .browser()!
+      .newContext({ javaScriptEnabled: false });
+    try {
+      const staticPage = await noScript.newPage();
+      await staticPage.goto(`http://127.0.0.1:3047/token/${id}`, {
+        waitUntil: "domcontentloaded",
+      });
+      await expect(
+        staticPage.getByRole("button", {
+          name: "Save research lead",
+          exact: true,
+          includeHidden: true,
+        }),
+      ).toBeDisabled();
+      await expect(
+        staticPage.getByLabel("Original source URL", { exact: true }),
+      ).toBeDisabled();
+      await expect(
+        staticPage.locator("form").filter({
+          has: staticPage.getByRole("button", {
+            name: "Save research lead",
+            exact: true,
+            includeHidden: true,
+          }),
+        }),
+      ).toHaveAttribute("method", "post");
+    } finally {
+      await noScript.close();
+    }
     await navigate(page, `/token/${id}`);
     await expect(
       page.getByRole("heading", {
@@ -409,7 +443,63 @@ test("historical studies render native JSON while malformed evidence remains exp
     throw Error("Browser fixtures require local PostgreSQL");
   const sql = sqlClient(),
     good = createHash("sha256").update(randomUUID()).digest("hex"),
-    bad = createHash("sha256").update(randomUUID()).digest("hex");
+    bad = createHash("sha256").update(randomUUID()).digest("hex"),
+    episodeHash = createHash("sha256").update(randomUUID()).digest("hex");
+  const contract = "0x" + "8".repeat(40),
+    start = Date.parse("2025-01-01T00:00:00Z");
+  const fixtureCase = {
+    symbol: "LOCAL_EPISODE",
+    ...historicalEpisodes(
+      {
+        tokenId: tokenKey("56", contract),
+        chain: "56",
+        contract,
+        projectKey: "ALPHA_999999",
+        symbol: "ALPHA_999999USDT",
+        quoteAsset: "USDT",
+        membershipAt: null,
+        membershipSource: "synthetic-local-browser-only",
+        candles: Array.from({ length: 400 }, (_, i) => ({
+          openAt: new Date(start + i * 3600000).toISOString(),
+          closeAt: new Date(start + (i + 1) * 3600000 - 1).toISOString(),
+          availableAt: "2026-01-01T00:00:00Z",
+          open: "1",
+          high: i === 168 ? "2" : "1",
+          low: "1",
+          close: i === 168 ? "2" : "1",
+          volume: "10",
+          hash: episodeHash,
+        })),
+      },
+      "2026-11-23T00:00:00Z",
+    ),
+  };
+  const episodeReport = {
+    cases: [fixtureCase],
+    independence: {
+      ruleEpisodes: fixtureCase.episodes.length,
+      distinctConfirmations: 1,
+      projects: 1,
+    },
+    universeCoverage: { officialIdentities: 2, withHourlySeries: 1 },
+    controls: [
+      {
+        target: fixtureCase.identity.tokenId,
+        selected: [],
+        outcomes: [],
+        suppressed: "No comparable as-of risk-set observations",
+      },
+    ],
+    fixedWindowRanking: {
+      anchor: "2025-01-08T00:00:00Z",
+      end: "2025-01-14T00:00:00Z",
+      results: [],
+    },
+    validation: {
+      eligibleHistoricalSignals: 0,
+      suppression: "Synthetic local episode fixture; no validated strategy.",
+    },
+  };
   const manifest = {
       event: {
         tokenId: "e".repeat(32),
@@ -426,6 +516,7 @@ test("historical studies render native JSON while malformed evidence remains exp
     };
   try {
     await sql`INSERT INTO event_study_runs(run_hash,spec_version,computed_at,manifest,report) VALUES(${good},'listing-study/1',now(),${sql.json(manifest)},${sql.json(report)}),(${bad},'listing-study/1',now(),to_jsonb(${JSON.stringify(manifest)}::text),to_jsonb(${JSON.stringify(report)}::text))`;
+    await sql`INSERT INTO event_study_runs(run_hash,spec_version,computed_at,manifest,report) VALUES(${episodeHash},'historical-episodes/1',now(),'{}',${sql.json(episodeReport)})`;
     await navigate(page, "/research");
     await expectPageReady(page, "Historical Runner Lab");
     const summary = page
@@ -435,6 +526,32 @@ test("historical studies render native JSON while malformed evidence remains exp
     await summary.click();
     await expect(
       page.getByText(report.suppression, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Historical rally episodes and controls",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.locator("summary").filter({ hasText: "LOCAL_EPISODE" }).click();
+    await expect(
+      page.getByRole("link", { name: "Open exact token research" }),
+    ).toHaveAttribute("href", `/token/${fixtureCase.identity.tokenId}`);
+    await expect(
+      page
+        .getByRole("cell")
+        .filter({ hasText: "Historical Alpha eligibility unproven" })
+        .first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Collected after confirmation", { exact: true }).first(),
+    ).toBeVisible();
+    await page
+      .locator("summary")
+      .filter({ hasText: "Preselected controls and fixed-window outcomes" })
+      .click();
+    await expect(
+      page.getByText(/No comparable as-of risk-set observations/),
     ).toBeVisible();
     const response = await request.get("/api/export?kind=research"),
       body = await response.json();
@@ -447,6 +564,35 @@ test("historical studies render native JSON while malformed evidence remains exp
       typeof body.runs.find((r: { run_hash: string }) => r.run_hash === bad)
         .manifest,
     ).toBe("string");
+    expect(
+      body.runs.find((r: { run_hash: string }) => r.run_hash === episodeHash)
+        .report.validation.eligibleHistoricalSignals,
+    ).toBe(0);
+    const scoped = await request.get(
+      `/api/export?kind=research&run=${episodeHash}`,
+    );
+    expect(
+      (await scoped.json()).runs.map((r: { run_hash: string }) => r.run_hash),
+    ).toEqual([episodeHash]);
+    expect(
+      (await request.get("/api/export?kind=research&run=invalid")).status(),
+    ).toBe(400);
+    for (const [label, width, height] of [
+      ["desktop", 1440, 1000],
+      ["tablet", 820, 1180],
+      ["phone", 390, 844],
+    ] as const) {
+      await page.setViewportSize({ width, height });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `artifacts/screenshots/historical-episodes-${label}.png`,
+        fullPage: true,
+      });
+    }
     await page.setViewportSize({ width: 390, height: 844 });
     expect(
       await page.evaluate(
@@ -458,7 +604,7 @@ test("historical studies render native JSON while malformed evidence remains exp
       fullPage: true,
     });
   } finally {
-    await sql`DELETE FROM event_study_runs WHERE run_hash=ANY(${[good, bad]})`;
+    await sql`DELETE FROM event_study_runs WHERE run_hash=ANY(${[good, bad, episodeHash]})`;
     await closeDb();
   }
 });

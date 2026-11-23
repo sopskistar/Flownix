@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { action } from "./controls";
 export function MutationForm({
@@ -15,10 +15,16 @@ export function MutationForm({
 }) {
   const router = useRouter();
   const [message, setMessage] = useState(""),
-    [pending, setPending] = useState(false);
+    [pending, setPending] = useState(false),
+    [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
   return (
     <form
       className="mutation-form"
+      method="post"
+      aria-busy={!hydrated || pending}
       onSubmit={async (e) => {
         e.preventDefault();
         const fields = Object.fromEntries(
@@ -36,13 +42,15 @@ export function MutationForm({
         }
       }}
     >
-      {children}
-      <div className="row">
-        <button className="primary" disabled={pending}>
-          {pending ? "Saving…" : label}
-        </button>
-        <span role="status">{message}</span>
-      </div>
+      <fieldset disabled={!hydrated || pending} style={{ display: "contents" }}>
+        {children}
+        <div className="row">
+          <button className="primary" disabled={!hydrated || pending}>
+            {pending ? "Saving…" : label}
+          </button>
+          <span role="status">{message}</span>
+        </div>
+      </fieldset>
     </form>
   );
 }

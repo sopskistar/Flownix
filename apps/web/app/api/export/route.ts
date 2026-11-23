@@ -9,8 +9,15 @@ export async function GET(request: Request) {
   try {
     const sql = sqlClient();
     if (kind === "research") {
-      const runs =
-        await sql`SELECT run_hash,spec_version,computed_at,manifest,report FROM event_study_runs ORDER BY computed_at DESC LIMIT 100`;
+      const run = new URL(request.url).searchParams.get("run");
+      if (run !== null && !/^[a-f0-9]{64}$/.test(run))
+        return NextResponse.json(
+          { error: "Invalid research run" },
+          { status: 400 },
+        );
+      const runs = run
+        ? await sql`SELECT run_hash,spec_version,computed_at,manifest,report FROM event_study_runs WHERE run_hash=${run}`
+        : await sql`SELECT run_hash,spec_version,computed_at,manifest,report FROM event_study_runs ORDER BY computed_at DESC LIMIT 100`;
       return new Response(
         JSON.stringify(
           {
