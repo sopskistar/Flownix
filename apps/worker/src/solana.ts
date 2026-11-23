@@ -46,6 +46,9 @@ export async function scanSolanaToken(token: TokenRow) {
   // once per token scan, retaining availability for each account's gap flag.
   const transactionAvailability = new Map<string, boolean>();
   await saveSource("solana_rpc", largest);
+  await saveSource("solana_rpc", mint);
+  // Largest token accounts are not a complete owner census, and mint/account slots may differ.
+  await sql`INSERT INTO holder_metrics(token_id,observed_at,coverage,evidence) SELECT ${token.id},${largest.observedAt},'top_token_accounts',${jsonParam({ chain: token.chain_id, contract: token.contract, checkpoint: String(mint.data.slot), at: mint.observedAt, availableAt: largest.observedAt, totalRaw: mint.data.rawSupply, circulatingRaw: null, supplyVerified: true, coverage: "top_token_accounts", source: mint.source, responseHashes: [mint.hash, largest.hash], holders: top.map((h) => ({ address: h.address, raw: h.amount, checkpoint: String(largest.data.context.slot) })), decimals: mint.data.decimals, note: "Top token accounts, not aggregated beneficial owners; no ranked holder percentage" })}::jsonb WHERE NOT EXISTS(SELECT 1 FROM holder_metrics WHERE token_id=${token.id} AND evidence->>'checkpoint'=${String(mint.data.slot)})`;
   for (const holder of top) {
     const [account, signatures] = await providerReads([
       rpc.tokenAccountOwner(holder.address),

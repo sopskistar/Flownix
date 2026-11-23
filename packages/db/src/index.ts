@@ -128,6 +128,10 @@ export async function settingsValue<T>(key: string, fallback: T): Promise<T> {
   const r = await sqlClient()`SELECT value FROM settings WHERE key=${key}`;
   return r[0] ? (r[0].value as T) : fallback;
 }
-export async function setSetting(key: string, value: unknown) {
-  await sqlClient()`INSERT INTO settings(key,value) VALUES(${key},${jsonParam(value)}::jsonb) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=now()`;
+export async function setSetting(
+  key: string,
+  value: unknown,
+  client = sqlClient(),
+) {
+  await client`INSERT INTO settings(key,value) VALUES(${key},${jsonParam(value)}::jsonb) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=now()`;
 }

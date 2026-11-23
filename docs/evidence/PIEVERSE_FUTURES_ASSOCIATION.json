@@ -1,0 +1,16 @@
+{
+  "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+  "chain": "56",
+  "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+  "symbol": "PIEVERSEUSDT",
+  "baseAsset": "PIEVERSE",
+  "multiplier": "1",
+  "tokenSource": "https://www.pieverse.io/MiCAR-White-paper-Pieverse.pdf",
+  "instrumentSource": "https://fapi.binance.com/fapi/v1/exchangeInfo",
+  "tokenSourceHash": "d460fe8e9496d349554b6a0fe363f64db908af04e63006f6f205c4a11e5a8bd8",
+  "instrumentSourceHash": "4e8ebcf343ef5fd2fac7f24495efddf9032560ec98c85d080a8120b832f76cf4",
+  "rationale": "Primary-source review: Pieverse white paper page 20 (PDF index 19), D.9, identifies this exact contract separately on Ethereum and BNB Smart Chain; only chain 56 is bound here. The independently reviewed official Binance projectLinkSource announcement names Pieverse as the underlying of PIEVERSEUSDT. Current Alpha registry confirms chain 56 and this contract. instrumentSourceHash covers the nonempty public Futures exchangeInfo response observed 2026-11-23T04:25:22.954Z, which confirms baseAsset PIEVERSE and PERPETUAL; no byte hash is asserted for the browser-rendered announcement. This is a project/instrument association, not a derivative token contract, ownership label or bullish signal.",
+  "reviewedBy": "Codex primary-source review 2026-11-23",
+  "independentlyVerified": true,
+  "projectLinkSource": "https://www.binance.com/en/support/announcement/detail/9601f5b2dd9e4f33bf7361fa61368191"
+}

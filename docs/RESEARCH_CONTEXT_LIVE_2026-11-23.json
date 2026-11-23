@@ -1,0 +1,404 @@
+{
+  "scope": "Bounded production observations and derived research, not continuous monitoring or account billing",
+  "publicProbes": {
+    "at": "2026-11-23T04:25:20.266Z",
+    "alpha": {
+      "status": 200,
+      "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "observedAt": "2026-11-23T04:25:21.354Z",
+      "hash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4"
+    },
+    "futures": {
+      "status": 200,
+      "source": "https://fapi.binance.com/fapi/v1/exchangeInfo",
+      "observedAt": "2026-11-23T04:25:22.954Z",
+      "hash": "4e8ebcf343ef5fd2fac7f24495efddf9032560ec98c85d080a8120b832f76cf4",
+      "symbols": 956,
+      "contractIdentityPresent": false
+    },
+    "alchemyCalls": 0,
+    "outsideWorkerLedger": true
+  },
+  "productionEvidence": {
+    "at": "2026-11-23T04:38:21.970873+00:00",
+    "registryAt": "2026-11-23T04:27:56.024+00:00",
+    "current": 377,
+    "transfers": 318,
+    "swaps": 18,
+    "solanaSamples": 1595,
+    "holderSnapshots": 1,
+    "relationships": 162,
+    "graph": {
+      "at": "2026-11-23T04:26:55.006Z",
+      "truncated": false,
+      "swapSample": 18,
+      "connections": 162,
+      "repeatedPairs": [
+        {
+          "pair": "56:0x278d858f05b94576c1e6f73285886876ff6ef8d2:0x7817dbf38e9d1c95671625f0052c147864692fe0",
+          "tokenIds": [
+            "849148296948883365e076a2d1deafdf",
+            "89f0f6b561eef86f60a4fcf2bf9ba551"
+          ],
+          "commonOwnership": false
+        },
+        {
+          "pair": "56:0x1ef25b4b44627b1bf63293034156e8ddc308c8e9:0x78c7d83156188cd1e8260036ba327fb03df278de",
+          "tokenIds": [
+            "02b8607a08c873612d66ec9bce1fb7bb",
+            "9fa56c3f224ffc45e061fc5f91a7a509"
+          ],
+          "commonOwnership": false
+        },
+        {
+          "pair": "56:0x1ef25b4b44627b1bf63293034156e8ddc308c8e9:0x7e59e1fb5cb8c809227c65d546ec0881e3e2d2b5",
+          "tokenIds": [
+            "02b8607a08c873612d66ec9bce1fb7bb",
+            "9fa56c3f224ffc45e061fc5f91a7a509",
+            "89f0f6b561eef86f60a4fcf2bf9ba551"
+          ],
+          "commonOwnership": false
+        },
+        {
+          "pair": "56:0x78c7d83156188cd1e8260036ba327fb03df278de:0x7e59e1fb5cb8c809227c65d546ec0881e3e2d2b5",
+          "tokenIds": [
+            "02b8607a08c873612d66ec9bce1fb7bb",
+            "9fa56c3f224ffc45e061fc5f91a7a509"
+          ],
+          "commonOwnership": false
+        },
+        {
+          "pair": "56:0x11eacd2bedd700a5e21ff70dea4086305100e5e0:0x1ef25b4b44627b1bf63293034156e8ddc308c8e9",
+          "tokenIds": [
+            "9fa56c3f224ffc45e061fc5f91a7a509",
+            "89f0f6b561eef86f60a4fcf2bf9ba551"
+          ],
+          "commonOwnership": false
+        },
+        {
+          "pair": "56:0x11eacd2bedd700a5e21ff70dea4086305100e5e0:0x7e59e1fb5cb8c809227c65d546ec0881e3e2d2b5",
+          "tokenIds": [
+            "9fa56c3f224ffc45e061fc5f91a7a509",
+            "89f0f6b561eef86f60a4fcf2bf9ba551"
+          ],
+          "commonOwnership": false
+        },
+        {
+          "pair": "56:0x11eacd2bedd700a5e21ff70dea4086305100e5e0:0x278d858f05b94576c1e6f73285886876ff6ef8d2",
+          "tokenIds": [
+            "1e6bef01671cf458649a5c2fc3196b42",
+            "89f0f6b561eef86f60a4fcf2bf9ba551"
+          ],
+          "commonOwnership": false
+        }
+      ],
+      "transferSample": 318,
+      "commonOwnershipVerified": false,
+      "freshWalletBirthCoverage": "unavailable"
+    },
+    "signals": 0,
+    "futuresMappings": 1,
+    "derivatives": 1,
+    "dbBytes": 140443648,
+    "latestMigration": "0015_research_context.sql",
+    "usage": [
+      {
+        "scope": "alchemy:month",
+        "period_start": "2026-11-01T00:00:00+00:00",
+        "used": 3518
+      },
+      {
+        "scope": "alchemy:day",
+        "period_start": "2026-11-22T00:00:00+00:00",
+        "used": 3200
+      },
+      {
+        "scope": "requests:binance_alpha",
+        "period_start": "2026-11-22T00:00:00+00:00",
+        "used": 218
+      },
+      {
+        "scope": "requests:rpc:1",
+        "period_start": "2026-11-22T00:00:00+00:00",
+        "used": 16
+      },
+      {
+        "scope": "requests:rpc:56",
+        "period_start": "2026-11-22T00:00:00+00:00",
+        "used": 93
+      },
+      {
+        "scope": "requests:rpc:8453",
+        "period_start": "2026-11-22T00:00:00+00:00",
+        "used": 8
+      },
+      {
+        "scope": "requests:rpc:CT_501",
+        "period_start": "2026-11-22T00:00:00+00:00",
+        "used": 28
+      },
+      {
+        "scope": "alchemy:day",
+        "period_start": "2026-11-23T00:00:00+00:00",
+        "used": 318
+      },
+      {
+        "scope": "requests:binance_alpha",
+        "period_start": "2026-11-23T00:00:00+00:00",
+        "used": 19
+      },
+      {
+        "scope": "requests:binance_futures",
+        "period_start": "2026-11-23T00:00:00+00:00",
+        "used": 8
+      },
+      {
+        "scope": "requests:rpc:1",
+        "period_start": "2026-11-23T00:00:00+00:00",
+        "used": 5
+      },
+      {
+        "scope": "requests:rpc:56",
+        "period_start": "2026-11-23T00:00:00+00:00",
+        "used": 9
+      }
+    ],
+    "chains": [
+      {
+        "chain_id": "1",
+        "tokens": 19
+      },
+      {
+        "chain_id": "146",
+        "tokens": 4
+      },
+      {
+        "chain_id": "42161",
+        "tokens": 2
+      },
+      {
+        "chain_id": "4663",
+        "tokens": 5
+      },
+      {
+        "chain_id": "56",
+        "tokens": 287
+      },
+      {
+        "chain_id": "8453",
+        "tokens": 26
+      },
+      {
+        "chain_id": "CT_195",
+        "tokens": 3
+      },
+      {
+        "chain_id": "CT_501",
+        "tokens": 22
+      },
+      {
+        "chain_id": "CT_784",
+        "tokens": 9
+      }
+    ],
+    "retryJobs": [
+      {
+        "chain_id": "1",
+        "last_error": "COLLECTION_STOPPED",
+        "jobs": 1
+      },
+      {
+        "chain_id": "56",
+        "last_error": "PROVIDER_DEFERRED",
+        "jobs": 7
+      },
+      {
+        "chain_id": "56",
+        "last_error": "STALE_MEMBERSHIP",
+        "jobs": 1
+      },
+      {
+        "chain_id": "CT_501",
+        "last_error": "CONNECT_TIMEOUT",
+        "jobs": 1
+      }
+    ],
+    "collectorLocks": 0,
+    "holderDetails": [
+      {
+        "token_id": "0a53730039c5cee6547ed9478001dbc2",
+        "observed_at": "2026-11-23T04:28:58.5+00:00",
+        "coverage": "observed_sample",
+        "checkpoint": "134603932",
+        "total_raw": "6285147660185239284478",
+        "supply_verified": "true",
+        "sampled_addresses": 0
+      }
+    ],
+    "derivativeDetails": [
+      {
+        "token_id": "4b0a9eee412fc1c1bb8e069480d30a6e",
+        "symbol": "PIEVERSEUSDT",
+        "observed_at": "2026-11-23T04:37:37.281+00:00",
+        "provider_time": "2026-11-23T04:37:21.328+00:00",
+        "open_interest": {
+          "time": 1795408641328,
+          "symbol": "PIEVERSEUSDT",
+          "openInterest": "12850475"
+        },
+        "funding": {
+          "time": 1795408647000,
+          "symbol": "PIEVERSEUSDT",
+          "markPrice": "3.62880000",
+          "indexPrice": "3.62177633",
+          "lastFundingRate": "0.00011378",
+          "nextFundingTime": 1795420800000
+        },
+        "account_ratio": [
+          {
+            "symbol": "PIEVERSEUSDT",
+            "timestamp": 1795406400000,
+            "longAccount": "0.3485",
+            "shortAccount": "0.6515",
+            "longShortRatio": "0.5349"
+          }
+        ],
+        "oi_history": [
+          {
+            "symbol": "PIEVERSEUSDT",
+            "timestamp": 1795402800000,
+            "sumOpenInterest": "13047448.00000000",
+            "sumOpenInterestValue": "43496352.94232392"
+          },
+          {
+            "symbol": "PIEVERSEUSDT",
+            "timestamp": 1795406400000,
+            "sumOpenInterest": "12920623.00000000",
+            "sumOpenInterestValue": "44692581.21845236"
+          }
+        ],
+        "futures_ticker": {
+          "symbol": "PIEVERSEUSDT",
+          "closeTime": 1795408649404,
+          "quoteVolume": "858377962.6749000",
+          "priceChangePercent": "6.750"
+        },
+        "source_hashes": [
+          "8d43d020ab537284593f8840927c649cfd8a8223fb41c8245785c666680cc035",
+          "a2eb5121d85d214baf9f4b6c9bc138f0bf943a065b4f0838fbd40ad142c20e2e",
+          "75afc7d51e99afedcef6ea8b90169f680768cbcc562b170a4f3ecb0f7ba220f7",
+          "212d357f5236f7b7e4af73fc265cc4c01da9380df958b7346bc3d1f8c58d926d",
+          "fcc6a982ce3586dc655b201d25b80fe9600d0ab2c38219245402550639c707bd"
+        ]
+      }
+    ],
+    "graphRules": [
+      {
+        "rule": "shared_token_source",
+        "edges": 162,
+        "ownership_claims": 0
+      }
+    ],
+    "probeToken": [
+      {
+        "id": "0d7c77c16007c859e0d14cb155ce1218",
+        "symbol": "CP",
+        "chain_id": "8453",
+        "contract": "0x001aad84c21a5cd4d696c56d44866e9703c43f77",
+        "status": "done",
+        "run_after": "2026-11-21T09:47:15.088063+00:00"
+      },
+      {
+        "id": "15dfd0574e68f7249f94dd8de806312b",
+        "symbol": "TRUST",
+        "chain_id": "8453",
+        "contract": "0x6cd905df2ed214b22e0d48ff17cd4200c1c6d8a3",
+        "status": "done",
+        "run_after": "2026-11-21T09:48:06.523134+00:00"
+      },
+      {
+        "id": "22526e0a661481ee12e00b232505ca40",
+        "symbol": "FLOCK",
+        "chain_id": "8453",
+        "contract": "0x5ab3d4c385b400f3abb49e80de2faf6a88a7b691",
+        "status": "done",
+        "run_after": "2026-11-21T09:58:49.557626+00:00"
+      },
+      {
+        "id": "27e9584b15808e92fbd6fdb044e8aeea",
+        "symbol": "H",
+        "chain_id": "1",
+        "contract": "0xe76c5b78f93909d34404e9eb4c1f19e7582a5de1",
+        "status": "done",
+        "run_after": "2026-11-21T10:08:27.171661+00:00"
+      }
+    ]
+  },
+  "boundedWorker": {
+    "marketObservations": 15,
+    "completedScanEvents": [
+      {
+        "event": "scan",
+        "token": "VRTon",
+        "chain": "56",
+        "from": 134603923,
+        "to": 134603932,
+        "events": 0,
+        "detection": "Incomplete or stale scan"
+      }
+    ],
+    "interruptedJobs": [
+      {
+        "event": "job_deferred",
+        "kind": "market",
+        "key": "market",
+        "retryInSeconds": 1,
+        "error": "COLLECTION_STOPPED"
+      },
+      {
+        "event": "job_deferred",
+        "kind": "scan",
+        "key": "scan:4f4b7b808aa894efb608953d53155f36",
+        "retryInSeconds": 1,
+        "error": "COLLECTION_STOPPED"
+      }
+    ],
+    "heartbeatAfter": {
+      "at": "2026-11-23T04:29:17.615Z",
+      "owner": "375a121e-96d2-418a-b698-d375e8cc6bab",
+      "stopped": true,
+      "platform": "local"
+    },
+    "newCanonicalTransfers": 0,
+    "newSolanaSamples": 0,
+    "newSignals": 0,
+    "continuousWorkerActivated": false
+  },
+  "budgets": {
+    "ledgerBeforeNovemberCU": 3200,
+    "ledgerAfterNovemberCU": 3518,
+    "newRunEstimatedAlchemyCU": 318,
+    "finalFuturesDailyRequests": 8,
+    "futuresDailyLimit": 5000,
+    "alchemyMonthlyLimit": 27000000,
+    "accountBillingVerified": false,
+    "neonComputeUsageMeasured": false,
+    "databaseBytesAtStatus": 140410880,
+    "databaseStatusAt": "2026-11-23T04:37:10.595Z"
+  },
+  "verification": {
+    "tests": 128,
+    "testFiles": 21,
+    "browserJourneys": 6,
+    "newCasesSinceB2642e9": 15,
+    "supportedNodeMajor": 22,
+    "productionOwnerSessionAvailable": false
+  },
+  "caveats": [
+    "Existing canonical transfer/swap/Solana counts were measured, not newly discovered blockchain activity.",
+    "Graph edges preserve alternative explanations and do not establish common ownership.",
+    "One historical checkpoint totalSupply is not a holder census or current supply.",
+    "One local Futures observation cannot establish an OI/price trend or liquidation cause.",
+    "Provider responses are time-bound; no full-universe freshness SLA or hosted soak has passed."
+  ]
+}

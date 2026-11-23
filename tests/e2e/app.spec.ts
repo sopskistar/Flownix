@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
+import { sqlClient, closeDb } from "../../packages/db/src/index";
 
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -278,4 +279,110 @@ test("in-app notification and journal persist without external credentials", asy
   await page.getByRole("button", { name: "Save note" }).click();
   await expect(page.getByText("Journal note saved")).toBeVisible();
   await expect(page.getByText(note, { exact: true })).toBeVisible();
+});
+
+test("token research intake preserves claims, revisions and Solana wallet identity", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(240000);
+  test.skip(!process.env.DATABASE_URL, "Requires local PostgreSQL");
+  const host = new URL(process.env.DATABASE_URL!).hostname;
+  if (!["localhost", "127.0.0.1"].includes(host))
+    throw Error("Browser fixtures require local PostgreSQL");
+  const sql = sqlClient(),
+    contract = "0x" + "f".repeat(40),
+    id = createHash("sha256")
+      .update(`56:${contract}`)
+      .digest("hex")
+      .slice(0, 32);
+  try {
+    await sql`INSERT INTO alpha_tokens(id,chain_id,contract,symbol,name,token_id,alpha_id,status,first_seen,last_seen,source,response_hash,metadata) VALUES(${id},'56',${contract},'LOCAL_TEST','Local browser fixture','local-browser-only','LOCAL_TEST','current',now(),now(),'local-test-only','local-test-only','{}')`;
+    await navigate(page, `/token/${id}`);
+    await expect(
+      page.getByRole("heading", {
+        name: "Supply concentration & connected wallets",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Unavailable — a complete reconciled holder census is required",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await page
+      .getByText("Add a source-linked research lead", { exact: true })
+      .click();
+    await page
+      .getByLabel("Original source URL", { exact: true })
+      .fill("https://example.com/local-browser-research-fixture");
+    await page
+      .getByLabel("Claimed publication (ISO UTC, optional)", { exact: true })
+      .fill("2020-01-01T00:00:00Z");
+    await page
+      .getByLabel("Research summary and contradictory evidence", {
+        exact: true,
+      })
+      .fill(
+        "Local browser fixture only. An unverified source-linked research lead.",
+      );
+    await page
+      .getByRole("button", { name: "Save research lead", exact: true })
+      .click();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Source-linked lead saved" }),
+    ).toBeVisible();
+    const lead = (
+      await sql`SELECT * FROM research_leads WHERE token_id=${id}`
+    )[0];
+    expect(lead.status).toBe("manual_lead");
+    expect(lead.published_at).toBeNull();
+    expect(lead.verified_at).toBeNull();
+    expect(new Date(lead.first_observed_at).getUTCFullYear()).toBeGreaterThan(
+      2020,
+    );
+    const revision = await request.post("/api/actions", {
+      headers: { Origin: "http://127.0.0.1:3047" },
+      data: {
+        action: "research_lead",
+        tokenId: id,
+        kind: "social",
+        sourceUrl: "https://example.com/local-browser-research-fixture",
+        revisionOf: lead.id,
+        body: "Local-only revision preserving contradictory evidence and original observation.",
+      },
+    });
+    expect(revision.status()).toBe(200);
+    expect(
+      (await sql`SELECT id FROM research_leads WHERE token_id=${id}`).length,
+    ).toBe(2);
+    for (const [name, width, height] of [
+      ["desktop", 1440, 1000],
+      ["phone", 390, 844],
+    ] as const) {
+      await page.setViewportSize({ width, height });
+      await page.reload();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `artifacts/screenshots/research-token-${name}.png`,
+        fullPage: true,
+      });
+    }
+    const mint = "So11111111111111111111111111111111111111112";
+    await navigate(page, `/wallet/CT_501/${mint}`);
+    await expectPageReady(page, "Wallet Detective");
+    await expect(
+      page.getByRole("link", { name: "View on explorer" }),
+    ).toHaveAttribute("href", `https://solscan.io/account/${mint}`);
+  } finally {
+    await sql`DELETE FROM research_leads WHERE token_id=${id} AND revision_of IS NOT NULL`;
+    await sql`DELETE FROM research_leads WHERE token_id=${id}`;
+    await sql`DELETE FROM alpha_tokens WHERE id=${id}`;
+    await closeDb();
+  }
 });

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { collectPassiveSwaps } from "./passive-swaps";
 import { scanSolanaToken } from "./solana";
+import { collectEvmSupply } from "./supply";
 import {
   AlphaProvider,
   bookQuote,
@@ -428,6 +429,8 @@ export async function scanToken(
       await sql.begin(async (tx) => {
         await tx`UPDATE token_transfers SET canonical=false WHERE token_id=${id}`;
         await tx`UPDATE wallet_balance_snapshots SET canonical=false WHERE token_id=${id}`;
+        await tx`UPDATE holder_metrics SET canonical=false WHERE token_id=${id}`;
+        await tx`UPDATE pool_liquidity_observations SET canonical=false WHERE token_id=${id}`;
         await tx`UPDATE signal_events SET status='reorg_invalidated' WHERE token_id=${id}`;
         await tx`UPDATE receipt_evidence SET canonical=false WHERE token_id=${id}`;
         await tx`UPDATE verified_swaps SET canonical=false WHERE token_id=${id}`;
@@ -648,5 +651,13 @@ export async function scanToken(
       events: transfers.length,
       detection: result.reason,
     }),
+  );
+  await collectEvmSupply(
+    t as { id: string; chain_id: string; contract: string },
+    rpc,
+    to,
+    blocks.get(to)!.data.hash.toLowerCase(),
+    endTime,
+    decimals,
   );
 }

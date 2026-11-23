@@ -126,3 +126,8 @@ Actual rendered screenshots were captured and opened at 1440px desktop, 820px ta
 A fresh Impeccable finish reviewer approved **shipping the provider-unavailable foundation**, with no material visual blocker. Its selected-alert-filter refinement was implemented and recaptured. This review does not pass live-data acceptance. Populated tables, real chart overlays and longitudinal wallet patterns cannot be visually certified without observed data.
 
 Impeccable's static detector returned no primary findings. Hallmark's static scan returned **0 FAIL, 33 REFLEX, 0 WARN**: the off-grid compact terminal spacing is explicitly waived in CSS to preserve 44px targets and readable dense rows. Its standalone render tier was not used; actual rendering/interaction evidence comes from Playwright screenshots and inspection. No blanket WCAG or screen-reader certification is claimed.
+
+
+## Research context verification — 2026-11-23
+
+128 tests across 21 files pass on Node 22, including isolated PostgreSQL rollback checks for durable five-chain fairness, provider quota boundaries and atomic graph upsert/retirement. Research tests cover exact contracts, source/label timing, insufficient census data, operational exclusions, non-Latin Futures instruments, empty proof hashes, stale derivatives/social data, turnover false positives, missing liquidity and purged historical outcome overlap. Six local authenticated browser journeys passed; source-linked intake/revisions and case-sensitive Solana wallet links were exercised. Desktop/phone Token Intelligence and Wallet Intelligence screenshots were opened and inspected. Fixture records were local-only and removed afterward. See [dated evidence and limits](RESEARCH_CONTEXT_2026-11-23.md).

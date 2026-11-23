@@ -7,6 +7,8 @@ import {
   evaluateAccumulationThesis,
   freshness,
   providerReads,
+  supplyConcentration,
+  hashResponse,
   type Transfer,
   type ResearchSwap,
   type ResearchBalance,
@@ -98,6 +100,32 @@ export async function walletResearchSync() {
     const qualifiedStart = new Date(
       Math.max(Date.parse(observedStart), new Date(token.first_seen).getTime()),
     ).toISOString();
+    const [holderContext, graphContext, derivativeContext] =
+      await providerReads([
+        sql`SELECT evidence FROM holder_metrics WHERE token_id=${token.id} AND canonical AND observed_at<=${now} ORDER BY observed_at DESC LIMIT 1`,
+        sql`SELECT chain_id,address_a,address_b,rule,confidence,evidence,observed_at FROM wallet_relationships WHERE token_id=${token.id} AND observed_at<=${now} ORDER BY observed_at DESC LIMIT 20`,
+        sql`SELECT symbol,provider_time,observed_at,evidence FROM derivatives_observations WHERE token_id=${token.id} AND observed_at<=${now} ORDER BY observed_at DESC LIMIT 1`,
+      ]);
+    const researchContext = {
+      computedAt: now,
+      availableAt: now,
+      stage: "candidate_context_only",
+      validatedStrategy: false,
+      supply: holderContext[0]
+        ? supplyConcentration(
+            holderContext[0].evidence,
+            attribution.map((l) => ({ ...l, chain: token.chain_id })),
+            now,
+          )
+        : { status: "unavailable" },
+      walletConnections: graphContext,
+      derivatives: derivativeContext,
+      socialFeed:
+        "unavailable; manual research leads are excluded from automatic mention statistics",
+      caveat:
+        "Context is available only after its collection/review timestamps; it does not override retention, membership, independence or market freshness gates",
+    };
+    await sql`INSERT INTO research_feature_snapshots(feature_hash,kind,computed_at,available_at,evidence) VALUES(${hashResponse(JSON.stringify({ tokenId: token.id, ...researchContext }))},'token_research_context',${now},${now},${jsonParam({ tokenId: token.id, ...researchContext })}::jsonb) ON CONFLICT DO NOTHING`;
     const transferEnd = windows.at(-1)?.end_time
       ? new Date(windows.at(-1)!.end_time).toISOString()
       : null;
@@ -159,6 +187,7 @@ export async function walletResearchSync() {
         ? swapCoverage[0].complete / swapCoverage[0].windows
         : 0;
       const metrics = {
+        context: researchContext,
         state: "INSUFFICIENT EVIDENCE",
         observedDays,
         windowDays: days,

@@ -10,6 +10,8 @@ import {
   pancakeFactorySource,
   type PoolIdentity,
   networkErrorCode,
+  providerReads,
+  ProviderError,
 } from "@flownix/core";
 import { sqlClient, jsonParam, auditRequest, saveSource } from "@flownix/db";
 
@@ -162,6 +164,28 @@ export async function collectPassiveSwaps(
     }
     const complete = !failed && observation.data.length <= cap;
     await sql`INSERT INTO swap_scan_windows(token_id,chain_id,pool_address,from_block,to_block,observed_at,event_count,decoded_count,attributed_count,complete,reason) VALUES(${t.id},${t.chain_id},${pool.address},${from},${to},${observation.observedAt},${observation.data.length},${decoded},${attributed},${complete},${complete ? "All swaps in this one pool/window decoded; global market coverage remains partial" : "Partial sample: receipt budget or verification failure; do not extrapolate net buying"}) ON CONFLICT DO NOTHING`;
+    try {
+      const quote = pool.token0 === t.contract ? pool.token1 : pool.token0;
+      const [baseBalance, quoteBalance, liquidityBlock] = await providerReads([
+        rpc.balance(pool.address, t.contract, to),
+        rpc.balance(pool.address, quote, to),
+        rpc.block(to),
+      ]);
+      await saveSource(`rpc:${t.chain_id}`, baseBalance);
+      await saveSource(`rpc:${t.chain_id}`, quoteBalance);
+      await saveSource(`rpc:${t.chain_id}`, liquidityBlock);
+      await sql`INSERT INTO pool_liquidity_observations(token_id,chain_id,pool_address,block_number,block_hash,block_time,available_at,evidence) VALUES(${t.id},${t.chain_id},${pool.address},${to},${liquidityBlock.data.hash},${new Date(Number(BigInt(liquidityBlock.data.timestamp)) * 1000).toISOString()},${quoteBalance.observedAt},${jsonParam({ kind: "concentrated_liquidity", tokenRaw: baseBalance.data, quoteRaw: quoteBalance.data, quoteContract: quote, responseHashes: [baseBalance.hash, quoteBalance.hash, liquidityBlock.hash], poolProof: pool, effectiveDepth: null, note: "Verified V3 pool balances, not executable depth or a constant-product reserve model" })}::jsonb) ON CONFLICT(token_id,chain_id,pool_address,block_number) DO UPDATE SET block_hash=excluded.block_hash,block_time=excluded.block_time,available_at=excluded.available_at,evidence=excluded.evidence,canonical=true`;
+    } catch (error) {
+      if (
+        error instanceof ProviderError &&
+        (error.retryAt ||
+          ["COLLECTION_STOPPED", "PROCESS_REQUEST_BUDGET_EXHAUSTED"].includes(
+            error.code,
+          ))
+      )
+        throw error;
+      await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${t.id},'pancake_v3','liquidity_history_unavailable','Pool balance snapshot unavailable; existing swap collection continues without an executable-depth assumption.')`;
+    }
   } catch (error) {
     const code = networkErrorCode(error);
     await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${t.id},'passive_swaps','swap_scan_unavailable',${code})`;

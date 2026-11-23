@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-22T18:32:59.652Z",
-  "assumptions": "30 days/720 hours. EVM cursor scan 176 CU (chain identity 0, head 10, logs 60, code 20, decimals 26, prior/from/to blocks 60); extra event blocks/balances/receipts/retries add cost. Solana upper ordinary 20-account sample 1870 CU (70 setup +20*(10 account+40 signatures+40 transaction)); not an all-holder census. All methods priced from official Alchemy table checked 2026-11-22. Existing profiles include stalls and bounded runs; projections are not sustained-throughput measurements or account billing. PAYG replaces the free allowance and charges every CU.",
+  "generatedAt": "2026-11-23T04:37:47.331Z",
+  "assumptions": "30 days/720 hours. EVM cursor scan 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks/balances/receipts/retries and optional pool snapshots add cost. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses existing responses. Local graph research makes no external requests. Futures uses public Binance requests, not Alchemy. All methods priced from official Alchemy table checked 2026-11-22. Profiles include stalls and bounded runs; projections are not sustained throughput measurements or account billing. PAYG replaces the free allowance and charges every CU.",
   "measuredRuns": [
     {
       "file": "worker-2026-11-21T13-38-00.672Z.json",
@@ -107,52 +107,52 @@
     {
       "evmIntervalHours": 1,
       "solanaIntervalHours": 6,
-      "evmTokens": 335,
+      "evmTokens": 334,
       "solanaTokens": 22,
-      "monthlyCU": 47388000,
-      "free30MHeadroomCU": -17388000,
-      "configured27MHeadroomCU": -20388000,
-      "paygTotalUSD": 21.3246
+      "monthlyCU": 53513760,
+      "free30MHeadroomCU": -23513760,
+      "configured27MHeadroomCU": -26513760,
+      "paygTotalUSD": 24.081191999999998
     },
     {
       "evmIntervalHours": 2,
       "solanaIntervalHours": 6,
-      "evmTokens": 335,
+      "evmTokens": 334,
       "solanaTokens": 22,
-      "monthlyCU": 26162400,
-      "free30MHeadroomCU": 3837600,
-      "configured27MHeadroomCU": 837600,
-      "paygTotalUSD": 11.77308
+      "monthlyCU": 29225280,
+      "free30MHeadroomCU": 774720,
+      "configured27MHeadroomCU": -2225280,
+      "paygTotalUSD": 13.151376
     },
     {
       "evmIntervalHours": 3,
       "solanaIntervalHours": 6,
-      "evmTokens": 335,
+      "evmTokens": 334,
       "solanaTokens": 22,
-      "monthlyCU": 19087200,
-      "free30MHeadroomCU": 10912800,
-      "configured27MHeadroomCU": 7912800,
-      "paygTotalUSD": 8.58924
+      "monthlyCU": 21129120,
+      "free30MHeadroomCU": 8870880,
+      "configured27MHeadroomCU": 5870880,
+      "paygTotalUSD": 9.508104000000001
     },
     {
       "evmIntervalHours": 4,
       "solanaIntervalHours": 6,
-      "evmTokens": 335,
+      "evmTokens": 334,
       "solanaTokens": 22,
-      "monthlyCU": 15549600,
-      "free30MHeadroomCU": 14450400,
-      "configured27MHeadroomCU": 11450400,
-      "paygTotalUSD": 6.99732
+      "monthlyCU": 17081040,
+      "free30MHeadroomCU": 12918960,
+      "configured27MHeadroomCU": 9918960,
+      "paygTotalUSD": 7.6864680000000005
     },
     {
       "evmIntervalHours": 6,
       "solanaIntervalHours": 6,
-      "evmTokens": 335,
+      "evmTokens": 334,
       "solanaTokens": 22,
-      "monthlyCU": 12012000,
-      "free30MHeadroomCU": 17988000,
-      "configured27MHeadroomCU": 14988000,
-      "paygTotalUSD": 5.4054
+      "monthlyCU": 13032960,
+      "free30MHeadroomCU": 16967040,
+      "configured27MHeadroomCU": 13967040,
+      "paygTotalUSD": 5.864832
     }
   ],
   "neon": {
@@ -167,7 +167,7 @@
     "launchHistoryUSDPerChangedGBMonth": 0.2,
     "freeStorageGB": 1,
     "freeEgressGB": 5,
-    "measuredDatabaseBytes": 129638400,
+    "measuredDatabaseBytes": 140410880,
     "accountUsageVerified": false
   },
   "host": {

@@ -113,3 +113,6 @@ flowchart LR
 **Technical documentation and proof:** [Architecture](docs/ARCHITECTURE.md) · [Deployment](docs/DEPLOYMENT.md) · [Worker procedures](docs/WORKER_DEPLOYMENT.md) · [Operations](docs/OPERATIONS.md) · [Evidence limits](docs/DATA_COVERAGE.md) · [CI](.github/workflows/ci.yml).
 
 **Evidence boundary:** The current worker is not a continuously operating production collector. Terraform, Kubernetes, Redis queues and proven backup/restore are **not** claimed unless later implemented and tested.
+
+
+Latest operational research: [Grok/X addendum implementation and actual live verification](docs/RESEARCH_CONTEXT_2026-11-23.md). Includes exact-identity Futures research, conservative wallet graphs, coverage-aware supply analysis and source-linked catalyst intake. The worker remains unactivated pending hosting/database capacity approval; all historical strategy requirements remain mandatory.

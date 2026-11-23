@@ -1212,3 +1212,16 @@ input,
 textarea {
   caret-color: var(--accent);
 }
+
+.research-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+}
+.research-facts > div { min-width: 0; }
+.research-facts dt { color: var(--muted); }
+.research-facts dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .research-facts { grid-template-columns: minmax(0, 1fr); }
+}

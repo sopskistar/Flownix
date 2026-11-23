@@ -46,7 +46,7 @@ const solana =
     (c: { chain_id: string }) => c.chain_id === "CT_501",
   )?.online ?? 0;
 const scenarios = [1, 2, 3, 4, 6].map((hours) => {
-  const units = Math.round(evm * (720 / hours) * 176 + solana * 120 * 1870);
+  const units = Math.round(evm * (720 / hours) * 202 + solana * 120 * 1870);
   return {
     evmIntervalHours: hours,
     solanaIntervalHours: 6,
@@ -61,7 +61,7 @@ const scenarios = [1, 2, 3, 4, 6].map((hours) => {
 const report = {
   generatedAt: new Date().toISOString(),
   assumptions:
-    "30 days/720 hours. EVM cursor scan 176 CU (chain identity 0, head 10, logs 60, code 20, decimals 26, prior/from/to blocks 60); extra event blocks/balances/receipts/retries add cost. Solana upper ordinary 20-account sample 1870 CU (70 setup +20*(10 account+40 signatures+40 transaction)); not an all-holder census. All methods priced from official Alchemy table checked 2026-11-22. Existing profiles include stalls and bounded runs; projections are not sustained-throughput measurements or account billing. PAYG replaces the free allowance and charges every CU.",
+    "30 days/720 hours. EVM cursor scan 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks/balances/receipts/retries and optional pool snapshots add cost. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses existing responses. Local graph research makes no external requests. Futures uses public Binance requests, not Alchemy. All methods priced from official Alchemy table checked 2026-11-22. Profiles include stalls and bounded runs; projections are not sustained throughput measurements or account billing. PAYG replaces the free allowance and charges every CU.",
   measuredRuns: runs,
   cadenceScenarios: scenarios,
   neon: {

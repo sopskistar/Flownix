@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { walletResearchSync } from "./wallet-research";
+import { graphResearchSync } from "./graph-research";
 import {
   config,
   quoteUsable,
@@ -68,6 +69,7 @@ export async function queueResearchAlerts() {
   }
 }
 export async function persistenceSync() {
+  await graphResearchSync();
   await walletResearchSync();
 }
 function candle(r: Record<string, unknown>): Candle {

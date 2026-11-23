@@ -52,7 +52,9 @@ export async function reserveWorkerRequest(
       limit:
         request.provider === "binance_alpha"
           ? c.ALPHA_DAILY_REQUEST_LIMIT
-          : c.RPC_DAILY_REQUEST_LIMIT,
+          : request.provider === "binance_futures"
+            ? c.FUTURES_DAILY_REQUEST_LIMIT
+            : c.RPC_DAILY_REQUEST_LIMIT,
     },
   ];
   if (request.alchemyRequests)
@@ -110,21 +112,24 @@ export function workerRequestPolicy(client = sqlClient()): RequestPolicy {
         !a.ok &&
         (a.status === null ||
           a.status === 403 ||
+          a.status === 451 ||
           a.status === 429 ||
           (a.status ?? 0) >= 500);
       if (!a.ok && !infrastructureFailure) return;
       const delay = a.ok
         ? 0
-        : a.status === 403
-          ? 3600
-          : a.status === 429
-            ? Math.max(60, a.retryAfterSeconds ?? 60)
-            : 120;
+        : a.status === 451
+          ? 86400
+          : a.status === 403
+            ? 3600
+            : a.status === 429
+              ? Math.max(60, a.retryAfterSeconds ?? 60)
+              : 120;
       await client`INSERT INTO worker_provider_state(provider,failures,blocked_until,reason)
-        VALUES(${a.provider},${a.ok ? 0 : 1},now()+(${!a.ok && (a.status === 403 || a.status === 429) ? delay : 0}*interval '1 second'),${a.error})
+        VALUES(${a.provider},${a.ok ? 0 : 1},now()+(${!a.ok && [403, 429, 451].includes(a.status ?? 0) ? delay : 0}*interval '1 second'),${a.error})
         ON CONFLICT(provider) DO UPDATE SET
           failures=CASE WHEN ${a.ok} THEN 0 ELSE worker_provider_state.failures+1 END,
-          blocked_until=CASE WHEN worker_provider_state.blocked_until>now() THEN worker_provider_state.blocked_until WHEN ${a.ok} THEN now() WHEN ${a.status === 403 || a.status === 429} OR worker_provider_state.failures>=2 THEN now()+(${delay}*interval '1 second') ELSE now() END,
+          blocked_until=CASE WHEN worker_provider_state.blocked_until>now() THEN worker_provider_state.blocked_until WHEN ${a.ok} THEN now() WHEN ${[403, 429, 451].includes(a.status ?? 0)} OR worker_provider_state.failures>=2 THEN now()+(${delay}*interval '1 second') ELSE now() END,
           reason=CASE WHEN worker_provider_state.blocked_until>now() THEN worker_provider_state.reason ELSE excluded.reason END,updated_at=now()`;
     },
   };

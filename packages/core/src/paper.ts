@@ -149,3 +149,106 @@ export function chronologicalSplit<T extends { at: string }>(
     test: rows.filter((r) => r.at >= cutoff),
   };
 }
+
+export type PatternExample = {
+  tokenId: string;
+  setupAt: string;
+  membershipAvailableAt: string;
+  featureAvailableAt: string;
+  outcomeAvailableAt: string;
+  featurePresent: boolean;
+  netReturnPct: string;
+  baselineNetReturnPct: string;
+  maxDrawdownPct: string;
+  costsAndCoverageComplete: boolean;
+};
+/** Descriptive candidate audit, never an automatic validation or confidence score. */
+export function researchPatternComparison(
+  rows: PatternExample[],
+  cutoff: string,
+  asOf: string,
+  multipliers = [2, 3, 5, 10, 20, 50, 100],
+) {
+  if (multipliers.some((m) => !Number.isFinite(m) || m < 2))
+    throw Error("INVALID_RETURN_MULTIPLIER");
+  const eligible = rows
+    .filter(
+      (r) =>
+        r.costsAndCoverageComplete &&
+        /^[a-f0-9]{32}$/.test(r.tokenId) &&
+        [
+          r.setupAt,
+          r.membershipAvailableAt,
+          r.featureAvailableAt,
+          r.outcomeAvailableAt,
+        ].every((at) => Number.isFinite(Date.parse(at))) &&
+        Date.parse(r.membershipAvailableAt) <= Date.parse(r.setupAt) &&
+        Date.parse(r.featureAvailableAt) <= Date.parse(r.setupAt) &&
+        Date.parse(r.setupAt) < Date.parse(r.outcomeAvailableAt) &&
+        Date.parse(r.outcomeAvailableAt) <= Date.parse(asOf) &&
+        [r.netReturnPct, r.baselineNetReturnPct, r.maxDrawdownPct].every((s) =>
+          /^-?\d+(\.\d+)?$/.test(s),
+        ),
+    )
+    .map((r) => ({ ...r, at: new Date(r.setupAt).toISOString() }));
+  const unique = [
+    ...new Map(eligible.map((r) => [`${r.tokenId}:${r.at}`, r])).values(),
+  ];
+  const split = chronologicalSplit(unique, new Date(cutoff).toISOString());
+  const purged = split.train.filter(
+    (r) => Date.parse(r.outcomeAvailableAt) > Date.parse(cutoff),
+  );
+  split.train = split.train.filter(
+    (r) => Date.parse(r.outcomeAvailableAt) <= Date.parse(cutoff),
+  );
+  const summarize = (examples: typeof unique) => ({
+    examples: examples.length,
+    independentTokenExamples: new Set(examples.map((r) => r.tokenId)).size,
+    featurePresent: examples.filter((r) => r.featurePresent).length,
+    featureAbsent: examples.filter((r) => !r.featurePresent).length,
+    outcomes: multipliers.map((multiple) => ({
+      multiple,
+      withFeature: examples.filter(
+        (r) =>
+          r.featurePresent &&
+          new Decimal(r.netReturnPct).gte((multiple - 1) * 100),
+      ).length,
+      featureWithoutThisReturn: examples.filter(
+        (r) =>
+          r.featurePresent &&
+          new Decimal(r.netReturnPct).lt((multiple - 1) * 100),
+      ).length,
+      withoutFeature: examples.filter(
+        (r) =>
+          !r.featurePresent &&
+          new Decimal(r.netReturnPct).gte((multiple - 1) * 100),
+      ).length,
+    })),
+    meanIncrementalNetReturnPct: examples.length
+      ? examples
+          .reduce(
+            (n, r) =>
+              n.plus(new Decimal(r.netReturnPct).minus(r.baselineNetReturnPct)),
+            new Decimal(0),
+          )
+          .div(examples.length)
+          .toFixed(6)
+      : null,
+    worstObservedDrawdownPct: examples.length
+      ? Decimal.min(
+          ...examples.map((r) => new Decimal(r.maxDrawdownPct)),
+        ).toFixed(6)
+      : null,
+  });
+  return {
+    stage: "candidate_hypothesis",
+    validated: false,
+    forwardTested: false,
+    rejectedForCoverageOrTiming: rows.length - unique.length,
+    purgedOverlappingOutcomes: purged.length,
+    train: summarize(split.train),
+    unseenPeriod: summarize(split.test),
+    caveat:
+      "Winner/non-winner counts and baseline differences are descriptive. Repeated setups on one token are not independent token examples; out-of-sample and forward evidence must precede strategy validation.",
+  };
+}

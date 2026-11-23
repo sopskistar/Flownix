@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { monitorWorker } from "./operations";
+import { derivativesSync } from "./derivatives";
 import { startWorkerProfile } from "./profile";
 import {
   config,
@@ -186,6 +187,7 @@ const intervals: Record<string, number> = {
   outcomes: 3600,
   persistence: 3600,
   operations: 300,
+  derivatives: 1800,
 };
 async function schedule() {
   for (const kind of [
@@ -195,6 +197,7 @@ async function schedule() {
     "outcomes",
     "persistence",
     "operations",
+    "derivatives",
   ])
     await sql`INSERT INTO worker_jobs(key,kind) VALUES(${kind},${kind}) ON CONFLICT DO NOTHING`;
   // Full current supported-chain universe; jobs persist independently and are fairly due-time scheduled.
@@ -267,6 +270,7 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     } else if (job.kind === "outcomes") await outcomesSync();
     else if (job.kind === "persistence") await persistenceSync();
     else if (job.kind === "operations") await monitorWorker();
+    else if (job.kind === "derivatives") await derivativesSync();
     const delay =
       job.kind === "market" && marketRemaining > 0
         ? 0
@@ -380,6 +384,7 @@ async function main() {
           "notifications",
           "outcomes",
           "persistence",
+          "derivatives",
         ]);
       }
       // Reserve at most one in six scan turns for overdue retries, so a fixed

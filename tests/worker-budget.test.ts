@@ -19,6 +19,7 @@ it.skipIf(!process.env.DATABASE_URL)(
       process.env.ALCHEMY_DAILY_CU_LIMIT = "100";
       process.env.ALCHEMY_MONTHLY_CU_LIMIT = "150";
       process.env.ALCHEMY_MONTHLY_UNTRACKED_CU = "50";
+      process.env.FUTURES_DAILY_REQUEST_LIMIT = "1";
       await sql.begin(async (tx) => {
         const schema = "budget_" + randomUUID().replaceAll("-", "");
         await tx.unsafe(`CREATE SCHEMA ${schema}`);
@@ -61,6 +62,35 @@ it.skipIf(!process.env.DATABASE_URL)(
           alchemyUnits: 0,
           unpriced: 0,
         });
+        const futures = {
+          provider: "binance_futures",
+          alchemyRequests: 0,
+          alchemyUnits: 0,
+          unpriced: 0,
+        };
+        await workerRequestPolicy(client).reserve(futures);
+        await expect(
+          workerRequestPolicy(client).reserve(futures),
+        ).rejects.toMatchObject({ code: "PROVIDER_BUDGET_EXHAUSTED" });
+        expect(
+          (
+            await tx`SELECT used::int FROM worker_budget_usage WHERE scope='alchemy:day'`
+          )[0].used,
+        ).toBe(60);
+        await workerRequestPolicy(client).complete({
+          provider: "binance_futures:regional",
+          at: new Date().toISOString(),
+          status: 451,
+          ok: false,
+          error: "HTTP_451",
+          latencyMs: 1,
+        });
+        await expect(
+          workerRequestPolicy(client).reserve({
+            ...futures,
+            provider: "binance_futures:regional",
+          }),
+        ).rejects.toMatchObject({ code: "PROVIDER_DEFERRED" });
 
         await expect(
           reserveWorkerRequest(

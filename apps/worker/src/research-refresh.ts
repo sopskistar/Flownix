@@ -1,4 +1,5 @@
 import { walletResearchSync } from "./wallet-research";
+import { graphResearchSync } from "./graph-research";
 import { sqlClient, closeDb } from "@flownix/db";
 import { closeProviderNetwork, networkErrorCode } from "@flownix/core";
 process.env.DATABASE_URL =
@@ -11,6 +12,7 @@ async function main() {
       !(await lock`SELECT pg_try_advisory_lock(726032) AS acquired`)[0].acquired
     )
       throw Error("COLLECTOR_BUSY");
+    await graphResearchSync();
     await walletResearchSync();
     console.log(
       JSON.stringify({

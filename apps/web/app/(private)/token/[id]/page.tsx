@@ -18,6 +18,7 @@ import {
 import { PriceChart } from "../../../../components/chart";
 import { MutationForm } from "../../../../components/forms";
 import { TokenIdentity } from "../../../../components/token-identity";
+import { TokenResearchContext } from "../../../../components/token-research-context";
 export const metadata = { title: "Token Intelligence" };
 export default async function Token({
   params,
@@ -254,6 +255,7 @@ export default async function Token({
           symbol={symbol ?? "unavailable"}
         />
       </section>
+      <TokenResearchContext token={t as { id: string; chain_id: string; contract: string }} />
       <div className="two-column">
         <section className="workbench">
           <div className="section-top">

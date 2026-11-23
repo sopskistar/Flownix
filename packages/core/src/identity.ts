@@ -38,6 +38,10 @@ export function tokenKey(chain: string, address: string) {
 export const hashResponse = (raw: string) =>
   createHash("sha256").update(raw).digest("hex");
 export const isEvmAddress = (s: string) => /^0x[0-9a-fA-F]{40}$/.test(s);
+export const isChainAddress = (chain: string, address: string) =>
+  chain === "CT_501"
+    ? /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)
+    : !!evmChains[chain] && isEvmAddress(address);
 export function configuredEvmRpc(chain: string) {
   const descriptor = evmChains[chain];
   if (!descriptor) throw new Error("UNSUPPORTED_EVM_CHAIN");
@@ -54,6 +58,15 @@ export function explorerUrl(
   kind: "tx" | "address" | "token",
   value: string,
 ): string | null {
+  if (chain === "CT_501") {
+    if (
+      !(kind === "tx"
+        ? /^[1-9A-HJ-NP-Za-km-z]{80,90}$/.test(value)
+        : isChainAddress(chain, value))
+    )
+      return null;
+    return `https://solscan.io/${kind === "address" ? "account" : kind}/${value}`;
+  }
   const c = evmChains[chain];
   if (!c) return null;
   if (kind === "tx" ? !/^0x[0-9a-fA-F]{64}$/.test(value) : !isEvmAddress(value))

@@ -1,3 +1,5 @@
+> Update: [research context and live verification (2026-11-23)](RESEARCH_CONTEXT_2026-11-23.md) adds checkpoint supply costs, persistent per-chain fairness and exact Futures research. Use the updated cost JSON for current arithmetic; the dated evidence below is preserved.
+
 # Worker readiness and cost control — 2026-11-22
 
 Continues verified release `9bfb704fba5cdcb8980a611b6c88c5ccd09b2403`. Vercel/frontend deployment was not repeated. No host, paid API, billing setting or continuous paid worker was activated. The existing Neon project, Alchemy endpoints and GitHub repository are reused.

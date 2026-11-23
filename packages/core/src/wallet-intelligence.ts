@@ -183,14 +183,25 @@ export function walletResearch(input: {
     ],
   };
 }
-function validLabel(label: EvidenceLabel, eventTime: string, asOf: string) {
+export function validEvidenceLabel(
+  label: EvidenceLabel,
+  eventTime: string,
+  asOf: string,
+) {
   return (
     label.verified &&
     !!label.entity &&
     /^https:\/\//.test(label.source) &&
-    label.availableAt <= asOf &&
-    label.validFrom <= eventTime &&
-    (!label.validTo || eventTime < label.validTo)
+    [
+      label.availableAt,
+      label.validFrom,
+      eventTime,
+      asOf,
+      ...(label.validTo ? [label.validTo] : []),
+    ].every((at) => Number.isFinite(Date.parse(at))) &&
+    Date.parse(label.availableAt) <= Date.parse(asOf) &&
+    Date.parse(label.validFrom) <= Date.parse(eventTime) &&
+    (!label.validTo || Date.parse(eventTime) < Date.parse(label.validTo))
   );
 }
 export function exchangeResearch(
@@ -223,7 +234,7 @@ export function exchangeResearch(
   >();
   const labelAt = (address: string, time: string) => {
     const rows = verified.filter(
-      (l) => l.address === address && validLabel(l, time, asOf),
+      (l) => l.address === address && validEvidenceLabel(l, time, asOf),
     );
     return new Set(rows.map((l) => l.entity)).size === 1 ? rows[0] : undefined;
   };
@@ -335,9 +346,15 @@ export function possibleRoundTrips(
     }
   }
   // Distinct sell transactions, rather than split lots, determine the repetition count.
-  const repeated = new Set(trips.map((t) => t.sell)).size >= minTrips;
+  const repeatedActors = [...new Set(trips.map((t) => t.actor))].filter(
+    (actor) =>
+      new Set(trips.filter((t) => t.actor === actor).map((t) => t.sell)).size >=
+      minTrips,
+  );
+  const repeated = repeatedActors.length > 0;
   return {
     kind: repeated ? "POSSIBLE_INCENTIVE_DRIVEN_TURNOVER" : null,
+    repeatedActors,
     trips: trips.slice(0, 100),
     matchedLotCount: trips.length,
     distinctSellEventCount: new Set(trips.map((t) => t.sell)).size,

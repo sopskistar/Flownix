@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sqlClient } from "@flownix/db";
 import {
-  isEvmAddress,
+  isChainAddress,
+  contractIdentity,
   evmChains,
   explorerUrl,
   tokenUnits,
@@ -21,12 +22,14 @@ export default async function Wallet({
 }) {
   await requireAccess();
   const { chain, address: input } = await params;
-  if (!evmChains[chain] || !isEvmAddress(input)) notFound();
-  const address = input.toLowerCase(),
+  if (!isChainAddress(chain, input)) notFound();
+  const address = contractIdentity(chain, input).contract,
     sql = sqlClient();
   const [transfers, balances, labels, notes] = await Promise.all([
     sql`SELECT e.*,t.symbol,to_jsonb(t) AS token_identity FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id WHERE e.chain_id=${chain} AND (from_address=${address} OR to_address=${address}) AND e.canonical ORDER BY event_time DESC LIMIT 100`,
-    sql`SELECT DISTINCT ON (b.token_id) b.*,t.symbol,to_jsonb(t) AS token_identity,t.metadata->>'decimals' AS decimals FROM wallet_balance_snapshots b JOIN alpha_tokens t ON t.id=b.token_id WHERE b.chain_id=${chain} AND b.address=${address} AND b.canonical ORDER BY b.token_id,b.observed_at DESC`,
+    chain === "CT_501"
+      ? sql`SELECT DISTINCT ON(b.token_id) b.*,b.post_raw::text AS raw_quantity,b.slot AS block_number,t.symbol,to_jsonb(t) AS token_identity FROM solana_balance_observations b JOIN alpha_tokens t ON t.id=b.token_id WHERE (b.owner_address=${address} OR b.token_account=${address}) AND b.canonical ORDER BY b.token_id,b.slot DESC,b.observed_at DESC`
+      : sql`SELECT DISTINCT ON (b.token_id) b.*,t.symbol,to_jsonb(t) AS token_identity,t.metadata->>'decimals' AS decimals FROM wallet_balance_snapshots b JOIN alpha_tokens t ON t.id=b.token_id WHERE b.chain_id=${chain} AND b.address=${address} AND b.canonical ORDER BY b.token_id,b.observed_at DESC`,
     sql`SELECT * FROM wallet_labels WHERE chain_id=${chain} AND address=${address} ORDER BY created_at DESC`,
     sql`SELECT * FROM manual_research_notes WHERE chain_id=${chain} AND address=${address} ORDER BY created_at DESC LIMIT 50`,
   ]);
@@ -40,7 +43,10 @@ export default async function Wallet({
       <div className="page-head">
         <div>
           <h1>Wallet Detective</h1>
-          <p>{evmChains[chain].name} / observed Alpha-token activity only</p>
+          <p>
+            {chain === "CT_501" ? "Solana" : evmChains[chain].name} / observed
+            Alpha-token activity only
+          </p>
         </div>
         <a
           className="button"
@@ -60,6 +66,9 @@ export default async function Wallet({
         locally observed Alpha tokens and transfer windows. Missing balances are
         unavailable, not zero. A common counterparty does not prove common
         control.
+        {chain === "CT_501"
+          ? " Solana rows are individual token-account samples, not aggregated owner holdings or a complete wallet census."
+          : ""}
       </div>
       <section className="workbench">
         <div className="section-top">
@@ -72,7 +81,7 @@ export default async function Wallet({
               <tr>
                 <th>Alpha token</th>
                 <th>Raw atomic balance</th>
-                <th>Block</th>
+                <th>{chain === "CT_501" ? "Finalized slot" : "Block"}</th>
                 <th>Source / time</th>
               </tr>
             </thead>
@@ -84,6 +93,9 @@ export default async function Wallet({
                   </td>
                   <td>
                     <code>{b.raw_quantity}</code>
+                    {chain === "CT_501" ? (
+                      <small>Token account {b.token_account}</small>
+                    ) : null}
                   </td>
                   <td>{b.block_number}</td>
                   <td>
@@ -98,9 +110,15 @@ export default async function Wallet({
             <div className="empty">
               <h3>No verified balance samples</h3>
               <p>
-                Balances require successful eth_call observations at a specific
-                confirmed block. Historical holding duration and cost basis
-                remain unavailable.
+                {chain === "CT_501" ? (
+                  "Only locally observed token-account/owner samples are shown; no complete wallet census or historical balance archive."
+                ) : (
+                  <>
+                    Balances require successful eth_call observations at a
+                    specific confirmed block. Historical holding duration and
+                    cost basis remain unavailable.
+                  </>
+                )}
               </p>
             </div>
           ) : null}

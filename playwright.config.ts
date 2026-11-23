@@ -12,7 +12,8 @@ export default defineConfig({
       : {},
   },
   webServer: {
-    command: "pnpm dev --webpack --port 3047",
+    command:
+      "node scripts/web.mjs dev apps/web --hostname 127.0.0.1 --webpack --port 3047",
     // Readiness should not wait on the database-backed Radar query.
     url: "http://127.0.0.1:3047/privacy",
     reuseExistingServer: false,

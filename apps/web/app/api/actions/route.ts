@@ -8,20 +8,27 @@ import {
   config,
   oauthConfiguration,
   quoteUsable,
-  isEvmAddress,
-  evmChains,
   researchStates,
   freshness,
+  researchLeadSchema,
+  isChainAddress,
+  contractIdentity,
 } from "@flownix/core";
 export const dynamic = "force-dynamic";
 const tokenId = z.string().regex(/^[a-f0-9]{32}$/),
   uuid = z.string().uuid();
 const schemas = z.discriminatedUnion("action", [
+  researchLeadSchema,
   z.object({ action: z.literal("sync") }),
   z.object({
     action: z.literal("classification"),
     tokenId,
-    classification: z.enum(["verified_non_meme", "verified_meme_focused", "mixed_ambiguous", "unclassified"]),
+    classification: z.enum([
+      "verified_non_meme",
+      "verified_meme_focused",
+      "mixed_ambiguous",
+      "unclassified",
+    ]),
     evidenceUrl: z.url().max(2000),
     evidenceNote: z.string().min(10).max(3000),
   }),
@@ -132,11 +139,35 @@ export async function POST(request: Request) {
         message: "Sync queued. The persistent worker must be running.",
       });
     }
+    if (data.action === "research_lead") {
+      if (
+        data.claimedPublishedAt &&
+        Date.parse(data.claimedPublishedAt) > Date.now() + 30000
+      )
+        throw Error("Invalid publication time");
+      await sql.begin(async (tx) => {
+        if (
+          data.revisionOf &&
+          !(
+            await tx`SELECT id FROM research_leads WHERE id=${data.revisionOf} AND token_id=${data.tokenId} AND kind=${data.kind}`
+          ).length
+        )
+          throw Error("Invalid revision reference");
+        await tx`INSERT INTO research_leads(id,token_id,kind,source_url,author,body,claimed_published_at,claimed_event_at,revision_of) VALUES(${randomUUID()},${data.tokenId},${data.kind},${data.sourceUrl},${data.author},${data.body},${data.claimedPublishedAt || null},${data.claimedEventAt || null},${data.revisionOf || null})`;
+      });
+      return NextResponse.json({
+        message:
+          "Source-linked lead saved. Publication/event times are claims awaiting verification; this is not an automatic social observation.",
+      });
+    }
     if (data.action === "classification") {
       if (!["http:", "https:"].includes(new URL(data.evidenceUrl).protocol))
         throw Error("Classification evidence must be an HTTP or HTTPS URL");
       await sql`INSERT INTO token_project_classifications(token_id,classification,evidence_url,evidence_note,reviewed_by,reviewed_at) VALUES(${data.tokenId},${data.classification},${data.evidenceUrl},${data.evidenceNote},'owner',now()) ON CONFLICT(token_id) DO UPDATE SET classification=excluded.classification,evidence_url=excluded.evidence_url,evidence_note=excluded.evidence_note,reviewed_by=excluded.reviewed_by,reviewed_at=excluded.reviewed_at`;
-      return NextResponse.json({ message: "Classification saved with its cited evidence. Owner review is recorded; it is not independently verified by Flownix." });
+      return NextResponse.json({
+        message:
+          "Classification saved with its cited evidence. Owner review is recorded; it is not independently verified by Flownix.",
+      });
     }
     if (data.action === "watch") {
       if (data.enabled)
@@ -149,10 +180,10 @@ export async function POST(request: Request) {
     if (data.action === "note") {
       if (
         data.address &&
-        (!data.chain || !evmChains[data.chain] || !isEvmAddress(data.address))
+        (!data.chain || !isChainAddress(data.chain, data.address))
       )
         throw Error("Invalid address");
-      await sql`INSERT INTO manual_research_notes(token_id,signal_id,chain_id,address,body,added_by) VALUES(${data.tokenId ?? null},${data.signalId ?? null},${data.chain ?? null},${data.address?.toLowerCase() ?? null},${data.body},'owner')`;
+      await sql`INSERT INTO manual_research_notes(token_id,signal_id,chain_id,address,body,added_by) VALUES(${data.tokenId ?? null},${data.signalId ?? null},${data.chain ?? null},${data.address && data.chain ? contractIdentity(data.chain, data.address).contract : null},${data.body},'owner')`;
     }
     if (data.action === "signal_status")
       await sql`UPDATE signal_events SET status=${data.status} WHERE id=${data.signalId}`;
@@ -196,13 +227,12 @@ export async function POST(request: Request) {
     }
     if (data.action === "label") {
       if (
-        !evmChains[data.chain] ||
-        !isEvmAddress(data.address) ||
+        !isChainAddress(data.chain, data.address) ||
         !["http:", "https:"].includes(new URL(data.sourceUrl).protocol)
       )
         throw Error("Invalid label input");
       // User-supplied source is stored and linked, never fetched server-side. Manual assertion is not independent verification.
-      await sql`INSERT INTO wallet_labels(chain_id,address,role,entity,source_url,confidence,valid_from,added_by,notes) VALUES(${data.chain},${data.address.toLowerCase()},${data.role},${data.entity},${data.sourceUrl},'manual — independently unverified',now(),'owner',${data.notes})`;
+      await sql`INSERT INTO wallet_labels(chain_id,address,role,entity,source_url,confidence,valid_from,added_by,notes) VALUES(${data.chain},${contractIdentity(data.chain, data.address).contract},${data.role},${data.entity},${data.sourceUrl},'manual — independently unverified',now(),'owner',${data.notes})`;
     }
     if (data.action === "paper_enter") {
       await sql.begin(async (tx) => {
