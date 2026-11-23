@@ -61,21 +61,43 @@ page.on("response", async (response) => {
 });
 try {
   let response;
-  try {
-    response = await page.goto(target("/login"), {
-      waitUntil: "networkidle",
-      timeout: 45000,
-    });
-  } catch (error) {
-    if (
-      !(error instanceof Error) ||
-      !error.message.includes("net::ERR_NETWORK_CHANGED")
-    )
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const diagnosticStart = authDiagnostics.length;
+    try {
+      response = await page.goto(target("/login"), {
+        waitUntil: "networkidle",
+        timeout: 45000,
+      });
+      // A document can load while its JS chunks fail. Clicking the resulting
+      // unhydrated HTML button otherwise masquerades as an OAuth timeout.
+      const failedAsset = authDiagnostics
+        .slice(diagnosticStart)
+        .some(
+          (d) =>
+            d.transportError === "net::ERR_NETWORK_CHANGED" &&
+            d.path.startsWith("/_next/"),
+        );
+      if (failedAsset) {
+        if (attempt === 0) {
+          result.loginTransportRecovery =
+            "Reloaded once after ERR_NETWORK_CHANGED affected client assets";
+          continue;
+        }
+        throw Error("LOGIN_ASSET_TRANSPORT_FAILED");
+      }
+      break;
+    } catch (error) {
+      if (
+        attempt === 0 &&
+        error instanceof Error &&
+        error.message.includes("net::ERR_NETWORK_CHANGED")
+      ) {
+        result.loginTransportRecovery =
+          "Reloaded once after ERR_NETWORK_CHANGED affected navigation";
+        continue;
+      }
       throw error;
-    response = await page.goto(target("/login"), {
-      waitUntil: "networkidle",
-      timeout: 45000,
-    });
+    }
   }
   assert.equal(response.status(), 200);
   await page
