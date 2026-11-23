@@ -1,3 +1,5 @@
+import { installRequestPolicy, withRequestWorkload } from "@flownix/core";
+import { workerRequestPolicy } from "@flownix/db";
 import { mkdir, writeFile } from "node:fs/promises";
 import { registrySync, marketSync, scanToken } from "./ingest";
 import {
@@ -46,6 +48,7 @@ async function main() {
   process.env.DATABASE_URL =
     process.env.DATABASE_URL_WORKER ?? process.env.DATABASE_URL;
   const sql = sqlClient();
+  installRequestPolicy(workerRequestPolicy(sql));
   const command = process.argv[2] ?? "report";
   const stageErrors: { stage: string; code: string }[] = [];
   if (
@@ -100,7 +103,7 @@ async function main() {
     }
     if (command === "replay") {
       const samples =
-        await sql`SELECT DISTINCT ON(s.token_id) s.*,t.chain_id FROM scan_windows s JOIN alpha_tokens t ON t.id=s.token_id WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161') ORDER BY s.token_id,s.from_block DESC LIMIT 3`;
+        await sql`SELECT DISTINCT ON(s.token_id) s.*,t.chain_id FROM scan_windows s JOIN alpha_tokens t ON t.id=s.token_id WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161','146','4663') ORDER BY s.token_id,s.from_block DESC LIMIT 3`;
       if (!samples.length) throw Error("NO_LIVE_WINDOWS_TO_REPLAY");
       for (const sample of samples) {
         phase = `replay:${sample.token_id}`;
@@ -236,8 +239,8 @@ async function main() {
       await sql`SELECT
       (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL))) AS paired,
       (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND EXISTS(SELECT 1 FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL)) AND EXISTS(SELECT 1 FROM market_snapshots m WHERE m.token_id=t.id AND m.source_kind='alpha_market' AND m.observed_at>now()-interval '15 minutes' AND m.provider_time>now()-interval '15 minutes' AND m.provider_time<=now()+interval '1 minute')) AS fresh_pairs,
-      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161')) AS evm_supported,
-      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161') AND EXISTS(SELECT 1 FROM scan_windows w WHERE w.token_id=t.id AND w.complete AND w.end_time>now()-interval '15 minutes')) AS evm_near_head,
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161','146','4663')) AS evm_supported,
+      (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161','146','4663') AND EXISTS(SELECT 1 FROM scan_windows w WHERE w.token_id=t.id AND w.complete AND w.end_time>now()-interval '15 minutes')) AS evm_near_head,
       (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE t.status='current' AND j.status='retry') AS retries,
       (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id='CT_501') AS solana_supported,
       (SELECT count(*)::int FROM alpha_tokens t JOIN settings s ON s.key='solana_coverage:'||t.id WHERE t.status='current' AND t.chain_id='CT_501' AND s.updated_at>now()-interval '6 hours') AS solana_sampled
@@ -303,7 +306,7 @@ const keepAlive = setInterval(
     ),
   30000,
 );
-main()
+withRequestWorkload("historical", main)
   .catch((error) => {
     console.error(
       JSON.stringify({

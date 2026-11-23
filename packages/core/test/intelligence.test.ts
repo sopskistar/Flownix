@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFile } from "node:fs/promises";
 import {
   TRANSFER_TOPIC,
@@ -15,6 +15,7 @@ import {
   dnsServers,
   networkErrorCode,
   HttpClient,
+  installRequestPolicy,
   parseRegistry,
   evaluateAccumulationThesis,
   logSchema,
@@ -25,6 +26,10 @@ import {
   type Transfer,
   type ResearchSwap,
 } from "../src/index";
+beforeEach(() =>
+  installRequestPolicy({ reserve: async () => {}, complete: async () => {} }),
+);
+afterEach(() => installRequestPolicy(undefined));
 const address = (n: number) => "0x" + n.toString(16).padStart(40, "0"),
   hash = (n: number) => "0x" + n.toString(16).padStart(64, "0");
 it("drains sibling pool-identity reads before a failed verification can finish", async () => {

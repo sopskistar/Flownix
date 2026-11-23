@@ -2,10 +2,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 
 const runs = [];
 for (const name of (await readdir("artifacts/profiles"))
-  .filter(
-    (n) =>
-      n.startsWith("worker-2026-11-21") || n.startsWith("worker-2026-11-22"),
-  )
+  .filter((n) => /^worker-2026-11-(21|22|23)/.test(n))
   .sort()) {
   const profile = JSON.parse(
     await readFile(`artifacts/profiles/${name}`, "utf8"),
@@ -55,13 +52,14 @@ const scenarios = [1, 2, 3, 4, 6].map((hours) => {
     monthlyCU: units,
     free30MHeadroomCU: 30000000 - units,
     configured27MHeadroomCU: 27000000 - units,
-    paygTotalUSD: (units / 1000000) * 0.45,
+    paygTotalUSD: (units / 1000000) * 0.52,
+    withOptionalDailyCapsMonthlyCU: units + 30 * (150000 + 25000),
   };
 });
 const report = {
   generatedAt: new Date().toISOString(),
   assumptions:
-    "30 days/720 hours. EVM cursor scan 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks/balances/receipts/retries and optional pool snapshots add cost. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses existing responses. Local graph research makes no external requests. Futures uses public Binance requests, not Alchemy. All methods priced from official Alchemy table checked 2026-11-22. Profiles include stalls and bounded runs; projections are not sustained throughput measurements or account billing. PAYG replaces the free allowance and charges every CU.",
+    "30 days/720 hours. EVM bounded sample 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks, receipts and retries add cost. Optional enrichment capped at 150000 CU/day, historical Alchemy at 25000 CU/day, both also charged to shared daily/monthly caps. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses responses. New Sonic/Robinhood public RPCs add no Alchemy CU but consume database/host resources. Local graph research makes no external requests. Public Binance price/derivatives history uses no Alchemy. Methods checked 2026-11-22; PAYG advertised $0.52/M checked 2026-11-23 (supersedes earlier $0.45 model; billing FAQ may round differently). Profiles include stalls and bounded runs; projections are not sustained throughput, continuous ledger coverage or account billing. PAYG replaces free allowance and charges every CU.",
   measuredRuns: runs,
   cadenceScenarios: scenarios,
   neon: {

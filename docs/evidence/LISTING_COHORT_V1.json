@@ -1,0 +1,155 @@
+{
+  "version": "listing-cohort/1",
+  "selection": "Fixed requested Alpha leads plus ORDER contemporaneous companion listing; selected before downloading reaction prices; no future outcome filtering",
+  "events": [
+    {
+      "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+      "chain": "56",
+      "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+      "symbol": "AKEUSDT",
+      "alphaPair": "ALPHA_331USDT",
+      "quoteAsset": "USDT",
+      "announcementAt": "2025-09-26T09:46:00Z",
+      "alphaAdmissionAt": "2025-09-26T09:46:00Z",
+      "scheduledStartAt": "2025-09-26T12:30:00Z",
+      "sourceUrl": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+      "identitySource": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "identitySourceHash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4",
+      "membershipSource": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+      "membershipProof": "already_alpha_by_announcement",
+      "revisedAt": null,
+      "originalContentPreserved": false,
+      "reviewedBy": "Codex primary-source review 2026-11-23",
+      "caveats": [
+        "Original announcement publication is a current official-page claim; original unmodified body was not archived locally.",
+        "Current registry dates are provider claims, not historical admission proof.",
+        "AKE/ORDER official notice explicitly lists matching contracts and says already on Alpha; PIEVERSE exact BSC identity also independently reviewed in project white paper.",
+        "For already-Alpha cases admissionAt is a conservative known-by bound, not invented first admission time."
+      ]
+    },
+    {
+      "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+      "chain": "56",
+      "contract": "0x4e200fe2f3efb977d5fd9c430a41531fb04d97b8",
+      "symbol": "ORDERUSDT",
+      "alphaPair": "ALPHA_279USDT",
+      "quoteAsset": "USDT",
+      "announcementAt": "2025-09-26T09:46:00Z",
+      "alphaAdmissionAt": "2025-09-26T09:46:00Z",
+      "scheduledStartAt": "2025-09-26T12:45:00Z",
+      "sourceUrl": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+      "identitySource": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "identitySourceHash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4",
+      "membershipSource": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+      "membershipProof": "already_alpha_by_announcement",
+      "revisedAt": null,
+      "originalContentPreserved": false,
+      "reviewedBy": "Codex primary-source review 2026-11-23",
+      "caveats": [
+        "Original announcement publication is a current official-page claim; original unmodified body was not archived locally.",
+        "Current registry dates are provider claims, not historical admission proof.",
+        "AKE/ORDER official notice explicitly lists matching contracts and says already on Alpha; PIEVERSE exact BSC identity also independently reviewed in project white paper.",
+        "For already-Alpha cases admissionAt is a conservative known-by bound, not invented first admission time."
+      ]
+    },
+    {
+      "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+      "chain": "56",
+      "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+      "symbol": "PIEVERSEUSDT",
+      "alphaPair": "ALPHA_469USDT",
+      "quoteAsset": "USDT",
+      "announcementAt": "2025-11-13T07:47:00Z",
+      "alphaAdmissionAt": "2025-11-14T11:00:00Z",
+      "scheduledStartAt": "2025-11-14T11:30:00Z",
+      "sourceUrl": "https://www.binance.com/en/support/announcement/detail/9601f5b2dd9e4f33bf7361fa61368191",
+      "identitySource": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "identitySourceHash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4",
+      "membershipSource": "https://www.binance.com/en/support/announcement/detail/9601f5b2dd9e4f33bf7361fa61368191",
+      "membershipProof": "explicit_admission_time",
+      "revisedAt": "2025-11-14T11:07:00Z",
+      "originalContentPreserved": false,
+      "reviewedBy": "Codex primary-source review 2026-11-23",
+      "caveats": [
+        "Original announcement publication is a current official-page claim; original unmodified body was not archived locally.",
+        "Current registry dates are provider claims, not historical admission proof.",
+        "AKE/ORDER official notice explicitly lists matching contracts and says already on Alpha; PIEVERSE exact BSC identity also independently reviewed in project white paper.",
+        "For already-Alpha cases admissionAt is a conservative known-by bound, not invented first admission time."
+      ]
+    }
+  ],
+  "outcomeCohort": {
+    "setupAt": "2026-11-17T00:00:00Z",
+    "endAt": "2026-11-23T00:00:00Z",
+    "definition": "Six-day fixed window after first local registry observation, endpoints and completeness reported. Non-2x cases retained as descriptive controls, not matched causal controls. No executable performance claim.",
+    "identities": [
+      {
+        "tokenId": "1e6bef01671cf458649a5c2fc3196b42",
+        "chain": "56",
+        "contract": "0x7ec43cf65f1663f820427c62a5780b8f2e25593a",
+        "lead": "LAB"
+      },
+      {
+        "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+        "chain": "56",
+        "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+        "lead": "AKE"
+      },
+      {
+        "tokenId": "807847af26de99a0b0a25b27595867fc",
+        "chain": "56",
+        "contract": "0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa",
+        "lead": "BTW"
+      },
+      {
+        "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+        "chain": "56",
+        "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+        "lead": "PIEVERSE"
+      },
+      {
+        "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+        "chain": "56",
+        "contract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+        "lead": "EVAA"
+      },
+      {
+        "tokenId": "5a6e431d13faffaedc71f54b37bf7ad1",
+        "chain": "56",
+        "contract": "0x99991c6aabba5a096f24f250b73580f5179b9999",
+        "lead": "CAP"
+      },
+      {
+        "tokenId": "f65e2525432feb7d8bc92849316813b5",
+        "chain": "56",
+        "contract": "0xea37a8de1de2d9d10772eeb569e28bfa5cb17707",
+        "lead": "JCT"
+      },
+      {
+        "tokenId": "024dee9c4237443005fea01e23288720",
+        "chain": "56",
+        "contract": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+        "lead": "AGT"
+      },
+      {
+        "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+        "chain": "56",
+        "contract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+        "lead": "Q"
+      },
+      {
+        "tokenId": "cc7f0a11ac103b548563ea9159886b49",
+        "chain": "56",
+        "contract": "0x97693439ea2f0ecdeb9135881e49f354656a911c",
+        "lead": "RAVE"
+      },
+      {
+        "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+        "chain": "56",
+        "contract": "0x4e200fe2f3efb977d5fd9c430a41531fb04d97b8",
+        "lead": "ORDER"
+      }
+    ]
+  },
+  "chronologicalCutoff": "2025-11-01T00:00:00Z"
+}

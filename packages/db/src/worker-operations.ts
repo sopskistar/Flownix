@@ -77,6 +77,17 @@ export async function reserveWorkerRequest(
         ),
       },
     );
+  if (request.alchemyRequests && request.workload)
+    scopes.push({
+      scope: `alchemy:${request.workload}:day`,
+      start: p.day,
+      end: p.tomorrow,
+      amount: request.alchemyUnits,
+      limit:
+        request.workload === "enrichment"
+          ? c.ALCHEMY_ENRICHMENT_DAILY_CU_LIMIT
+          : c.ALCHEMY_HISTORICAL_DAILY_CU_LIMIT,
+    });
   try {
     await client.begin(async (tx) => {
       for (const s of scopes) {
@@ -87,7 +98,10 @@ export async function reserveWorkerRequest(
           WHERE worker_budget_usage.used+excluded.used<=${s.limit} RETURNING used`;
         if (!reserved.length)
           throw new ProviderError(
-            "PROVIDER_BUDGET_EXHAUSTED",
+            s.scope.startsWith("alchemy:enrichment:") ||
+              s.scope.startsWith("alchemy:historical:")
+              ? "WORKLOAD_BUDGET_EXHAUSTED"
+              : "PROVIDER_BUDGET_EXHAUSTED",
             null,
             undefined,
             s.end,
@@ -95,7 +109,11 @@ export async function reserveWorkerRequest(
       }
     });
   } catch (error) {
-    if (error instanceof ProviderError && error.retryAt) {
+    if (
+      error instanceof ProviderError &&
+      error.retryAt &&
+      error.code !== "WORKLOAD_BUDGET_EXHAUSTED"
+    ) {
       await client`INSERT INTO worker_provider_state(provider,blocked_until,reason) VALUES(${request.provider},${error.retryAt},${error.code}) ON CONFLICT(provider) DO UPDATE SET blocked_until=greatest(worker_provider_state.blocked_until,excluded.blocked_until),reason=excluded.reason,updated_at=now()`;
     }
     throw error;

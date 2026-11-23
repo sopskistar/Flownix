@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAccess } from "../../../lib/auth";
 import { safeRadar } from "../../../lib/data";
+import { sqlClient } from "@flownix/db";
 import { TokenIdentity } from "../../../components/token-identity";
 export const metadata = { title: "Historical Runner Lab" };
 const candidates = [
@@ -40,6 +41,11 @@ const candidates = [
 export default async function Research() {
   await requireAccess();
   const tokens = await safeRadar();
+  const runs =
+    await sqlClient()`SELECT DISTINCT ON(manifest->'event'->>'tokenId') run_hash,computed_at,manifest,report FROM event_study_runs WHERE spec_version='listing-study/1' AND jsonb_typeof(manifest)='object' AND manifest->'event'->>'tokenId' IS NOT NULL AND jsonb_typeof(report)='object' AND report ? 'phases' ORDER BY manifest->'event'->>'tokenId',computed_at DESC`;
+  const cohort = (
+    await sqlClient()`SELECT report->'cohort' AS cohort FROM event_study_runs WHERE spec_version='fixed-cohort/2' AND jsonb_typeof(report)='object' ORDER BY computed_at DESC LIMIT 1`
+  )[0]?.cohort;
   return (
     <>
       <div className="page-head">
@@ -49,6 +55,17 @@ export default async function Research() {
             Reconstruct what could have been known. Keep failures and
             inconclusive cases.
           </p>
+          {cohort && (
+            <p>
+              Fixed historical window {cohort.definition.setupAt} to{" "}
+              {cohort.definition.endAt}:{" "}
+              {cohort.results.length - cohort.unavailable} complete hourly
+              paths; {cohort.observed2xPeaks ?? "Unavailable"} reached 2× highs,{" "}
+              {cohort.non2xPeakControls ?? "Unavailable"} non-2× peak controls,{" "}
+              {cohort.confirmed2x} closed at 2×. Raw Alpha prices; no verified
+              strategy or executable profit.
+            </p>
+          )}
         </div>
         <Link className="button" href="/paper">
           Performance Lab
@@ -60,6 +77,66 @@ export default async function Research() {
         registry responses link to token research. Current membership never
         proves historical Alpha membership.
       </div>
+      <section className="workbench">
+        <div className="section-top">
+          <h2>Futures listing event studies</h2>
+          <Link href="/api/export?kind=research">
+            Download research evidence
+          </Link>
+        </div>
+        <div className="panel-content">
+          <p>
+            Announcement, scheduled start and first trade-bar evidence are
+            separate. Retrospective prices are not historical Flownix signals,
+            executable fills or proof that a listing caused a move.
+          </p>
+          {runs.length ? (
+            runs.map((r) => (
+              <details key={r.run_hash}>
+                <summary>
+                  {r.manifest.event.symbol} /{" "}
+                  {
+                    r.report.phases.horizons.filter(
+                      (h: { status: string }) => h.status === "observed",
+                    ).length
+                  }{" "}
+                  observed horizons / historically evaluated
+                </summary>
+                <p>
+                  Announcement {r.manifest.event.announcementAt}; scheduled
+                  start {r.manifest.event.scheduledStartAt}; first trade
+                  evidence{" "}
+                  {r.report.phases.actualStart?.earliest ?? "Unavailable"}.
+                  Source first collected/reviewed later; original announcement
+                  body{" "}
+                  {r.report.originalAnnouncementContentVerified
+                    ? "preserved"
+                    : "not archived"}
+                  .
+                </p>
+                {r.manifest.event.sourceUrl && (
+                  <p>
+                    <a
+                      href={r.manifest.event.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Official listing source
+                    </a>
+                  </p>
+                )}
+                <pre>{JSON.stringify(r.report.phases, null, 2)}</pre>
+                <p>{r.report.suppression}</p>
+              </details>
+            ))
+          ) : (
+            <p>
+              No verified event-study runs yet. Missing history is retained as
+              unavailable.
+            </p>
+          )}
+        </div>
+      </section>
       <section className="workbench">
         <div className="section-top">
           <h2>Candidate verification ledger</h2>
@@ -95,8 +172,20 @@ export default async function Research() {
                           ))
                         : "Unverified — not a research candidate yet"}
                     </td>
-                    <td>Only from first provable observation</td>
-                    <td>Not reconstructed; source gaps unresolved</td>
+                    <td>
+                      {found.some((t) =>
+                        runs.some((r) => r.manifest.event.tokenId === t.id),
+                      )
+                        ? "Dated official event; exact identity reviewed, original-content gaps retained"
+                        : "Only from first provable observation"}
+                    </td>
+                    <td>
+                      {found.some((t) =>
+                        runs.some((r) => r.manifest.event.tokenId === t.id),
+                      )
+                        ? "Event-study results above; historical features and execution costs remain incomplete"
+                        : "Not reconstructed; source gaps unresolved"}
+                    </td>
                   </tr>
                 );
               })}

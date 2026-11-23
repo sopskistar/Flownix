@@ -8,6 +8,28 @@ export async function GET(request: Request) {
   const kind = new URL(request.url).searchParams.get("kind") ?? "signals";
   try {
     const sql = sqlClient();
+    if (kind === "research") {
+      const runs =
+        await sql`SELECT run_hash,spec_version,computed_at,manifest,report FROM event_study_runs ORDER BY computed_at DESC LIMIT 100`;
+      return new Response(
+        JSON.stringify(
+          {
+            scope: "Retrospective research; no validated trading strategies",
+            runs,
+          },
+          null,
+          2,
+        ),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Disposition":
+              "attachment; filename=flownix-event-research.json",
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
     let rows;
     if (kind === "tokens")
       rows =

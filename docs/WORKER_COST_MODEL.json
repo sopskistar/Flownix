@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-23T04:37:47.331Z",
-  "assumptions": "30 days/720 hours. EVM cursor scan 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks/balances/receipts/retries and optional pool snapshots add cost. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses existing responses. Local graph research makes no external requests. Futures uses public Binance requests, not Alchemy. All methods priced from official Alchemy table checked 2026-11-22. Profiles include stalls and bounded runs; projections are not sustained throughput measurements or account billing. PAYG replaces the free allowance and charges every CU.",
+  "generatedAt": "2026-11-23T06:48:43.847Z",
+  "assumptions": "30 days/720 hours. EVM bounded sample 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks, receipts and retries add cost. Optional enrichment capped at 150000 CU/day, historical Alchemy at 25000 CU/day, both also charged to shared daily/monthly caps. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses responses. New Sonic/Robinhood public RPCs add no Alchemy CU but consume database/host resources. Local graph research makes no external requests. Public Binance price/derivatives history uses no Alchemy. Methods checked 2026-11-22; PAYG advertised $0.52/M checked 2026-11-23 (supersedes earlier $0.45 model; billing FAQ may round differently). Profiles include stalls and bounded runs; projections are not sustained throughput, continuous ledger coverage or account billing. PAYG replaces free allowance and charges every CU.",
   "measuredRuns": [
     {
       "file": "worker-2026-11-21T13-38-00.672Z.json",
@@ -101,6 +101,26 @@
       "peakRssMiB": 103.4921875,
       "meanCpuPercent": 0.5662000388477881,
       "sqlStatements": 310
+    },
+    {
+      "file": "worker-2026-11-23T05-32-38.147Z.json",
+      "seconds": 844.168,
+      "alchemyEstimatedCU": 3630,
+      "projected30DayCU": 11145838,
+      "meanRssMiB": 164.89740349264707,
+      "peakRssMiB": 185.28515625,
+      "meanCpuPercent": 1.4663172496469896,
+      "sqlStatements": 3212
+    },
+    {
+      "file": "worker-2026-11-23T06-32-45.877Z.json",
+      "seconds": 440.081,
+      "alchemyEstimatedCU": 1326,
+      "projected30DayCU": 7809908,
+      "meanRssMiB": 99.81425561797752,
+      "peakRssMiB": 159.765625,
+      "meanCpuPercent": 0.7261826800066351,
+      "sqlStatements": 862
     }
   ],
   "cadenceScenarios": [
@@ -112,7 +132,8 @@
       "monthlyCU": 53513760,
       "free30MHeadroomCU": -23513760,
       "configured27MHeadroomCU": -26513760,
-      "paygTotalUSD": 24.081191999999998
+      "paygTotalUSD": 27.8271552,
+      "withOptionalDailyCapsMonthlyCU": 58763760
     },
     {
       "evmIntervalHours": 2,
@@ -122,7 +143,8 @@
       "monthlyCU": 29225280,
       "free30MHeadroomCU": 774720,
       "configured27MHeadroomCU": -2225280,
-      "paygTotalUSD": 13.151376
+      "paygTotalUSD": 15.1971456,
+      "withOptionalDailyCapsMonthlyCU": 34475280
     },
     {
       "evmIntervalHours": 3,
@@ -132,7 +154,8 @@
       "monthlyCU": 21129120,
       "free30MHeadroomCU": 8870880,
       "configured27MHeadroomCU": 5870880,
-      "paygTotalUSD": 9.508104000000001
+      "paygTotalUSD": 10.9871424,
+      "withOptionalDailyCapsMonthlyCU": 26379120
     },
     {
       "evmIntervalHours": 4,
@@ -142,7 +165,8 @@
       "monthlyCU": 17081040,
       "free30MHeadroomCU": 12918960,
       "configured27MHeadroomCU": 9918960,
-      "paygTotalUSD": 7.6864680000000005
+      "paygTotalUSD": 8.882140800000002,
+      "withOptionalDailyCapsMonthlyCU": 22331040
     },
     {
       "evmIntervalHours": 6,
@@ -152,7 +176,8 @@
       "monthlyCU": 13032960,
       "free30MHeadroomCU": 16967040,
       "configured27MHeadroomCU": 13967040,
-      "paygTotalUSD": 5.864832
+      "paygTotalUSD": 6.7771392,
+      "withOptionalDailyCapsMonthlyCU": 18282960
     }
   ],
   "neon": {
@@ -167,7 +192,7 @@
     "launchHistoryUSDPerChangedGBMonth": 0.2,
     "freeStorageGB": 1,
     "freeEgressGB": 5,
-    "measuredDatabaseBytes": 140410880,
+    "measuredDatabaseBytes": 172244992,
     "accountUsageVerified": false
   },
   "host": {

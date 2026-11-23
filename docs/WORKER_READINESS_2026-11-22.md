@@ -1,3 +1,5 @@
+> Current continuation: [operational acceptance](OPERATIONAL_ACCEPTANCE_2026-11-23.md) and [listing/cohort study](FUTURES_LISTING_STUDY_2026-11-23.md). Dated evidence below is preserved; current PAYG estimate is $0.52/M CU.
+
 > Update: [research context and live verification (2026-11-23)](RESEARCH_CONTEXT_2026-11-23.md) adds checkpoint supply costs, persistent per-chain fairness and exact Futures research. Use the updated cost JSON for current arithmetic; the dated evidence below is preserved.
 
 # Worker readiness and cost control — 2026-11-22

@@ -25,6 +25,10 @@ services:
         sync: false
       - key: SOLANA_RPC_URL
         sync: false
+      - key: SONIC_RPC_URL
+        value: https://rpc.soniclabs.com
+      - key: ROBINHOOD_RPC_URL
+        value: https://rpc.mainnet.chain.robinhood.com
       - key: ALCHEMY_MONTHLY_UNTRACKED_CU
         sync: false
       - key: NODE_OPTIONS

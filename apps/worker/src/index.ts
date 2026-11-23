@@ -10,6 +10,7 @@ import {
   closeProviderNetwork,
   stopProviderRequests,
   installRequestPolicy,
+  processMetrics,
 } from "@flownix/core";
 import {
   jsonParam,
@@ -221,6 +222,11 @@ async function next(
   return claimNextJob(owner, kinds, excluded, sql, retryOnly, diagnosticJobKey);
 }
 async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
+  const startedAt = new Date(),
+    startedCpu = process.cpuUsage(),
+    startedCounters = processMetrics();
+  let outcome = "failed",
+    outcomeError: string | null = null;
   activeJobs.add(job.kind);
   let forceStop: NodeJS.Timeout | undefined;
   const deadline = setTimeout(() => {
@@ -263,7 +269,8 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
       marketRemaining = (await marketSync()).remainingDue;
       scanAfterMarket = true;
       maintenanceAfterMarket = true;
-    } else if (job.kind === "scan") await scanToken(job.payload.tokenId);
+    } else if (job.kind === "scan")
+      await scanToken(job.payload.tokenId, undefined, "near_head");
     else if (job.kind === "notifications") {
       await queueResearchAlerts();
       await deliverNotifications();
@@ -281,9 +288,12 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     if (job.kind === "scan" && job.payload?.tokenId) {
       await sql`UPDATE token_investigation_queue SET last_investigated_at=now(),next_investigation_at=now()+(${delay}*interval '1 second') WHERE token_id=${job.payload.tokenId} AND active`;
     }
+    outcome = "completed";
     return true;
   } catch (error) {
     const code = failureCode(error);
+    outcomeError = code;
+    outcome = "retry";
     if (code === "PROCESS_REQUEST_BUDGET_EXHAUSTED") stopping = true;
     const interrupted = code === "COLLECTION_STOPPED";
     const retryAt = error instanceof ProviderError ? error.retryAt : undefined;
@@ -310,6 +320,13 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     );
     return false;
   } finally {
+    const counters = processMetrics(),
+      cpu = process.cpuUsage(startedCpu);
+    try {
+      await sql`INSERT INTO worker_job_observations(id,job_kind,token_id,chain_id,started_at,finished_at,status,error_code,measurements) VALUES(${randomUUID()},${job.kind},${job.payload?.tokenId ?? null},${job.payload?.chainId ?? null},${startedAt},now(),${outcome},${outcomeError},${jsonParam({ durationSeconds: (Date.now() - +startedAt) / 1000, rssBytes: process.memoryUsage().rss, cpuMicros: cpu.user + cpu.system, counters: Object.fromEntries(Object.entries(counters).map(([k, v]) => [k, v - (startedCounters[k] ?? 0)])), scope: "Process deltas; overlapping market work is included, not token-exclusive billing" })}::jsonb)`;
+    } catch {
+      console.error(JSON.stringify({ event: "job_measurement_unavailable" }));
+    }
     clearTimeout(deadline);
     if (forceStop) clearTimeout(forceStop);
     clearInterval(heartbeat);
@@ -372,14 +389,19 @@ async function main() {
       // a due baseline scan a turn between batches. Provider pacing is unchanged.
       const allowedKinds =
         process.env.WORKER_JOB_KINDS?.split(",") ?? Object.keys(intervals);
+      // Refresh membership during a long one-shot universe cycle; each token
+      // and other job still receives at most one visit.
+      const excludedOnce = once
+        ? [...seen].filter((key) => key !== "registry")
+        : [];
       let job =
         scanAfterMarket && allowedKinds.includes("scan")
-          ? await next(once ? [...seen] : [], ["registry", "scan"])
+          ? await next(excludedOnce, ["registry", "scan"])
           : null;
       scanAfterMarket = false;
       if (!job && maintenanceAfterMarket) {
         maintenanceAfterMarket = false;
-        job = await next(once ? [...seen] : [], [
+        job = await next(excludedOnce, [
           "registry",
           "notifications",
           "outcomes",
@@ -391,9 +413,9 @@ async function main() {
       // provider error is rechecked without starving identities not yet scanned.
       if (!job && scansSinceRetry >= 5) {
         scansSinceRetry = -1;
-        job = await next(once ? [...seen] : [], ["scan"], true);
+        job = await next(excludedOnce, ["scan"], true);
       }
-      job ??= await next(once ? [...seen] : []);
+      job ??= await next(excludedOnce);
       if (!job) {
         if (marketRunning) {
           await marketTask;

@@ -17,6 +17,8 @@ try {
     throw Error("DATABASE_TLS_REQUIRED");
   if (c.PAID_ENRICHMENT_ENABLED || c.PAID_DAILY_BUDGET_USD !== 0)
     throw Error("PAID_ENRICHMENT_MUST_REMAIN_DISABLED");
+  if (!/^\d+$/.test(process.env.ALCHEMY_MONTHLY_UNTRACKED_CU ?? ""))
+    throw Error("UNTRACKED_CU_RECONCILIATION_REQUIRED");
   if (
     process.env.WORKER_JOB_KINDS ||
     c.WORKER_RUN_SECONDS ||
@@ -34,9 +36,12 @@ try {
       throw Error("EXPLICIT_HTTPS_RPC_REQUIRED");
   }
   process.env.DATABASE_URL = c.DATABASE_URL_WORKER;
+  for (const key of ["SONIC_RPC_URL", "ROBINHOOD_RPC_URL"] as const)
+    if (new URL(c[key]).protocol !== "https:")
+      throw Error("EXPLICIT_HTTPS_RPC_REQUIRED");
   const sql = sqlClient();
   const migrated =
-    await sql`SELECT name FROM schema_migrations WHERE name='0015_research_context.sql'`;
+    await sql`SELECT name FROM schema_migrations WHERE name='0016_operational_event_studies.sql'`;
   if (!migrated.length) throw Error("OPERATIONS_MIGRATION_REQUIRED");
   const space =
     await sql`SELECT pg_database_size(current_database())::text AS bytes`;
@@ -46,7 +51,7 @@ try {
     JSON.stringify({
       event: "worker_preflight",
       ok: true,
-      schema: "0015",
+      schema: "0016",
       databaseBytes: space[0].bytes,
       billingVerified: false,
       note: "Check account-wide Neon/Alchemy remaining quotas before activation. No billing change was made.",

@@ -1,3 +1,11 @@
+# Operational and historical verification — 2026-11-23
+
+The continuation from `a6d0f6a` passes **139 automated tests in 23 files**, including PostgreSQL integration, and **seven authenticated local browser journeys**. Typecheck, lint, production build and worker Docker build pass. New regression coverage includes recent samples preserving historical cursors/gaps, request policy fail-closed behavior, independent optional workload budgets, seven-network fairness, exact listing identity, incomplete/conflicting candles, actual trade-bar evidence, pre-admission/amendment/availability suppression, chronological listing counterexamples, peak versus closing outcomes, immutable study/case annotation storage, and a seeded browser case for native versus malformed study JSON.
+
+The real CLI replay additionally verifies native-object storage through the executing transaction's JSON serializer; local bundled tests alone did not expose the original CLI encoding defect. Malformed earlier runs remain exportable and structurally invalid rows do not crash the historical view. Browser fixtures run only against local PostgreSQL and are removed afterward.
+
+See [operational acceptance](OPERATIONAL_ACCEPTANCE_2026-11-23.md), [actual study](FUTURES_LISTING_STUDY_2026-11-23.md) and [machine evidence](OPERATIONAL_EVIDENCE_2026-11-23.json). Hosted full-cycle/24-hour acceptance and a fresh authenticated production owner journey remain unverified. No paid worker was activated. Dated verification below is preserved.
+
 # Latest account-recovery verification
 
 See [ACCOUNT_RECOVERY_RELEASE_2026-11-21.md](ACCOUNT_RECOVERY_RELEASE_2026-11-21.md) for preserved work, the 107-test result, browser history regression, driver backport, live evidence and remaining operational gates. Older snapshots below retain their original dates.

@@ -1,3 +1,5 @@
+import { installRequestPolicy } from "../packages/core/src/index";
+import { workerRequestPolicy } from "../packages/db/src/index";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { Resolver } from "node:dns/promises";
 import {
@@ -25,6 +27,10 @@ import {
 const persist = process.argv.includes("--persist");
 if (persist && process.env.DATABASE_URL_WORKER)
   process.env.DATABASE_URL = process.env.DATABASE_URL_WORKER;
+if (process.env.DATABASE_URL_WORKER) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL_WORKER;
+  installRequestPolicy(workerRequestPolicy());
+}
 const report: Record<string, unknown> = {
   checkedAt: new Date().toISOString(),
   environment: process.env.VERCEL

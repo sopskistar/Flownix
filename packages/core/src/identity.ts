@@ -3,6 +3,16 @@ export const evmChains: Record<
   string,
   { name: string; explorer: string; env: string }
 > = {
+  "146": {
+    name: "Sonic",
+    explorer: "https://sonicscan.org",
+    env: "SONIC_RPC_URL",
+  },
+  "4663": {
+    name: "Robinhood Chain",
+    explorer: "https://robinhoodchain.blockscout.com",
+    env: "ROBINHOOD_RPC_URL",
+  },
   "56": { name: "BSC", explorer: "https://bscscan.com", env: "BSC_RPC_URL" },
   "1": {
     name: "Ethereum",
@@ -46,6 +56,8 @@ export function configuredEvmRpc(chain: string) {
   const descriptor = evmChains[chain];
   if (!descriptor) throw new Error("UNSUPPORTED_EVM_CHAIN");
   const defaults: Record<string, string> = {
+    SONIC_RPC_URL: "https://rpc.soniclabs.com",
+    ROBINHOOD_RPC_URL: "https://rpc.mainnet.chain.robinhood.com",
     ETH_RPC_URL: "https://ethereum-rpc.publicnode.com",
     BSC_RPC_URL: "https://bsc-rpc.publicnode.com",
     BASE_RPC_URL: "https://mainnet.base.org",

@@ -144,6 +144,29 @@ it.skipIf(!process.env.DATABASE_URL)(
             month,
           ),
         ).rejects.toMatchObject({ code: "PROVIDER_BUDGET_EXHAUSTED" });
+        process.env.ALCHEMY_ENRICHMENT_DAILY_CU_LIMIT = "5";
+        const optional = {
+          ...request,
+          provider: "rpc:42161",
+          alchemyUnits: 10,
+          workload: "enrichment" as const,
+        };
+        await expect(
+          workerRequestPolicy(client).reserve(optional),
+        ).rejects.toMatchObject({ code: "WORKLOAD_BUDGET_EXHAUSTED" });
+        expect(
+          await tx`SELECT provider FROM worker_provider_state WHERE provider='rpc:42161'`,
+        ).toHaveLength(0);
+        await workerRequestPolicy(client).reserve({
+          ...request,
+          provider: "rpc:42161",
+          alchemyUnits: 10,
+        });
+        expect(
+          (
+            await tx`SELECT used::int FROM worker_budget_usage WHERE scope='alchemy:day'`
+          )[0].used,
+        ).toBe(70);
         verified = true;
         throw Error("ROLLBACK_BUDGET_FIXTURE");
       });

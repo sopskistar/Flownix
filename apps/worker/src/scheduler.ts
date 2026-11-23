@@ -6,6 +6,8 @@ export const SUPPORTED_BASELINE_CHAINS = [
   "8453",
   "42161",
   "CT_501",
+  "146",
+  "4663",
 ] as const;
 
 /** Claim under the collector's lock; optional scan turn prevents market backlog starvation. */

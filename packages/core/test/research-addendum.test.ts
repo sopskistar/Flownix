@@ -121,7 +121,7 @@ it("withholds percentages for samples, mixed checkpoints and unsupported chains"
     ).top,
   ).toBeNull();
   expect(
-    supplyConcentration({ ...snapshot, chain: "146" }, [], later).status,
+    supplyConcentration({ ...snapshot, chain: "CT_784" }, [], later).status,
   ).toBe("unavailable");
   expect(
     supplyConcentration({ ...snapshot, availableAt: later }, [], at).top,
@@ -392,7 +392,7 @@ it("retains case-sensitive Solana identities and rejects unsupported wallet netw
   const mint = "So11111111111111111111111111111111111111112";
   expect(contractIdentity("CT_501", mint).contract).toBe(mint);
   expect(isChainAddress("CT_501", mint)).toBe(true);
-  expect(isChainAddress("146", address(1))).toBe(false);
+  expect(isChainAddress("CT_784", address(1))).toBe(false);
 });
 
 it("accepts exact non-Latin Futures instruments and rejects empty source proof hashes", () => {

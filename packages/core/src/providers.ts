@@ -3,7 +3,7 @@ import { depthSchema } from "./quotes";
 import { hashResponse, contractIdentity, tokenKey } from "./identity";
 import { providerFetch, networkErrorCode } from "./network";
 import { countMetric, estimateAlchemyComputeUnits } from "./telemetry";
-import { requestPolicy } from "./request-policy";
+import { requestPolicy, requestWorkload } from "./request-policy";
 export type Observation<T> = {
   data: T;
   source: string;
@@ -110,11 +110,14 @@ export class HttpClient {
         url,
         typeof init.body === "string" ? init.body : undefined,
       );
+      if (process.env.DATABASE_URL_WORKER && !requestPolicy())
+        throw new ProviderError("DURABLE_REQUEST_POLICY_REQUIRED");
       await requestPolicy()?.reserve({
         provider: this.provider,
         alchemyRequests: alchemyUsage.requests,
         alchemyUnits: alchemyUsage.units,
         unpriced: alchemyUsage.unpriced,
+        ...(requestWorkload() ? { workload: requestWorkload() } : {}),
       });
       processRequestCount++;
       countMetric(`requests:${this.provider}`);
@@ -318,11 +321,16 @@ export class AlphaProvider {
       envelope(tickerSchema),
     );
   }
-  klines(symbol: string, endTime?: number, startTime?: number) {
+  klines(
+    symbol: string,
+    endTime?: number,
+    startTime?: number,
+    interval: "1h" | "1m" = "1h",
+  ) {
     return this.http.json(
       this.url("klines", {
         symbol,
-        interval: "1h",
+        interval,
         limit: "1500",
         ...(endTime ? { endTime: String(endTime) } : {}),
         ...(startTime ? { startTime: String(startTime) } : {}),

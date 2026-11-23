@@ -32,6 +32,8 @@ export function WalletSearch() {
           <option value="1">Ethereum</option>
           <option value="8453">Base</option>
           <option value="42161">Arbitrum One</option>
+          <option value="146">Sonic</option>
+          <option value="4663">Robinhood Chain</option>
           <option value="CT_501">Solana</option>
         </select>
       </label>

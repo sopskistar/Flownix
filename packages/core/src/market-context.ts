@@ -1,7 +1,7 @@
 import Decimal from "decimal.js";
 import { z } from "zod";
 import { contractIdentity, freshness, tokenKey } from "./identity";
-import { HttpClient } from "./providers";
+import { HttpClient, klineSchema } from "./providers";
 
 export const futuresInstrumentSchema = z
   .object({
@@ -199,6 +199,36 @@ export class FuturesProvider {
           closeTime: z.number().int(),
         })
         .parse(x),
+    );
+  }
+  candles(
+    symbol: string,
+    startTime: number,
+    endTime: number,
+    interval: "1m" | "1h" = "1m",
+  ) {
+    return this.read("/fapi/v1/klines", symbol, (x) => klineSchema.parse(x), {
+      interval,
+      startTime: String(startTime),
+      endTime: String(endTime),
+      limit: "1500",
+    });
+  }
+  fundingHistory(symbol: string, startTime: number, endTime: number) {
+    return this.read(
+      "/fapi/v1/fundingRate",
+      symbol,
+      (x) =>
+        z
+          .array(
+            z.object({
+              symbol: z.literal(symbol),
+              fundingTime: z.number().int().min(startTime).max(endTime),
+              fundingRate: textNumber,
+            }),
+          )
+          .parse(x),
+      { startTime: String(startTime), endTime: String(endTime), limit: "1000" },
     );
   }
 }

@@ -63,6 +63,17 @@ const writes = (table: string) =>
   fixture.query.mock.calls.filter(([parts]) =>
     parts.join("").includes(`INSERT INTO ${table}`),
   );
+it("records a recent window and explicit gap without overwriting the preserved historical cursor", async () => {
+  fixture.rpc.logs.mockResolvedValue(observation([]));
+  await scanToken("case-fixture", undefined, "near_head");
+  expect(fixture.rpc.logs).toHaveBeenCalledWith(address(1), 71, 80);
+  expect(writes("block_cursors")).toHaveLength(0);
+  expect(writes("live_scan_checkpoints")).toHaveLength(1);
+  const gaps = writes("scan_gap_observations");
+  expect(gaps).toHaveLength(1);
+  expect(gaps[0]).toContain(61);
+  expect(gaps[0]).toContain(70);
+});
 beforeEach(() => {
   vi.resetAllMocks();
   fixture.intensive = fixture.monitored = false;

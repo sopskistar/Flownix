@@ -16,6 +16,8 @@ import {
   EvmProvider,
   decodeTransfer,
   detectTransferActivity,
+  recentScanWindow,
+  withRequestWorkload,
   defaultSignalConfig,
   type TransferWindow,
   type Transfer,
@@ -322,11 +324,13 @@ function errorCode(error: unknown) {
       ? error.name
       : "PROVIDER_ERROR";
 }
-async function storeCandles(
+export async function storeCandles(
   symbol: string,
   o: Awaited<ReturnType<AlphaProvider["klines"]>>,
+  interval: "1h" | "1m" = "1h",
+  provider: "binance_alpha" | "binance_futures" = "binance_alpha",
 ) {
-  await saveSource("binance_alpha", o);
+  await saveSource(provider, o);
   const sql = sqlClient();
   const records: Record<string, unknown>[] = [];
   for (const k of o.data) {
@@ -344,7 +348,7 @@ async function storeCandles(
       throw Error("INVALID_CANDLE");
     records.push({
       symbol,
-      interval: "1h",
+      interval,
       open_at: new Date(open).toISOString(),
       close_at: new Date(close).toISOString(),
       available_at: o.observedAt,
@@ -378,6 +382,7 @@ function windowFromRow(r: Record<string, unknown>): TransferWindow {
 export async function scanToken(
   id: string,
   replay?: { from: number; to: number },
+  mode: "sequential" | "near_head" = "sequential",
 ) {
   const sql = sqlClient();
   const rows = await sql`SELECT t.*,c.block_number,c.block_hash,
@@ -396,6 +401,10 @@ export async function scanToken(
         last_seen: string;
       },
     );
+  const recent = mode === "near_head" && !replay;
+  const live = recent
+    ? (await sql`SELECT * FROM live_scan_checkpoints WHERE token_id=${id}`)[0]
+    : null;
   const intensive = Boolean(t.intensive);
   const c = config();
   if (
@@ -408,20 +417,29 @@ export async function scanToken(
   const rpcUrl = configuredEvmRpc(t.chain_id);
   // Alchemy's documented free-tier eth_getLogs span is ten blocks. Clamp
   // larger local settings so baseline jobs do not silently fail with range errors.
-  const blockLimit = new URL(rpcUrl).hostname.endsWith("alchemy.com")
-    ? Math.min(c.SCAN_BLOCKS, 10)
-    : c.SCAN_BLOCKS;
+  const blockLimit =
+    new URL(rpcUrl).hostname.endsWith("alchemy.com") ||
+    ["146", "4663"].includes(t.chain_id)
+      ? Math.min(c.SCAN_BLOCKS, 10)
+      : c.SCAN_BLOCKS;
   const rpc = new EvmProvider(
     t.chain_id,
     rpcUrl,
-    new HttpClient(`rpc:${t.chain_id}`, 60, auditRequest),
+    new HttpClient(
+      `rpc:${t.chain_id}`,
+      ["146", "4663"].includes(t.chain_id) ? 20 : 60,
+      auditRequest,
+    ),
   );
   const head = await rpc.head();
   const target = head - c.SCAN_CONFIRMATIONS;
   const cursor =
-    t.block_number == null
+    (recent ? live?.block_number : t.block_number) == null
       ? undefined
-      : { block_number: t.block_number, block_hash: t.block_hash };
+      : {
+          block_number: recent ? live!.block_number : t.block_number,
+          block_hash: recent ? live!.block_hash : t.block_hash,
+        };
   if (cursor) {
     const b = await rpc.block(Number(cursor.block_number));
     if (b.data.hash.toLowerCase() !== cursor.block_hash) {
@@ -438,19 +456,34 @@ export async function scanToken(
         await tx`UPDATE notification_deliveries SET status='cancelled' WHERE signal_id IN (SELECT id FROM signal_events WHERE token_id=${id}) AND status='queued'`;
         await tx`DELETE FROM scan_windows WHERE token_id=${id}`;
         await tx`DELETE FROM block_cursors WHERE token_id=${id}`;
+        await tx`DELETE FROM live_scan_checkpoints WHERE token_id=${id}`;
         await tx`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${id},${"rpc:" + t.chain_id},'reorg','Cursor hash changed. Ledger marked noncanonical; signals invalidated; bounded rescan required.')`;
       });
       return;
     }
   }
+  const plan = recent
+    ? recentScanWindow(
+        target,
+        blockLimit,
+        cursor
+          ? Number(cursor.block_number)
+          : t.block_number == null
+            ? null
+            : Number(t.block_number),
+      )
+    : null;
   const from =
+    plan?.from ??
     replay?.from ??
     (cursor
       ? Number(cursor.block_number) + 1
       : Math.max(0, target - blockLimit + 1));
-  const to = replay
-    ? Math.min(replay.to, from + blockLimit - 1)
-    : Math.min(target, from + blockLimit - 1);
+  const to =
+    plan?.to ??
+    (replay
+      ? Math.min(replay.to, from + blockLimit - 1)
+      : Math.min(target, from + blockLimit - 1));
   if (
     !Number.isSafeInteger(from) ||
     !Number.isSafeInteger(to) ||
@@ -548,35 +581,47 @@ export async function scanToken(
       ].map((address) => ({ chain_id: t.chain_id, address }));
       await tx`INSERT INTO wallets(chain_id,address) SELECT * FROM jsonb_to_recordset(${jsonParam(wallets)}::jsonb) AS r(chain_id text,address text) WHERE true ON CONFLICT DO NOTHING`;
     }
-    await tx`INSERT INTO block_cursors(token_id,chain_id,block_number,block_hash,scanned_at) VALUES(${id},${t.chain_id},${to},${blocks.get(to)!.data.hash.toLowerCase()},${observedAt}) ON CONFLICT(token_id) DO UPDATE SET block_number=excluded.block_number,block_hash=excluded.block_hash,scanned_at=excluded.scanned_at WHERE block_cursors.block_number<=excluded.block_number`;
+    if (recent) {
+      await tx`INSERT INTO live_scan_checkpoints(token_id,chain_id,block_number,block_hash,source_time,observed_at,window_from,head_at_scan) VALUES(${id},${t.chain_id},${to},${blocks.get(to)!.data.hash.toLowerCase()},${endTime},${observedAt},${from},${head}) ON CONFLICT(token_id) DO UPDATE SET block_number=excluded.block_number,block_hash=excluded.block_hash,source_time=excluded.source_time,observed_at=excluded.observed_at,window_from=excluded.window_from,head_at_scan=excluded.head_at_scan WHERE live_scan_checkpoints.block_number<=excluded.block_number`;
+      if (plan?.gap)
+        await tx`INSERT INTO scan_gap_observations(token_id,from_block,to_block,reason) VALUES(${id},${plan.gap.from},${plan.gap.to},'Near-head sampling gap; historical cursor retained; not continuous transfer or retention coverage') ON CONFLICT DO NOTHING`;
+    } else
+      await tx`INSERT INTO block_cursors(token_id,chain_id,block_number,block_hash,scanned_at) VALUES(${id},${t.chain_id},${to},${blocks.get(to)!.data.hash.toLowerCase()},${observedAt}) ON CONFLICT(token_id) DO UPDATE SET block_number=excluded.block_number,block_hash=excluded.block_hash,scanned_at=excluded.scanned_at WHERE block_cursors.block_number<=excluded.block_number`;
     await tx`INSERT INTO scan_windows(token_id,from_block,to_block,start_time,end_time,available_at,count,complete) VALUES(${id},${from},${to},${startTime},${endTime},${observedAt},${transfers.filter((t) => t.kind === "unknown_transfer").length},true) ON CONFLICT DO NOTHING`;
   });
   // Explicit case monitors keep accumulating balance evidence independently
   // of intensive selection. Baseline monitors add no DEX/history backfill.
   if (intensive || t.has_monitors) {
-    const monitors =
-      await sql`SELECT address FROM wallet_monitoring WHERE token_id=${id} AND chain_id=${t.chain_id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`;
-    const addresses = [
-      ...new Set([
-        ...monitors.map((m) => String(m.address)),
-        ...(intensive ? transfers.flatMap((t) => [t.from, t.to]) : []),
-      ]),
-    ].filter((a) => !/^0x0{40}$/.test(a));
-    for (const a of addresses) {
-      try {
-        const b = await rpc.balance(a, t.contract, to);
-        await sql`INSERT INTO wallet_balance_snapshots(chain_id,address,token_id,block_number,block_hash,raw_quantity,observed_at,source,block_time,decimals) VALUES(${t.chain_id},${a},${id},${to},${blocks.get(to)!.data.hash},${b.data},${b.observedAt},${b.source},${endTime},${decimals}) ON CONFLICT DO NOTHING`;
-      } catch {
-        await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${id},${"rpc:" + t.chain_id},'balance_unavailable','Historic balance call failed; transfer evidence remains available.')`;
+    await withRequestWorkload("enrichment", async () => {
+      const monitors =
+        await sql`SELECT address FROM wallet_monitoring WHERE token_id=${id} AND chain_id=${t.chain_id} AND active ORDER BY (added_by='owner') DESC,added_at LIMIT 20`;
+      const addresses = [
+        ...new Set([
+          ...monitors.map((m) => String(m.address)),
+          ...(intensive ? transfers.flatMap((t) => [t.from, t.to]) : []),
+        ]),
+      ].filter((a) => !/^0x0{40}$/.test(a));
+      for (const a of addresses.slice(0, c.ENRICHMENT_WALLETS_PER_WINDOW)) {
+        try {
+          const b = await rpc.balance(a, t.contract, to);
+          await sql`INSERT INTO wallet_balance_snapshots(chain_id,address,token_id,block_number,block_hash,raw_quantity,observed_at,source,block_time,decimals) VALUES(${t.chain_id},${a},${id},${to},${blocks.get(to)!.data.hash},${b.data},${b.observedAt},${b.source},${endTime},${decimals}) ON CONFLICT DO NOTHING`;
+        } catch (error) {
+          await sql`INSERT INTO data_quality_issues(token_id,provider,kind,detail) VALUES(${id},${"rpc:" + t.chain_id},'balance_unavailable','Historic balance call failed; transfer evidence remains available.')`;
+          if (
+            error instanceof ProviderError &&
+            error.code === "WORKLOAD_BUDGET_EXHAUSTED"
+          )
+            break;
+        }
       }
-    }
-    if (intensive)
-      await collectPassiveSwaps(
-        t as { id: string; chain_id: string; contract: string },
-        rpc,
-        from,
-        to,
-      );
+      if (intensive)
+        await collectPassiveSwaps(
+          t as { id: string; chain_id: string; contract: string },
+          rpc,
+          from,
+          to,
+        );
+    });
   }
   const market = (
     await sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1`
@@ -646,6 +691,7 @@ export async function scanToken(
       event: "scan",
       token: t.symbol,
       chain: t.chain_id,
+      coverage: recent ? "bounded_recent_sample" : "sequential_window",
       from,
       to,
       events: transfers.length,

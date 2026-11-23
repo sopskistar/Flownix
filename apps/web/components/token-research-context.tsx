@@ -35,6 +35,7 @@ export async function TokenResearchContext({
     leads,
     volume,
     pools,
+    recent,
   ] = await Promise.all([
     sql`SELECT * FROM holder_metrics WHERE token_id=${token.id} AND canonical ORDER BY observed_at DESC LIMIT 2`,
     sql`SELECT * FROM wallet_labels WHERE chain_id=${token.chain_id}`,
@@ -44,6 +45,7 @@ export async function TokenResearchContext({
     sql`SELECT * FROM research_leads WHERE token_id=${token.id} ORDER BY first_observed_at DESC LIMIT 30`,
     sql`SELECT value FROM settings WHERE key=${"volume_quality:" + token.id}`,
     sql`SELECT p.*,(SELECT max(end_time) FROM scan_windows w WHERE w.token_id=p.token_id AND w.to_block=p.verified_at_block) AS verified_block_time FROM token_dex_pools p WHERE p.token_id=${token.id}`,
+    sql`SELECT * FROM live_scan_checkpoints WHERE token_id=${token.id}`,
   ]);
   const snapshot = holders[0]?.evidence as HolderSnapshot | undefined;
   const attribution: ChainLabel[] = labels.map((l) => ({
@@ -118,6 +120,15 @@ export async function TokenResearchContext({
             beneficial ownership. Pools, custody and independent customers must
             not be merged into one owner.
           </p>
+          {recent[0] ? (
+            <p className="muted">
+              Recent source sample: block {String(recent[0].block_number)},
+              source time {iso(recent[0].source_time)}, collected{" "}
+              {iso(recent[0].observed_at)}. Historical cursor is preserved
+              separately. Intervening blocks are not assumed observed; this is
+              not continuous holder or transfer coverage.
+            </p>
+          ) : null}
           <dl className="research-facts">
             <div>
               <dt>Top 10 / 20 / 50 holders</dt>

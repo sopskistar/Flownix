@@ -20,10 +20,14 @@ it.skipIf(!process.env.DATABASE_URL)(
           await tx.unsafe(
             await readFile(`packages/db/migrations/${f}`, "utf8"),
           );
-        const tokens = Array.from({ length: 55 }, (_, i) => ({
+        const tokens = Array.from({ length: 57 }, (_, i) => ({
           id: i.toString(16).padStart(32, "0"),
           chain_id:
-            i < 50 ? "56" : ["1", "8453", "42161", "CT_501", "146"][i - 50],
+            i < 50
+              ? "56"
+              : ["1", "8453", "42161", "CT_501", "146", "4663", "CT_784"][
+                  i - 50
+                ],
           contract: "0x" + (i + 1).toString(16).padStart(40, "0"),
           symbol: "FIXTURE",
           name: "Rollback fixture",
@@ -40,17 +44,17 @@ it.skipIf(!process.env.DATABASE_URL)(
           begin: (fn: (q: typeof tx) => Promise<unknown>) => tx.savepoint(fn),
         } as unknown as typeof sql;
         const seen = new Set<string>();
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 7; i++) {
           const job = await claimNextJob("fixture-owner", ["scan"], [], client);
           expect(job).not.toBeNull();
           seen.add(job!.payload.chainId);
         }
         expect([...seen].sort()).toEqual(
-          ["1", "42161", "56", "8453", "CT_501"].sort(),
+          ["1", "42161", "56", "8453", "CT_501", "146", "4663"].sort(),
         );
         expect(
           (await tx`SELECT count(*)::int AS n FROM worker_chain_turns`)[0].n,
-        ).toBe(5);
+        ).toBe(7);
         await tx`INSERT INTO worker_provider_state(provider,blocked_until,reason) VALUES('rpc:56',now()+interval '1 day','PROVIDER_BUDGET_EXHAUSTED')`;
         // All other due jobs are leased; a blocked BSC provider and unsupported chain cannot dispatch.
         expect(

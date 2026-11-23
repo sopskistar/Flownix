@@ -1,3 +1,5 @@
+> Current continuation: [operational acceptance](OPERATIONAL_ACCEPTANCE_2026-11-23.md) and [listing/cohort study](FUTURES_LISTING_STUDY_2026-11-23.md). Dated evidence below is preserved; current PAYG estimate is $0.52/M CU.
+
 # Research context implementation and live verification
 
 Started from actual HEAD `b2642e9d7f73b780684b5748980b8a3b66eacc1c`, which already continued `9bfb704fba5cdcb8980a611b6c88c5ccd09b2403`. This extends existing modules, Token Intelligence and Wallet Intelligence. It does not replace the historical research requirements or activate hosting, billing, trading, signing, paid enrichment or social scraping.

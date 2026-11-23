@@ -1,3 +1,5 @@
+import { installRequestPolicy, withRequestWorkload } from "@flownix/core";
+import { workerRequestPolicy } from "@flownix/db";
 import { mkdir, writeFile } from "node:fs/promises";
 import {
   config,
@@ -66,6 +68,7 @@ async function main() {
     process.env.DATABASE_URL_WORKER ?? process.env.DATABASE_URL;
   const sql = sqlClient(),
     now = new Date().toISOString();
+  installRequestPolicy(workerRequestPolicy(sql));
   const rows =
     await sql`SELECT id,symbol,chain_id,contract,alpha_id,status,listing_time,first_seen,last_seen,source,response_hash FROM alpha_tokens WHERE upper(symbol)=ANY(${candidates}) ORDER BY symbol,chain_id,contract`;
   for (const token of rows)
@@ -195,7 +198,7 @@ async function main() {
       "A contemporaneous Flownix signal or profitable executable trade",
     ],
     limitations: [
-        "Only returned verifiedMovements are evidence; unresolved transaction leads remain unverified. This is not a complete historical transfer search",
+      "Only returned verifiedMovements are evidence; unresolved transaction leads remain unverified. This is not a complete historical transfer search",
       "Current balances do not establish historical balances or acquisition cost",
       "No exchange internal account activity or market-making identity is inferred",
       "Historical Alpha status before first collected registry inclusion remains unproven",
@@ -219,7 +222,7 @@ const timer = setInterval(
     ),
   30000,
 );
-main()
+withRequestWorkload("historical", main)
   .catch((error) => {
     console.error(
       JSON.stringify({

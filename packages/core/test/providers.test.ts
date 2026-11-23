@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   HttpClient,
+  installRequestPolicy,
   ProviderError,
   providerReads,
   envelope,
@@ -12,6 +13,10 @@ import {
   SolanaProvider,
 } from "../src/index";
 import { z } from "zod";
+beforeEach(() =>
+  installRequestPolicy({ reserve: async () => {}, complete: async () => {} }),
+);
+afterEach(() => installRequestPolicy(undefined));
 describe("Bounded provider requests", () => {
   it("drains sibling reads before propagating a provider failure", async () => {
     let release!: () => void;

@@ -1,0 +1,1433 @@
+{
+  "generatedAt": "2026-11-23T06:53:41.363Z",
+  "startingRelease": "a6d0f6a93eb298ba255e76b22951628342f79568",
+  "operationalAcceptance": {
+    "at": "2026-11-23T06:53:41.363Z",
+    "since": "2026-11-23T05:30:00.000Z",
+    "chains": [
+      {
+        "chain_id": "1",
+        "eligible": 19,
+        "adapter_eligible": 19,
+        "sampled_since": 2,
+        "oldest_evm_source": "2026-11-23T05:37:11.000Z",
+        "newest_evm_source": "2026-11-23T06:31:59.000Z",
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "146",
+        "eligible": 4,
+        "adapter_eligible": 4,
+        "sampled_since": 1,
+        "oldest_evm_source": "2026-11-23T06:33:32.000Z",
+        "newest_evm_source": "2026-11-23T06:33:32.000Z",
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "42161",
+        "eligible": 2,
+        "adapter_eligible": 2,
+        "sampled_since": 2,
+        "oldest_evm_source": "2026-11-23T05:34:03.000Z",
+        "newest_evm_source": "2026-11-23T06:34:43.000Z",
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "4663",
+        "eligible": 5,
+        "adapter_eligible": 5,
+        "sampled_since": 1,
+        "oldest_evm_source": "2026-11-23T06:33:27.000Z",
+        "newest_evm_source": "2026-11-23T06:33:27.000Z",
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "56",
+        "eligible": 287,
+        "adapter_eligible": 287,
+        "sampled_since": 2,
+        "oldest_evm_source": "2026-11-23T05:38:44.000Z",
+        "newest_evm_source": "2026-11-23T06:35:20.000Z",
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "8453",
+        "eligible": 26,
+        "adapter_eligible": 26,
+        "sampled_since": 2,
+        "oldest_evm_source": "2026-11-23T05:33:27.000Z",
+        "newest_evm_source": "2026-11-23T05:41:58.000Z",
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "CT_195",
+        "eligible": 3,
+        "adapter_eligible": 0,
+        "sampled_since": 0,
+        "oldest_evm_source": null,
+        "newest_evm_source": null,
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "CT_501",
+        "eligible": 22,
+        "adapter_eligible": 22,
+        "sampled_since": 1,
+        "oldest_evm_source": null,
+        "newest_evm_source": null,
+        "source_fresh_15m": 0
+      },
+      {
+        "chain_id": "CT_784",
+        "eligible": 9,
+        "adapter_eligible": 0,
+        "sampled_since": 0,
+        "oldest_evm_source": null,
+        "newest_evm_source": null,
+        "source_fresh_15m": 0
+      }
+    ],
+    "markets": {
+      "eligible": 377,
+      "no_pair": 62,
+      "source_fresh": 0
+    },
+    "jobs": [
+      {
+        "job_kind": "derivatives",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 1,
+        "mean_seconds": "31.0329330000000000",
+        "peak_sampled_rss_bytes": "186675200",
+        "process_cpu_pct": "2.4519628872978265"
+      },
+      {
+        "job_kind": "market",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "171.2306710000000000",
+        "peak_sampled_rss_bytes": "188145664",
+        "process_cpu_pct": "2.14398942580981700000"
+      },
+      {
+        "job_kind": "notifications",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "0.72359200000000000000",
+        "peak_sampled_rss_bytes": "188428288",
+        "process_cpu_pct": "0.41560000000000000000"
+      },
+      {
+        "job_kind": "operations",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "5.0258365000000000",
+        "peak_sampled_rss_bytes": "171016192",
+        "process_cpu_pct": "1.06349151092935019696"
+      },
+      {
+        "job_kind": "outcomes",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 1,
+        "mean_seconds": "0.99178300000000000000",
+        "peak_sampled_rss_bytes": "171016192",
+        "process_cpu_pct": "0.87690000000000000000"
+      },
+      {
+        "job_kind": "persistence",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 1,
+        "mean_seconds": "47.1098830000000000",
+        "peak_sampled_rss_bytes": "179675136",
+        "process_cpu_pct": "1.73543203238267440000"
+      },
+      {
+        "job_kind": "registry",
+        "chain_id": null,
+        "status": "completed",
+        "jobs": 3,
+        "mean_seconds": "17.6862353333333333",
+        "peak_sampled_rss_bytes": "188137472",
+        "process_cpu_pct": "4.2317771942123502"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "1",
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "38.3973730000000000",
+        "peak_sampled_rss_bytes": "188411904",
+        "process_cpu_pct": "0.69012439537354831088"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "146",
+        "status": "completed",
+        "jobs": 1,
+        "mean_seconds": "32.9524190000000000",
+        "peak_sampled_rss_bytes": "98631680",
+        "process_cpu_pct": "1.05290904440126230000"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "42161",
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "37.5852005000000000",
+        "peak_sampled_rss_bytes": "170016768",
+        "process_cpu_pct": "1.04908339172743593912"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "4663",
+        "status": "completed",
+        "jobs": 1,
+        "mean_seconds": "39.2336710000000000",
+        "peak_sampled_rss_bytes": "85389312",
+        "process_cpu_pct": "0.88735514961115925145"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "56",
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "35.3599145000000000",
+        "peak_sampled_rss_bytes": "171016192",
+        "process_cpu_pct": "0.53666018201125543797"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "8453",
+        "status": "completed",
+        "jobs": 2,
+        "mean_seconds": "35.4796245000000000",
+        "peak_sampled_rss_bytes": "188428288",
+        "process_cpu_pct": "1.68885539963078023358"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "CT_501",
+        "status": "completed",
+        "jobs": 1,
+        "mean_seconds": "237.6505680000000000",
+        "peak_sampled_rss_bytes": "171352064",
+        "process_cpu_pct": "1.34927091779557620000"
+      },
+      {
+        "job_kind": "scan",
+        "chain_id": "CT_501",
+        "status": "retry",
+        "jobs": 1,
+        "mean_seconds": "246.0359060000000000",
+        "peak_sampled_rss_bytes": "170504192",
+        "process_cpu_pct": "1.07355428032524650000"
+      }
+    ],
+    "storage": {
+      "bytes": "178126848",
+      "last_storage_sample": {
+        "at": "2026-11-23T05:39:29.045Z",
+        "bytes": 140271616,
+        "bytesPerDay": -280715212.6610544
+      }
+    },
+    "usage": [
+      {
+        "scope": "alchemy:month",
+        "period_start": "2026-11-01T00:00:00.000Z",
+        "used": "8474"
+      },
+      {
+        "scope": "alchemy:day",
+        "period_start": "2026-11-22T00:00:00.000Z",
+        "used": "3200"
+      },
+      {
+        "scope": "requests:binance_alpha",
+        "period_start": "2026-11-22T00:00:00.000Z",
+        "used": "218"
+      },
+      {
+        "scope": "requests:rpc:1",
+        "period_start": "2026-11-22T00:00:00.000Z",
+        "used": "16"
+      },
+      {
+        "scope": "requests:rpc:56",
+        "period_start": "2026-11-22T00:00:00.000Z",
+        "used": "93"
+      },
+      {
+        "scope": "requests:rpc:8453",
+        "period_start": "2026-11-22T00:00:00.000Z",
+        "used": "8"
+      },
+      {
+        "scope": "requests:rpc:CT_501",
+        "period_start": "2026-11-22T00:00:00.000Z",
+        "used": "28"
+      },
+      {
+        "scope": "alchemy:day",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "5274"
+      },
+      {
+        "scope": "requests:binance_alpha",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "220"
+      },
+      {
+        "scope": "requests:binance_futures",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "57"
+      },
+      {
+        "scope": "requests:rpc:1",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "21"
+      },
+      {
+        "scope": "requests:rpc:146",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "14"
+      },
+      {
+        "scope": "requests:rpc:42161",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "16"
+      },
+      {
+        "scope": "requests:rpc:4663",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "14"
+      },
+      {
+        "scope": "requests:rpc:56",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "25"
+      },
+      {
+        "scope": "requests:rpc:8453",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "16"
+      },
+      {
+        "scope": "requests:rpc:CT_501",
+        "period_start": "2026-11-23T00:00:00.000Z",
+        "used": "131"
+      }
+    ],
+    "collectors": 0,
+    "heartbeat": {
+      "at": "2026-11-23T06:40:05.833Z",
+      "job": "scan",
+      "mode": "continuous",
+      "owner": "a0f26d68-3bd2-435a-b6cf-e4e7b1236af0",
+      "release": null,
+      "platform": "local",
+      "rssBytes": 106778624
+    },
+    "notifications": [
+      {
+        "channel": "in_app",
+        "status": "delivered",
+        "count": 9
+      }
+    ],
+    "sourceSpans": [
+      {
+        "chain_id": "1",
+        "mean_sample_source_seconds": "108.0000000000000000",
+        "windows": 2
+      },
+      {
+        "chain_id": "146",
+        "mean_sample_source_seconds": "18.0000000000000000",
+        "windows": 1
+      },
+      {
+        "chain_id": "42161",
+        "mean_sample_source_seconds": "2.5000000000000000",
+        "windows": 2
+      },
+      {
+        "chain_id": "4663",
+        "mean_sample_source_seconds": "1.00000000000000000000",
+        "windows": 1
+      },
+      {
+        "chain_id": "56",
+        "mean_sample_source_seconds": "4.0000000000000000",
+        "windows": 2
+      },
+      {
+        "chain_id": "8453",
+        "mean_sample_source_seconds": "1.5000000000000000",
+        "windows": 2
+      }
+    ],
+    "acceptance": {
+      "supportedUniverse": 365,
+      "sampledSince": 11,
+      "fullSupportedCycleObserved": false,
+      "fullMarketFreshness": false,
+      "continuousTransferCoverage": false,
+      "hostedSoakPassed": false
+    },
+    "costs": {
+      "alchemyModelPerOrdinaryEvmScanCU": 202,
+      "configuredMonthlyCap": 27000000,
+      "untrackedMonthlyCU": 0,
+      "neonComputeUsageMeasured": false,
+      "minimumContinuousCUHours30d": 180,
+      "freeNeonCUHours": 100
+    },
+    "limitations": [
+      "Recent block samples preserve historical cursors and explicitly record intervening unknown coverage; they are not a continuous ledger.",
+      "Process metrics include overlapping market work; do not sum job CU deltas as exclusive billing.",
+      "No billing-dashboard credentials are available; SQL activity and database size are not Neon billed compute.",
+      "A partial cycle cannot establish complete-universe throughput or a freshness SLA."
+    ]
+  },
+  "profiles": [
+    {
+      "file": "worker-2026-11-23T05-32-38.147Z.json",
+      "startedAt": "2026-11-23T05:32:38.147Z",
+      "measuredAt": "2026-11-23T05:46:42.316Z",
+      "elapsedSeconds": 844.169,
+      "meanRssMiB": 164.89740349264707,
+      "peakRssMiB": 185.28515625,
+      "cpuPctOneCore": 1.4663155126520875,
+      "counters": {
+        "postgresQueries": 3212,
+        "requests:binance_alpha": 144,
+        "httpRequestBodyBytes": 21454,
+        "httpResponseBodyBytes": 5826364,
+        "rpcMethod:8453:eth_chainId": 2,
+        "requests:rpc:8453": 16,
+        "alchemyRpcRequests": 141,
+        "alchemyEstimatedComputeUnits": 3630,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:8453:eth_blockNumber": 2,
+        "rpcMethod:8453:eth_getLogs": 2,
+        "rpcMethod:8453:eth_getCode": 2,
+        "rpcMethod:8453:eth_call": 4,
+        "rpcMethod:8453:eth_getBlockByNumber": 4,
+        "rpcMethod:42161:eth_chainId": 1,
+        "requests:rpc:42161": 8,
+        "rpcMethod:42161:eth_blockNumber": 1,
+        "rpcMethod:42161:eth_getLogs": 1,
+        "rpcMethod:42161:eth_getCode": 1,
+        "rpcMethod:42161:eth_call": 2,
+        "rpcMethod:42161:eth_getBlockByNumber": 2,
+        "requests:rpc:CT_501": 101,
+        "rpcMethod:56:eth_chainId": 1,
+        "requests:rpc:56": 8,
+        "rpcMethod:56:eth_blockNumber": 1,
+        "rpcMethod:56:eth_getLogs": 1,
+        "rpcMethod:56:eth_getCode": 1,
+        "rpcMethod:56:eth_call": 2,
+        "rpcMethod:56:eth_getBlockByNumber": 2,
+        "requests:binance_futures": 6,
+        "rpcMethod:1:eth_chainId": 1,
+        "requests:rpc:1": 8,
+        "rpcMethod:1:eth_blockNumber": 1,
+        "rpcMethod:1:eth_getLogs": 1,
+        "rpcMethod:1:eth_getCode": 1,
+        "rpcMethod:1:eth_call": 2,
+        "rpcMethod:1:eth_getBlockByNumber": 2,
+        "requestErrors:rpc:CT_501": 1
+      }
+    },
+    {
+      "file": "worker-2026-11-23T06-32-45.877Z.json",
+      "startedAt": "2026-11-23T06:32:45.877Z",
+      "measuredAt": "2026-11-23T06:40:05.959Z",
+      "elapsedSeconds": 440.082,
+      "meanRssMiB": 99.81425561797752,
+      "peakRssMiB": 159.765625,
+      "cpuPctOneCore": 0.7261810298989734,
+      "counters": {
+        "postgresQueries": 862,
+        "requests:binance_alpha": 1,
+        "httpRequestBodyBytes": 9470,
+        "httpResponseBodyBytes": 1057604,
+        "rpcMethod:4663:eth_chainId": 1,
+        "requests:rpc:4663": 8,
+        "rpcMethod:4663:eth_blockNumber": 1,
+        "rpcMethod:4663:eth_getLogs": 1,
+        "rpcMethod:4663:eth_getCode": 1,
+        "rpcMethod:4663:eth_call": 2,
+        "rpcMethod:4663:eth_getBlockByNumber": 2,
+        "rpcMethod:146:eth_chainId": 1,
+        "requests:rpc:146": 8,
+        "rpcMethod:146:eth_blockNumber": 1,
+        "rpcMethod:146:eth_getLogs": 1,
+        "rpcMethod:146:eth_getCode": 1,
+        "rpcMethod:146:eth_call": 2,
+        "rpcMethod:146:eth_getBlockByNumber": 2,
+        "rpcMethod:42161:eth_chainId": 1,
+        "requests:rpc:42161": 8,
+        "alchemyRpcRequests": 54,
+        "alchemyEstimatedComputeUnits": 1326,
+        "alchemyUnpricedMethods": 0,
+        "rpcMethod:42161:eth_blockNumber": 1,
+        "rpcMethod:42161:eth_getLogs": 1,
+        "rpcMethod:42161:eth_getCode": 1,
+        "rpcMethod:42161:eth_call": 2,
+        "rpcMethod:42161:eth_getBlockByNumber": 2,
+        "rpcMethod:56:eth_chainId": 1,
+        "requests:rpc:56": 8,
+        "rpcMethod:56:eth_blockNumber": 1,
+        "rpcMethod:56:eth_getLogs": 1,
+        "rpcMethod:56:eth_getCode": 1,
+        "rpcMethod:56:eth_call": 2,
+        "rpcMethod:56:eth_getBlockByNumber": 2,
+        "rpcMethod:1:eth_chainId": 1,
+        "requests:rpc:1": 8,
+        "rpcMethod:1:eth_blockNumber": 1,
+        "rpcMethod:1:eth_getLogs": 1,
+        "rpcMethod:1:eth_getCode": 1,
+        "rpcMethod:1:eth_call": 2,
+        "rpcMethod:1:eth_getBlockByNumber": 2,
+        "requests:rpc:CT_501": 30
+      }
+    }
+  ],
+  "listingCases": [
+    {
+      "runHash": "5a3608079a1bcd2655c609dd5adc3dba9a58ba2733b4b8f65c684950210f44c6",
+      "event": {
+        "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+        "chain": "56",
+        "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+        "symbol": "AKEUSDT",
+        "alphaPair": "ALPHA_331USDT",
+        "quoteAsset": "USDT",
+        "announcementAt": "2025-09-26T09:46:00Z",
+        "scheduledStartAt": "2025-09-26T12:30:00Z",
+        "alphaAdmissionAt": "2025-09-26T09:46:00Z",
+        "sourceUrl": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+        "identitySource": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+        "identitySourceHash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4",
+        "membershipSource": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+        "membershipProof": "already_alpha_by_announcement",
+        "revisedAt": null,
+        "originalContentPreserved": false,
+        "reviewedBy": "Codex primary-source review 2026-11-23",
+        "caveats": [
+          "Original announcement publication is a current official-page claim; original unmodified body was not archived locally.",
+          "Current registry dates are provider claims, not historical admission proof.",
+          "AKE/ORDER official notice explicitly lists matching contracts and says already on Alpha; PIEVERSE exact BSC identity also independently reviewed in project white paper.",
+          "For already-Alpha cases admissionAt is a conservative known-by bound, not invented first admission time."
+        ]
+      },
+      "phases": {
+        "beforeAnnouncement": {
+          "openAt": "2025-09-26T09:45:00.000Z",
+          "closeAt": "2025-09-26T09:45:59.999Z",
+          "availableAt": "2026-11-23T05:54:46.047Z",
+          "open": "0.00116700",
+          "high": "0.00116700",
+          "low": "0.00116700",
+          "close": "0.00116700",
+          "volume": "422561.39000000",
+          "hash": "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0"
+        },
+        "announcementToTrading": {
+          "status": "observed",
+          "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+          "returnPct": "36.994859",
+          "mfePct": "88.517566",
+          "maePct": "-0.293916",
+          "bars": 164,
+          "observedBaseVolume": "687060265.41",
+          "expectedBars": 164,
+          "reaction": "rose",
+          "baselineClose": "0.00116700",
+          "baselineAt": "2025-09-26T09:45:59.999Z",
+          "endPrice": "0.00159873",
+          "sourceHashes": [
+            "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0"
+          ]
+        },
+        "beforeTrading": {
+          "openAt": "2025-09-26T12:29:00.000Z",
+          "closeAt": "2025-09-26T12:29:59.999Z",
+          "availableAt": "2026-11-23T05:54:46.047Z",
+          "open": "0.00160479",
+          "high": "0.00160479",
+          "low": "0.00159681",
+          "close": "0.00159873",
+          "volume": "2301278.82000000",
+          "hash": "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0"
+        },
+        "actualStart": {
+          "earliest": "2025-09-26T12:30:00.000Z",
+          "latest": "2025-09-26T12:30:59.999Z",
+          "precision": "First nonzero 1m Futures candle; exact first execution timestamp unavailable",
+          "sourceHash": "3c51a709143b8aeaaa04ec5baf544fbf540bb5d94f496f5d1366ebdb4739ecfd"
+        },
+        "horizons": [
+          {
+            "hours": 1,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "-23.827038",
+            "mfePct": "10.743528",
+            "maePct": "-41.409744",
+            "bars": 60,
+            "observedBaseVolume": "293476960.28",
+            "expectedBars": 60,
+            "reaction": "reversed",
+            "baselineClose": "0.00159873",
+            "baselineAt": "2025-09-26T12:29:59.999Z",
+            "endPrice": "0.00121780",
+            "sourceHashes": [
+              "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0"
+            ]
+          },
+          {
+            "hours": 4,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "-18.548473",
+            "mfePct": "10.743528",
+            "maePct": "-41.409744",
+            "bars": 240,
+            "observedBaseVolume": "664678352.89",
+            "expectedBars": 240,
+            "reaction": "reversed",
+            "baselineClose": "0.00159873",
+            "baselineAt": "2025-09-26T12:29:59.999Z",
+            "endPrice": "0.00130219",
+            "sourceHashes": [
+              "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0"
+            ]
+          },
+          {
+            "hours": 24,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "22.253914",
+            "mfePct": "103.809899",
+            "maePct": "-41.409744",
+            "bars": 1440,
+            "observedBaseVolume": "2988853168.79",
+            "expectedBars": 1440,
+            "reaction": "reversed",
+            "baselineClose": "0.00159873",
+            "baselineAt": "2025-09-26T12:29:59.999Z",
+            "endPrice": "0.00195451",
+            "sourceHashes": [
+              "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0",
+              "a6ce8b5a7259ede0cb2fa497c1b24dc17a14e88c67efea2e89f0f0bd092153cf"
+            ]
+          },
+          {
+            "hours": 72,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "7.511587",
+            "mfePct": "103.809899",
+            "maePct": "-41.409744",
+            "bars": 4320,
+            "observedBaseVolume": "6176995588.34",
+            "expectedBars": 4320,
+            "reaction": "reversed",
+            "baselineClose": "0.00159873",
+            "baselineAt": "2025-09-26T12:29:59.999Z",
+            "endPrice": "0.00171882",
+            "sourceHashes": [
+              "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0",
+              "a6ce8b5a7259ede0cb2fa497c1b24dc17a14e88c67efea2e89f0f0bd092153cf",
+              "a995e7a4fa2e7df4c1b45b7ea7830e4b6f8684e17663ca7ec39ad8c61846dc4f",
+              "cff0aa0b62f2327bd46db3546c6067bbbcd62a831b21463b89152f8f8e1082f3"
+            ]
+          },
+          {
+            "hours": 168,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "12.955283",
+            "mfePct": "103.809899",
+            "maePct": "-41.409744",
+            "bars": 10080,
+            "observedBaseVolume": "19291940713.16",
+            "expectedBars": 10080,
+            "reaction": "reversed",
+            "baselineClose": "0.00159873",
+            "baselineAt": "2025-09-26T12:29:59.999Z",
+            "endPrice": "0.00180585",
+            "sourceHashes": [
+              "556475b65b8143194341e6c7f4406f51229a1942a9bea6f195b841aec5aeaaf0",
+              "a6ce8b5a7259ede0cb2fa497c1b24dc17a14e88c67efea2e89f0f0bd092153cf",
+              "a995e7a4fa2e7df4c1b45b7ea7830e4b6f8684e17663ca7ec39ad8c61846dc4f",
+              "cff0aa0b62f2327bd46db3546c6067bbbcd62a831b21463b89152f8f8e1082f3",
+              "6f762a60f3390bcd74dc9b926567473ef63285a2f1cccfe90ba9126711cce3fd",
+              "20d5b358e017347d7ea6539441e087d9a1d51e4a147305b09a3848ba0e57d21c",
+              "4af79eaeaa61aeacde62be78aa1ee80f260f004c714739927439a4c19b24b3c8"
+            ]
+          }
+        ]
+      },
+      "historicalContext": {
+        "fundingRows": 42,
+        "fundingSourceHash": "649ab9a7e6983f4b6acd37f8e63bab9d5921ca2942ca975d1731f67b32946579",
+        "btcHourlyBars": 169,
+        "wallets": {
+          "observedTransfers": 0,
+          "scope": "Incomplete historical sample; no accumulation/distribution or beneficial-owner inference"
+        },
+        "liquidity": {
+          "status": "unavailable",
+          "reason": "No observed historical pool series"
+        },
+        "openInterest": {
+          "status": "unavailable",
+          "reason": "Recent-only REST history; older archive not yet reconciled for timing/licensing"
+        },
+        "exchangeFlows": {
+          "status": "unavailable",
+          "reason": "No independently verified contemporaneous label/continuous-flow series"
+        }
+      },
+      "collectionFailures": [],
+      "suppression": "Descriptive event outcomes cannot validate a trading strategy. Current/revised announcement contents and later-downloaded observations cannot create a past Flownix signal."
+    },
+    {
+      "runHash": "e28011d7fcef6d7dac3282514146486d871c5d8da965a5a1db52f5e9118b9656",
+      "event": {
+        "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+        "chain": "56",
+        "contract": "0x4e200fe2f3efb977d5fd9c430a41531fb04d97b8",
+        "symbol": "ORDERUSDT",
+        "alphaPair": "ALPHA_279USDT",
+        "quoteAsset": "USDT",
+        "announcementAt": "2025-09-26T09:46:00Z",
+        "scheduledStartAt": "2025-09-26T12:45:00Z",
+        "alphaAdmissionAt": "2025-09-26T09:46:00Z",
+        "sourceUrl": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+        "identitySource": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+        "identitySourceHash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4",
+        "membershipSource": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+        "membershipProof": "already_alpha_by_announcement",
+        "revisedAt": null,
+        "originalContentPreserved": false,
+        "reviewedBy": "Codex primary-source review 2026-11-23",
+        "caveats": [
+          "Original announcement publication is a current official-page claim; original unmodified body was not archived locally.",
+          "Current registry dates are provider claims, not historical admission proof.",
+          "AKE/ORDER official notice explicitly lists matching contracts and says already on Alpha; PIEVERSE exact BSC identity also independently reviewed in project white paper.",
+          "For already-Alpha cases admissionAt is a conservative known-by bound, not invented first admission time."
+        ]
+      },
+      "phases": {
+        "beforeAnnouncement": {
+          "openAt": "2025-09-26T09:45:00.000Z",
+          "closeAt": "2025-09-26T09:45:59.999Z",
+          "availableAt": "2026-11-23T06:08:04.048Z",
+          "open": "0.17550131",
+          "high": "0.17550131",
+          "low": "0.17550131",
+          "close": "0.17550131",
+          "volume": "0.00000000",
+          "hash": "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c"
+        },
+        "announcementToTrading": {
+          "status": "observed",
+          "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+          "returnPct": "25.532983",
+          "mfePct": "37.671320",
+          "maePct": "5.863882",
+          "bars": 179,
+          "observedBaseVolume": "1357957.96",
+          "expectedBars": 179,
+          "reaction": "rose",
+          "baselineClose": "0.17550131",
+          "baselineAt": "2025-09-26T09:45:59.999Z",
+          "endPrice": "0.22031203",
+          "sourceHashes": [
+            "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c"
+          ]
+        },
+        "beforeTrading": {
+          "openAt": "2025-09-26T12:44:00.000Z",
+          "closeAt": "2025-09-26T12:44:59.999Z",
+          "availableAt": "2026-11-23T06:08:04.048Z",
+          "open": "0.22051515",
+          "high": "0.22111972",
+          "low": "0.21955353",
+          "close": "0.22031203",
+          "volume": "20165.65000000",
+          "hash": "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c"
+        },
+        "actualStart": {
+          "earliest": "2025-09-26T12:45:00.000Z",
+          "latest": "2025-09-26T12:45:59.999Z",
+          "precision": "First nonzero 1m Futures candle; exact first execution timestamp unavailable",
+          "sourceHash": "45bb5826c7ccb26c1968d6298b4ccff3abf850eaf012e02a962ba131bea78fd3"
+        },
+        "horizons": [
+          {
+            "hours": 1,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "0.834439",
+            "mfePct": "9.092132",
+            "maePct": "-14.675413",
+            "bars": 60,
+            "observedBaseVolume": "235691.97",
+            "expectedBars": 60,
+            "reaction": "within_predeclared_band",
+            "baselineClose": "0.22031203",
+            "baselineAt": "2025-09-26T12:44:59.999Z",
+            "endPrice": "0.22215040",
+            "sourceHashes": [
+              "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c"
+            ]
+          },
+          {
+            "hours": 4,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "5.896519",
+            "mfePct": "13.892977",
+            "maePct": "-14.675413",
+            "bars": 240,
+            "observedBaseVolume": "1074090.75",
+            "expectedBars": 240,
+            "reaction": "reversed",
+            "baselineClose": "0.22031203",
+            "baselineAt": "2025-09-26T12:44:59.999Z",
+            "endPrice": "0.23330277",
+            "sourceHashes": [
+              "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c"
+            ]
+          },
+          {
+            "hours": 24,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "13.610051",
+            "mfePct": "59.112777",
+            "maePct": "-14.675413",
+            "bars": 1440,
+            "observedBaseVolume": "4455165.66",
+            "expectedBars": 1440,
+            "reaction": "reversed",
+            "baselineClose": "0.22031203",
+            "baselineAt": "2025-09-26T12:44:59.999Z",
+            "endPrice": "0.25029661",
+            "sourceHashes": [
+              "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c",
+              "815f41b97e1e2e8da2c16cf783aa19ea93ae5a67bff1f5139be4a22f95c92dba"
+            ]
+          },
+          {
+            "hours": 72,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "78.313177",
+            "mfePct": "91.864893",
+            "maePct": "-14.675413",
+            "bars": 4320,
+            "observedBaseVolume": "8319172.37",
+            "expectedBars": 4320,
+            "reaction": "reversed",
+            "baselineClose": "0.22031203",
+            "baselineAt": "2025-09-26T12:44:59.999Z",
+            "endPrice": "0.39284538",
+            "sourceHashes": [
+              "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c",
+              "815f41b97e1e2e8da2c16cf783aa19ea93ae5a67bff1f5139be4a22f95c92dba",
+              "5cfce78cf54f55cfaba0ac8d457b15bdc1479bab8a737d97d6e8075e23754a6e",
+              "e699b30cdf5fcdab9369b38ec23ed5acb485b6becd98dcd23dc817589113ca99"
+            ]
+          },
+          {
+            "hours": 168,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "57.914400",
+            "mfePct": "116.630731",
+            "maePct": "-14.675413",
+            "bars": 10080,
+            "observedBaseVolume": "12153279.98",
+            "expectedBars": 10080,
+            "reaction": "reversed",
+            "baselineClose": "0.22031203",
+            "baselineAt": "2025-09-26T12:44:59.999Z",
+            "endPrice": "0.34790442",
+            "sourceHashes": [
+              "d77c8e179f5c4a2c817a02d76510eecd811379161e76a496aabdb66d8213976c",
+              "815f41b97e1e2e8da2c16cf783aa19ea93ae5a67bff1f5139be4a22f95c92dba",
+              "5cfce78cf54f55cfaba0ac8d457b15bdc1479bab8a737d97d6e8075e23754a6e",
+              "e699b30cdf5fcdab9369b38ec23ed5acb485b6becd98dcd23dc817589113ca99",
+              "057ac276ec69172cc25e59740e84be37d8b88360aa34eaa32d10ec9577392b63",
+              "15d83b01a7ab50bcea931bd9395b353a48f514c30eaebc24b3eec4c76db4cf08",
+              "40a1b3b112ab13c95081a003ec70422cc3e0240a4d366007ed37a01fc8b613cf"
+            ]
+          }
+        ]
+      },
+      "historicalContext": {
+        "fundingRows": 21,
+        "fundingSourceHash": "8df125a70149766d99bb8e40de95d84191024dbaf44a2652511c85585ce44553",
+        "btcHourlyBars": 169,
+        "wallets": {
+          "observedTransfers": 0,
+          "scope": "Incomplete historical sample; no accumulation/distribution or beneficial-owner inference"
+        },
+        "liquidity": {
+          "status": "unavailable",
+          "reason": "No observed historical pool series"
+        },
+        "openInterest": {
+          "status": "unavailable",
+          "reason": "Recent-only REST history; older archive not yet reconciled for timing/licensing"
+        },
+        "exchangeFlows": {
+          "status": "unavailable",
+          "reason": "No independently verified contemporaneous label/continuous-flow series"
+        }
+      },
+      "collectionFailures": [],
+      "suppression": "Descriptive event outcomes cannot validate a trading strategy. Current/revised announcement contents and later-downloaded observations cannot create a past Flownix signal."
+    },
+    {
+      "runHash": "3679d787f2e08f55dfe6289904079ba488ec0e4ec2d0f51fa0420c2b6ba29247",
+      "event": {
+        "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+        "chain": "56",
+        "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+        "symbol": "PIEVERSEUSDT",
+        "alphaPair": "ALPHA_469USDT",
+        "quoteAsset": "USDT",
+        "announcementAt": "2025-11-13T07:47:00Z",
+        "scheduledStartAt": "2025-11-14T11:30:00Z",
+        "alphaAdmissionAt": "2025-11-14T11:00:00Z",
+        "sourceUrl": "https://www.binance.com/en/support/announcement/detail/9601f5b2dd9e4f33bf7361fa61368191",
+        "identitySource": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+        "identitySourceHash": "57772f463c4caf913bd4ef8969439cefc16a1d7abec16a5ab1bf4d33690223a4",
+        "membershipSource": "https://www.binance.com/en/support/announcement/detail/9601f5b2dd9e4f33bf7361fa61368191",
+        "membershipProof": "explicit_admission_time",
+        "revisedAt": "2025-11-14T11:07:00Z",
+        "originalContentPreserved": false,
+        "reviewedBy": "Codex primary-source review 2026-11-23",
+        "caveats": [
+          "Original announcement publication is a current official-page claim; original unmodified body was not archived locally.",
+          "Current registry dates are provider claims, not historical admission proof.",
+          "AKE/ORDER official notice explicitly lists matching contracts and says already on Alpha; PIEVERSE exact BSC identity also independently reviewed in project white paper.",
+          "For already-Alpha cases admissionAt is a conservative known-by bound, not invented first admission time."
+        ]
+      },
+      "phases": {
+        "beforeAnnouncement": null,
+        "announcementToTrading": {
+          "status": "unavailable",
+          "reason": "Alpha membership not established before anchor",
+          "returnPct": null,
+          "mfePct": null,
+          "maePct": null,
+          "bars": 30,
+          "expectedBars": 1663
+        },
+        "beforeTrading": {
+          "openAt": "2025-11-14T11:29:00.000Z",
+          "closeAt": "2025-11-14T11:29:59.999Z",
+          "availableAt": "2026-11-23T06:46:05.270Z",
+          "open": "0.18220000",
+          "high": "0.18809225",
+          "low": "0.18000000",
+          "close": "0.18400000",
+          "volume": "261130.12000000",
+          "hash": "6d2d7eee59f208d329c87b94e258a45b6f810cae95b34e63c59a057e1a752aee"
+        },
+        "actualStart": {
+          "earliest": "2025-11-14T11:30:00.000Z",
+          "latest": "2025-11-14T11:30:59.999Z",
+          "precision": "First nonzero 1m Futures candle; exact first execution timestamp unavailable",
+          "sourceHash": "efae1208e362f578a098e6c02a7f42c25aa98f2d260cda1a5cf8a4bf6d63ef74"
+        },
+        "horizons": [
+          {
+            "hours": 1,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "-5.584484",
+            "mfePct": "17.907011",
+            "maePct": "-13.262821",
+            "bars": 60,
+            "observedBaseVolume": "12177013.85",
+            "expectedBars": 60,
+            "reaction": "reversed",
+            "baselineClose": "0.18400000",
+            "baselineAt": "2025-11-14T11:29:59.999Z",
+            "endPrice": "0.17372455",
+            "sourceHashes": [
+              "6d2d7eee59f208d329c87b94e258a45b6f810cae95b34e63c59a057e1a752aee"
+            ]
+          },
+          {
+            "hours": 4,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "-24.467543",
+            "mfePct": "17.907011",
+            "maePct": "-28.165130",
+            "bars": 240,
+            "observedBaseVolume": "32261265.93",
+            "expectedBars": 240,
+            "reaction": "reversed",
+            "baselineClose": "0.18400000",
+            "baselineAt": "2025-11-14T11:29:59.999Z",
+            "endPrice": "0.13897972",
+            "sourceHashes": [
+              "6d2d7eee59f208d329c87b94e258a45b6f810cae95b34e63c59a057e1a752aee"
+            ]
+          },
+          {
+            "hours": 24,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "28.412179",
+            "mfePct": "39.070652",
+            "maePct": "-38.733886",
+            "bars": 1440,
+            "observedBaseVolume": "74087611.98",
+            "expectedBars": 1440,
+            "reaction": "reversed",
+            "baselineClose": "0.18400000",
+            "baselineAt": "2025-11-14T11:29:59.999Z",
+            "endPrice": "0.23627841",
+            "sourceHashes": [
+              "6d2d7eee59f208d329c87b94e258a45b6f810cae95b34e63c59a057e1a752aee"
+            ]
+          },
+          {
+            "hours": 72,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "43.735326",
+            "mfePct": "103.260870",
+            "maePct": "-38.733886",
+            "bars": 4320,
+            "observedBaseVolume": "138503893.91",
+            "expectedBars": 4320,
+            "reaction": "reversed",
+            "baselineClose": "0.18400000",
+            "baselineAt": "2025-11-14T11:29:59.999Z",
+            "endPrice": "0.26447300",
+            "sourceHashes": [
+              "6d2d7eee59f208d329c87b94e258a45b6f810cae95b34e63c59a057e1a752aee",
+              "4f779e1a1294cfeece0a2d8ad56461929c4681a0c17426f4d8ffcab2b21fa12d",
+              "53465269b557a8171608870895447272f68d9ac52056f1c2ef90884a353a128c"
+            ]
+          },
+          {
+            "hours": 168,
+            "status": "observed",
+            "reason": "Complete minute OHLC reconstruction; no executable bid/ask depth",
+            "returnPct": "115.331065",
+            "mfePct": "231.617886",
+            "maePct": "-38.733886",
+            "bars": 10080,
+            "observedBaseVolume": "176252513.29",
+            "expectedBars": 10080,
+            "reaction": "reversed",
+            "baselineClose": "0.18400000",
+            "baselineAt": "2025-11-14T11:29:59.999Z",
+            "endPrice": "0.39620916",
+            "sourceHashes": [
+              "6d2d7eee59f208d329c87b94e258a45b6f810cae95b34e63c59a057e1a752aee",
+              "4f779e1a1294cfeece0a2d8ad56461929c4681a0c17426f4d8ffcab2b21fa12d",
+              "53465269b557a8171608870895447272f68d9ac52056f1c2ef90884a353a128c",
+              "443c42594f2445c54d1eb4cd0aaf94062535704c94abe5ed543f8d017b6436fe",
+              "6de8e362031ad7c9a8cefd5ca2cca0f2bb0871409e1d285317fa3e4e0e1e0823",
+              "61c203ae7c3d49b8e33c400f32f78d031543a333b8191e84e121e503cbca6c76",
+              "d012743d7d2b69cdb4b19d7cc5b23dceac1e3af00e1e08cb6b97fb47a4bafb74"
+            ]
+          }
+        ]
+      },
+      "historicalContext": {
+        "fundingRows": 42,
+        "fundingSourceHash": "28d74cd142683b9973692cfe46c54c22f4db0e8ffeaf5f896d2a289d482b085b",
+        "btcHourlyBars": 169,
+        "wallets": {
+          "observedTransfers": 0,
+          "scope": "Incomplete historical sample; no accumulation/distribution or beneficial-owner inference"
+        },
+        "liquidity": {
+          "status": "unavailable",
+          "reason": "No observed historical pool series"
+        },
+        "openInterest": {
+          "status": "unavailable",
+          "reason": "Recent-only REST history; older archive not yet reconciled for timing/licensing"
+        },
+        "exchangeFlows": {
+          "status": "unavailable",
+          "reason": "No independently verified contemporaneous label/continuous-flow series"
+        }
+      },
+      "collectionFailures": [],
+      "suppression": "Descriptive event outcomes cannot validate a trading strategy. Current/revised announcement contents and later-downloaded observations cannot create a past Flownix signal."
+    }
+  ],
+  "cohort": {
+    "specVersion": "fixed-cohort/2",
+    "definition": {
+      "setupAt": "2026-11-17T00:00:00Z",
+      "endAt": "2026-11-23T00:00:00Z",
+      "definition": "Six-day fixed window after first local registry observation, endpoints and completeness reported. Non-2x cases retained as descriptive controls, not matched causal controls. No executable performance claim.",
+      "identities": [
+        {
+          "tokenId": "1e6bef01671cf458649a5c2fc3196b42",
+          "chain": "56",
+          "contract": "0x7ec43cf65f1663f820427c62a5780b8f2e25593a",
+          "lead": "LAB"
+        },
+        {
+          "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+          "chain": "56",
+          "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+          "lead": "AKE"
+        },
+        {
+          "tokenId": "807847af26de99a0b0a25b27595867fc",
+          "chain": "56",
+          "contract": "0x444045b0ee1ee319a660a5e3d604ca0ffa35acaa",
+          "lead": "BTW"
+        },
+        {
+          "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+          "chain": "56",
+          "contract": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+          "lead": "PIEVERSE"
+        },
+        {
+          "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+          "chain": "56",
+          "contract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+          "lead": "EVAA"
+        },
+        {
+          "tokenId": "5a6e431d13faffaedc71f54b37bf7ad1",
+          "chain": "56",
+          "contract": "0x99991c6aabba5a096f24f250b73580f5179b9999",
+          "lead": "CAP"
+        },
+        {
+          "tokenId": "f65e2525432feb7d8bc92849316813b5",
+          "chain": "56",
+          "contract": "0xea37a8de1de2d9d10772eeb569e28bfa5cb17707",
+          "lead": "JCT"
+        },
+        {
+          "tokenId": "024dee9c4237443005fea01e23288720",
+          "chain": "56",
+          "contract": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+          "lead": "AGT"
+        },
+        {
+          "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+          "chain": "56",
+          "contract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+          "lead": "Q"
+        },
+        {
+          "tokenId": "cc7f0a11ac103b548563ea9159886b49",
+          "chain": "56",
+          "contract": "0x97693439ea2f0ecdeb9135881e49f354656a911c",
+          "lead": "RAVE"
+        },
+        {
+          "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+          "chain": "56",
+          "contract": "0x4e200fe2f3efb977d5fd9c430a41531fb04d97b8",
+          "lead": "ORDER"
+        }
+      ]
+    },
+    "results": [
+      {
+        "tokenId": "1e6bef01671cf458649a5c2fc3196b42",
+        "status": "retrospective_price_outcome",
+        "returnPct": "4.554185",
+        "mfePct": "18.280580",
+        "maePct": "-6.469475",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-72.986961",
+        "mfePct": "10.994997",
+        "maePct": "-75.569734",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "807847af26de99a0b0a25b27595867fc",
+        "status": "retrospective_price_outcome",
+        "returnPct": "95.494353",
+        "mfePct": "109.339222",
+        "maePct": "-9.609231",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+        "status": "retrospective_price_outcome",
+        "returnPct": "88.154780",
+        "mfePct": "171.695601",
+        "maePct": "-9.262542",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-28.812436",
+        "mfePct": "103.553875",
+        "maePct": "-32.643702",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": true,
+        "non2xPeakControl": false,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "5a6e431d13faffaedc71f54b37bf7ad1",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-8.437299",
+        "mfePct": "2.917817",
+        "maePct": "-20.787983",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "f65e2525432feb7d8bc92849316813b5",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-28.716540",
+        "mfePct": "5.073073",
+        "maePct": "-36.284758",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "024dee9c4237443005fea01e23288720",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-8.661773",
+        "mfePct": "16.219122",
+        "maePct": "-19.891114",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+        "status": "retrospective_price_outcome",
+        "returnPct": "4.982979",
+        "mfePct": "10.436014",
+        "maePct": "-4.596812",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "cc7f0a11ac103b548563ea9159886b49",
+        "status": "retrospective_price_outcome",
+        "returnPct": "12.987535",
+        "mfePct": "32.771663",
+        "maePct": "-3.337843",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      },
+      {
+        "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+        "status": "retrospective_price_outcome",
+        "returnPct": "-0.798690",
+        "mfePct": "9.507641",
+        "maePct": "-7.050464",
+        "coverageBars": 144,
+        "expectedBars": 144,
+        "classification": "Fixed-window Alpha close return before costs; not an executable strategy outcome",
+        "confirmed2x": false,
+        "peak2xObserved": false,
+        "non2xPeakControl": true,
+        "control": true,
+        "featureKnowableAtSetup": false,
+        "signalVerified": false,
+        "executableOutcome": false
+      }
+    ],
+    "confirmed2x": 0,
+    "observed2xPeaks": 3,
+    "non2xPeakControls": 8,
+    "confirmedNon2xControls": 11,
+    "unavailable": 0
+  },
+  "listingHypothesis": {
+    "stage": "historically_evaluated_hypothesis",
+    "hypothesis": "Every verified listing is followed by an Alpha close decline of at least 5% at 24h",
+    "exploratory": true,
+    "cutoff": "2025-11-01T00:00:00Z",
+    "training": {
+      "requested": 2,
+      "observed": 2,
+      "unavailable": 0,
+      "independentAnnouncementGroups": 1,
+      "declinesAtLeast5Pct": 0,
+      "counterexamples": 2,
+      "cases": [
+        {
+          "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+          "announcementGroup": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+          "start": "2025-09-26T12:30:00Z",
+          "returnPct": "22.253914",
+          "status": "observed"
+        },
+        {
+          "tokenId": "1f31dce6802ea3784586eda616e11ac2",
+          "announcementGroup": "https://www.binance.com/en/support/announcement/detail/f7b86984a0d34f4fbfc3204fa93ae344",
+          "start": "2025-09-26T12:45:00Z",
+          "returnPct": "13.610051",
+          "status": "observed"
+        }
+      ]
+    },
+    "heldOut": {
+      "requested": 1,
+      "observed": 1,
+      "unavailable": 0,
+      "independentAnnouncementGroups": 1,
+      "declinesAtLeast5Pct": 0,
+      "counterexamples": 1,
+      "cases": [
+        {
+          "tokenId": "4b0a9eee412fc1c1bb8e069480d30a6e",
+          "announcementGroup": "https://www.binance.com/en/support/announcement/detail/9601f5b2dd9e4f33bf7361fa61368191",
+          "start": "2025-11-14T11:30:00Z",
+          "returnPct": "28.412179",
+          "status": "observed"
+        }
+      ]
+    },
+    "purgedAcrossCutoff": 0,
+    "validatedStrategy": false,
+    "forwardPaperTested": false,
+    "causationEstablished": false,
+    "costAssessment": {
+      "status": "unavailable",
+      "reason": "Historical executable spread, depth, fees and wallet/DEX continuity not established; raw price returns cannot be called net strategy returns"
+    },
+    "suppression": "Small dependent cohort, amended/unarchived announcement bodies, no matched no-listing controls and no executable costs. The held-out split is chronological but does not establish validation; preserve missing cases and counterexamples."
+  },
+  "validatedStrategies": 0,
+  "notes": [
+    "No continuously hosted worker or billing changes. Collector lock count is a stopped-state check, not hosted acceptance.",
+    "Provider prices/method CU and SQL byte sizes are not account dashboard usage.",
+    "Earlier serialized study runs retained; new native-object runs verified via live CLI replay.",
+    "Historical price outcomes are not executable strategy wins or past Flownix signals."
+  ],
+  "verification": {
+    "automatedTests": 139,
+    "testFiles": 23,
+    "postgresqlIntegrationPassed": true,
+    "authenticatedLocalBrowserJourneys": 7,
+    "typecheckPassed": true,
+    "lintPassed": true,
+    "productionBuildPassed": true,
+    "dockerBuildPassed": true,
+    "offlineReadOnlyContainerSmokePassed": true,
+    "missingSecretsStartupExit": 78,
+    "privateProductionOwnerJourneyAvailable": false,
+    "continuouslyHostedWorkerActivated": false
+  }
+}

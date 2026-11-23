@@ -6,11 +6,12 @@ export async function monitorWorker(sql = sqlClient()) {
   const c = config();
   const [rows, usage, providers, growth] = await Promise.all([
     sql`SELECT pg_database_size(current_database())::text AS database_bytes,
-      (SELECT max(scanned_at) FROM block_cursors) AS last_evm_progress,
+      (SELECT max(at) FROM (SELECT scanned_at AS at FROM block_cursors UNION ALL SELECT observed_at FROM live_scan_checkpoints) p) AS last_evm_progress,
       (SELECT max(scanned_at) FROM solana_account_cursors) AS last_solana_progress,
       (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON t.id=j.payload->>'tokenId' WHERE j.kind='scan' AND t.status='current' AND j.run_after<now()-interval '24 hours') AS overdue_day,
       (SELECT count(*)::int FROM worker_jobs WHERE status='running' AND lease_until<now()) AS expired_leases,
-      (SELECT count(*)::int FROM alpha_tokens t LEFT JOIN market_coverage mc ON t.id=mc.token_id WHERE t.status='current' AND (mc.status IS NULL OR mc.status<>'no_pair') AND (mc.observed_at IS NULL OR mc.observed_at<now()-interval '15 minutes')) AS stale_market,
+      (SELECT count(*)::int FROM alpha_tokens t LEFT JOIN market_coverage mc ON t.id=mc.token_id LEFT JOIN LATERAL(SELECT provider_time FROM market_snapshots m WHERE m.token_id=t.id AND m.source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1) m ON true WHERE t.status='current' AND (mc.status IS NULL OR mc.status<>'no_pair') AND (mc.observed_at IS NULL OR mc.observed_at<now()-interval '15 minutes' OR m.provider_time IS NULL OR m.provider_time<now()-interval '15 minutes' OR m.provider_time>now()+interval '30 seconds')) AS stale_market,
+      (SELECT count(*)::int FROM alpha_tokens t LEFT JOIN live_scan_checkpoints l ON l.token_id=t.id WHERE t.status='current' AND t.chain_id IN ('1','56','8453','42161','146','4663') AND (l.source_time IS NULL OR l.source_time<now()-interval '12 hours')) AS source_overdue,
       (SELECT max(updated_at) FROM settings WHERE key='registry_sync') AS registry_at`,
     sql`SELECT scope,period_start,used::text FROM worker_budget_usage WHERE period_start>=date_trunc('month',now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' ORDER BY scope,period_start`,
     sql`SELECT provider,blocked_until,reason,failures FROM worker_provider_state WHERE blocked_until>now()`,
@@ -50,6 +51,10 @@ export async function monitorWorker(sql = sqlClient()) {
     "critical",
   );
   add("market_stale", row.stale_market > 0, { tokens: row.stale_market });
+  add("recent_source_overdue", row.source_overdue > 0, {
+    tokens: row.source_overdue,
+    coverage: "Bounded recent samples, not continuous history",
+  });
   add("scans_overdue", row.overdue_day > 0, { tokens: row.overdue_day });
   add("leases_expired", row.expired_leases > 0, { jobs: row.expired_leases });
   add(
@@ -86,6 +91,23 @@ export async function monitorWorker(sql = sqlClient()) {
       ? c.ALCHEMY_MONTHLY_CU_LIMIT
       : c.ALCHEMY_DAILY_CU_LIMIT;
     add(scope, used >= limit * 0.8, { used, limit });
+  }
+  for (const [scope, limit] of [
+    ["alchemy:enrichment:day", c.ALCHEMY_ENRICHMENT_DAILY_CU_LIMIT],
+    ["alchemy:historical:day", c.ALCHEMY_HISTORICAL_DAILY_CU_LIMIT],
+  ] as const) {
+    const used = Number(
+      usage.find(
+        (u) =>
+          u.scope === scope && new Date(u.period_start).toISOString() === today,
+      )?.used ?? 0,
+    );
+    add(scope, used >= limit * 0.8, {
+      used,
+      limit,
+      action:
+        "Defer optional workload; baseline remains eligible within shared quota",
+    });
   }
   const codes = [...checks.keys()];
   await sql`UPDATE worker_operational_alerts SET resolved_at=now() WHERE resolved_at IS NULL AND NOT(code=ANY(${codes}))`;

@@ -133,6 +133,15 @@ test("private workspace renders honest states and working navigation, themes and
   ]) {
     await navigate(page, path, { waitUntil: "commit" });
     await expectPageReady(page, heading);
+    if (path === "/research") {
+      await expect(
+        page.getByRole("heading", { name: "Futures listing event studies" }),
+      ).toBeVisible();
+      const exported = await page.request.get("/api/export?kind=research");
+      expect(exported.status()).toBe(200);
+      expect(exported.headers()["cache-control"]).toContain("no-store");
+      expect((await exported.json()).scope).toContain("Retrospective");
+    }
     await page.screenshot({
       path: `artifacts/screenshots/screen-${path.split("/")[1]}.png`,
       fullPage: true,
@@ -383,6 +392,73 @@ test("token research intake preserves claims, revisions and Solana wallet identi
     await sql`DELETE FROM research_leads WHERE token_id=${id} AND revision_of IS NOT NULL`;
     await sql`DELETE FROM research_leads WHERE token_id=${id}`;
     await sql`DELETE FROM alpha_tokens WHERE id=${id}`;
+    await closeDb();
+  }
+});
+
+test("historical studies render native JSON while malformed evidence remains exportable", async ({
+  page,
+  request,
+}) => {
+  test.skip(!process.env.DATABASE_URL, "Requires local PostgreSQL");
+  if (
+    !["localhost", "127.0.0.1"].includes(
+      new URL(process.env.DATABASE_URL!).hostname,
+    )
+  )
+    throw Error("Browser fixtures require local PostgreSQL");
+  const sql = sqlClient(),
+    good = createHash("sha256").update(randomUUID()).digest("hex"),
+    bad = createHash("sha256").update(randomUUID()).digest("hex");
+  const manifest = {
+      event: {
+        tokenId: "e".repeat(32),
+        symbol: "LOCAL_BROWSER_EVENT",
+        announcementAt: "2025-01-01T00:00:00Z",
+        scheduledStartAt: "2025-01-01T01:00:00Z",
+      },
+    },
+    report = {
+      phases: { horizons: [], actualStart: null },
+      originalAnnouncementContentVerified: false,
+      suppression:
+        "Synthetic local browser fixture only; no observations or strategy",
+    };
+  try {
+    await sql`INSERT INTO event_study_runs(run_hash,spec_version,computed_at,manifest,report) VALUES(${good},'listing-study/1',now(),${sql.json(manifest)},${sql.json(report)}),(${bad},'listing-study/1',now(),to_jsonb(${JSON.stringify(manifest)}::text),to_jsonb(${JSON.stringify(report)}::text))`;
+    await navigate(page, "/research");
+    await expectPageReady(page, "Historical Runner Lab");
+    const summary = page
+      .locator("summary")
+      .filter({ hasText: "LOCAL_BROWSER_EVENT" });
+    await expect(summary).toHaveCount(1);
+    await summary.click();
+    await expect(
+      page.getByText(report.suppression, { exact: true }),
+    ).toBeVisible();
+    const response = await request.get("/api/export?kind=research"),
+      body = await response.json();
+    expect(response.status()).toBe(200);
+    expect(
+      typeof body.runs.find((r: { run_hash: string }) => r.run_hash === good)
+        .manifest,
+    ).toBe("object");
+    expect(
+      typeof body.runs.find((r: { run_hash: string }) => r.run_hash === bad)
+        .manifest,
+    ).toBe("string");
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: "artifacts/screenshots/listing-study-phone.png",
+      fullPage: true,
+    });
+  } finally {
+    await sql`DELETE FROM event_study_runs WHERE run_hash=ANY(${[good, bad]})`;
     await closeDb();
   }
 });
