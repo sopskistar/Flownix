@@ -453,6 +453,10 @@ main {
 .filters select {
   font-size: 12px;
 }
+.filters .sort-filter {
+  flex-grow: 1.75;
+  min-width: min(100%, 245px);
+}
 .advanced-filters {
   padding: 0 20px 18px;
 }

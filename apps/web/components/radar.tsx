@@ -6,13 +6,23 @@ import { freshness } from "@flownix/core/browser";
 import type { RadarToken, Health } from "../lib/data";
 import { ActionButton } from "./controls";
 import { TokenIdentity } from "./token-identity";
+import {
+  compareRadarTokens,
+  radarMetric,
+  radarSort,
+  radarSortOptions,
+} from "../lib/radar-sort";
 const n = (v: string | null, d = 2) =>
-  v !== null && v !== "" && Number.isFinite(Number(v))
+  radarMetric(v) !== null
     ? new Intl.NumberFormat("en-US", {
         maximumFractionDigits: d,
         notation: Math.abs(Number(v)) >= 1e6 ? "compact" : "standard",
       }).format(Number(v))
     : "—";
+const change = (v: string | null) =>
+  radarMetric(v) === null ? "—" : `${Number(v) > 0 ? "+" : ""}${n(v)}%`;
+const changeClass = (v: string | null) =>
+  radarMetric(v) === null ? "muted" : Number(v) >= 0 ? "positive" : "negative";
 const stamp = (s: string | null) =>
   s
     ? new Date(s).toLocaleString("en-GB", {
@@ -66,7 +76,7 @@ export function Radar({
   };
   const search = (query.get("q") ?? "").toLowerCase(),
     chain = query.get("chain") ?? "",
-    sort = query.get("sort") ?? (watchlist ? "oldest" : "liquidity"),
+    sort = radarSort(query.get("sort"), watchlist),
     state = query.get("state") ?? "",
     membership = query.get("membership") ?? "current",
     classification = query.get("classification") ?? "";
@@ -90,18 +100,7 @@ export function Radar({
               .toLowerCase()
               .includes(search),
         )
-        .sort((a, b) =>
-          sort === "oldest"
-            ? a.first_seen.localeCompare(b.first_seen)
-            : sort === "activity"
-              ? b.signal_count - a.signal_count
-              : sort === "name"
-                ? a.symbol.localeCompare(b.symbol)
-                : Number(b[sort === "cap" ? "market_cap" : "liquidity"] ?? -1) -
-                    Number(
-                      a[sort === "cap" ? "market_cap" : "liquidity"] ?? -1,
-                    ) || a.id.localeCompare(b.id),
-        ),
+        .sort((a, b) => compareRadarTokens(a, b, sort)),
     [
       tokens,
       watchlist,
@@ -283,18 +282,18 @@ export function Radar({
               <option value="1000000">1 million</option>
             </select>
           </label>
-          <label>
+          <label className="sort-filter">
             Sort by
             <select
               disabled={!hydrated}
               value={sort}
               onChange={(e) => set("sort", e.target.value)}
             >
-              <option value="liquidity">Liquidity</option>
-              <option value="oldest">Longest observation</option>
-              <option value="activity">Unresolved activity</option>
-              <option value="cap">Market cap</option>
-              <option value="name">Token name</option>
+              {radarSortOptions.map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
             </select>
           </label>
         </div>
@@ -328,7 +327,6 @@ export function Radar({
               <tr>
                 <th scope="col">Watch</th>
                 <th scope="col">Token / network</th>
-                <th scope="col">Alpha identity</th>
                 <th scope="col" className="numeric">
                   Alpha price
                 </th>
@@ -375,10 +373,6 @@ export function Radar({
                   <td>
                     <TokenIdentity token={t.visual} />
                   </td>
-                  <td>
-                    <code>{t.alpha_id ?? "—"}</code>
-                    <small className="muted">{t.status}</small>
-                  </td>
                   <td className="numeric">
                     {n(t.price, 8)}
                     <small>
@@ -389,10 +383,8 @@ export function Radar({
                           : "No price observation"}
                     </small>
                   </td>
-                  <td
-                    className={`numeric ${t.change_24h === null ? "muted" : Number(t.change_24h) >= 0 ? "positive" : "negative"}`}
-                  >
-                    {t.change_24h === null ? "—" : `${n(t.change_24h)}%`}
+                  <td className={`numeric ${changeClass(t.change_24h)}`}>
+                    {change(t.change_24h)}
                   </td>
                   <td className="numeric secondary">{n(t.market_cap)}</td>
                   <td className="numeric secondary">{n(t.liquidity)}</td>
@@ -411,6 +403,7 @@ export function Radar({
                     </small>
                   </td>
                   <td className="secondary">
+                    <small className="muted">{t.status} membership</small>
                     <span>{days(t.first_seen, now)} days observed</span>
                     <small
                       className={
@@ -469,17 +462,8 @@ export function Radar({
               <div className="radar-mobile-price">
                 <span>{n(t.price, 8)}</span>
                 <small>{t.quote_asset ?? "Quote unspecified"}</small>
-                <span
-                  className={
-                    t.change_24h === null
-                      ? "muted"
-                      : Number(t.change_24h) >= 0
-                        ? "positive"
-                        : "negative"
-                  }
-                >
-                  {t.change_24h === null ? "—" : `${n(t.change_24h)}%`}{" "}
-                  <small>24h</small>
+                <span className={changeClass(t.change_24h)}>
+                  {change(t.change_24h)} <small>24h</small>
                 </span>
               </div>
               <div className="radar-mobile-freshness">
@@ -511,10 +495,8 @@ export function Radar({
               <details className="radar-mobile-evidence">
                 <summary>Identity, statistics & evidence</summary>
                 <dl>
-                  <dt>Alpha identity</dt>
-                  <dd>
-                    {t.alpha_id ?? "Unavailable"} / {t.status}
-                  </dd>
+                  <dt>Membership</dt>
+                  <dd>{t.status}</dd>
                   <dt>Market cap (registry)</dt>
                   <dd>{n(t.market_cap)}</dd>
                   <dt>Liquidity (registry)</dt>

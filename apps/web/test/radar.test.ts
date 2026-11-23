@@ -1,15 +1,19 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Radar } from "../components/radar";
 import type { Health, RadarToken } from "../lib/data";
 import { tokenVisual } from "@flownix/core";
 
+const fixture = vi.hoisted(() => ({ query: "" }));
 vi.mock("next/navigation", () => ({
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(fixture.query),
   useRouter: () => ({ replace: vi.fn() }),
   usePathname: () => "/",
 }));
+beforeEach(() => {
+  fixture.query = "";
+});
 
 describe("Radar initial freshness snapshot", () => {
   it("renders identical initial HTML when hydration crosses a freshness boundary", () => {
@@ -69,8 +73,23 @@ describe("Radar initial freshness snapshot", () => {
       const initialClient = renderToString(
         createElement(Radar, { tokens: [token], health, asOf }),
       );
-      expect(server.replace(/<!--.*?-->/g, "")).toContain("current Alpha ticker");
+      expect(server.replace(/<!--.*?-->/g, "")).toContain(
+        "current Alpha ticker",
+      );
       expect(initialClient).toBe(server);
+      expect(server).not.toContain('scope="col">Alpha identity');
+      expect(server).not.toContain("<code>ALPHA_999</code>");
+      expect(server.match(/scope="col"/g)).toHaveLength(9);
+      expect(server).toContain('value="change_desc" selected=""');
+      expect(server).toContain(`/token/${token.id}`);
+      fixture.query = "q=ALPHA_999";
+      expect(
+        renderToString(createElement(Radar, { tokens: [token], health, asOf })),
+      ).toContain(`/token/${token.id}`);
+      fixture.query = "q=not-found";
+      expect(
+        renderToString(createElement(Radar, { tokens: [token], health, asOf })),
+      ).toContain("No identities match these filters");
     } finally {
       clock.mockRestore();
     }

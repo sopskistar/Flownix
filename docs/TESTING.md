@@ -1,3 +1,7 @@
+# Universe Ledger verification — 2026-11-23
+
+Recovered `1279d12` and preserved its completed operational/research release. The targeted Ledger refinement passes **150 automated tests in 24 files** and **eight authenticated local browser journeys**, including numeric sorting, unavailable values, exact-identity ties, Alpha ID search, filters/pagination, watch mutations and responsive/stale presentation. See [the continuation notes](UNIVERSE_LEDGER_2026-11-23.md) for scope, real screenshot checks and honest OAuth diagnostics. Earlier results below are preserved.
+
 # Operational and historical verification — 2026-11-23
 
 The continuation from `a6d0f6a` passes **139 automated tests in 23 files**, including PostgreSQL integration, and **seven authenticated local browser journeys**. Typecheck, lint, production build and worker Docker build pass. New regression coverage includes recent samples preserving historical cursors/gaps, request policy fail-closed behavior, independent optional workload budgets, seven-network fairness, exact listing identity, incomplete/conflicting candles, actual trade-bar evidence, pre-admission/amendment/availability suppression, chronological listing counterexamples, peak versus closing outcomes, immutable study/case annotation storage, and a seeded browser case for native versus malformed study JSON.

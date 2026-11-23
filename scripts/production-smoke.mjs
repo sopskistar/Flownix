@@ -10,8 +10,31 @@ const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
 });
 const errors = [];
+// Report transport failures separately from an absent OAuth navigation. Never
+// log query strings, request bodies, cookie values or authorization state.
+const authDiagnostics = [];
+const startedAt = Date.now();
 const context = await browser.newContext({ reducedMotion: "reduce" });
 const page = await context.newPage();
+page.on("response", (response) => {
+  const u = new URL(response.url());
+  if (u.origin === origin.origin && u.pathname.startsWith("/api/auth/"))
+    authDiagnostics.push({
+      path: u.pathname,
+      status: response.status(),
+      elapsedMs: Date.now() - startedAt,
+    });
+});
+page.on("requestfailed", (request) => {
+  const u = new URL(request.url());
+  if (u.origin === origin.origin || u.hostname === "github.com")
+    authDiagnostics.push({
+      host: u.hostname,
+      path: u.pathname,
+      transportError: request.failure()?.errorText,
+      elapsedMs: Date.now() - startedAt,
+    });
+});
 page.on("pageerror", (error) => errors.push(error.message));
 const target = (path) => new URL(path, origin).href;
 const result = { origin: origin.origin, privateRoutes: {}, screenshots: [] };
@@ -163,7 +186,19 @@ try {
   await page
     .getByRole("button", { name: "Continue with GitHub", exact: true })
     .click();
-  await oauthRequest;
+  try {
+    await oauthRequest;
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        check: "oauth_handoff",
+        result: "timeout",
+        authDiagnostics,
+        ownerSignInVerified: false,
+      }),
+    );
+    throw error;
+  }
   result.oauthHandoff =
     "GitHub authorization request emitted; GitHub page load and real user sign-in remain unverified";
   const cookies = (await context.cookies(origin.origin)).filter((cookie) =>
@@ -182,6 +217,7 @@ try {
     ),
   );
   result.secureAuthCookies = true;
+  result.authDiagnostics = authDiagnostics;
   assert.equal(errors.length, 0, "Browser runtime errors occurred");
   assert.ok(
     !bodies.some((body) => secrets.some((secret) => body.includes(secret))),
@@ -192,6 +228,15 @@ try {
   result.authenticatedChecks =
     "NOT RUN — requires the owner's real GitHub session";
   console.log(JSON.stringify(result, null, 2));
+} catch (error) {
+  console.error(
+    JSON.stringify({
+      check: "production_smoke",
+      authDiagnostics,
+      ownerSignInVerified: false,
+    }),
+  );
+  throw error;
 } finally {
   await browser.close();
 }
