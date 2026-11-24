@@ -114,8 +114,6 @@ it.skipIf(!process.env.DATABASE_URL)(
               DATABASE_URL_WORKER: url,
               PROVIDER_DNS_SERVERS: "",
               WORKER_EXECUTION_MODE: "duty_cycle",
-              WORKER_DUTY_ACTIVE_SECONDS: "120",
-              WORKER_DUTY_INTERVAL_SECONDS: "21600",
             },
             stdio: ["ignore", "pipe", "pipe"],
           },
@@ -141,9 +139,11 @@ it.skipIf(!process.env.DATABASE_URL)(
         });
         await new Promise((r) => setTimeout(r, 250));
         expect(output.match(/duty_reservation/g)?.length).toBe(1);
+        // The observer also identifies as flownix-duty when checking a real
+        // budget environment; count only other database sessions.
         expect(
           (
-            await sql`SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname=current_database() AND application_name='flownix-duty'`
+            await sql`SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname=current_database() AND application_name='flownix-duty' AND pid<>pg_backend_pid()`
           )[0].n,
         ).toBe(0);
         const health = JSON.parse(
