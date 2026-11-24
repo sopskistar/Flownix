@@ -419,7 +419,8 @@
     "Confirm existing Neon Free compute/storage/egress remaining allowance, other branches and actual suspension",
     "Confirm Alchemy Free account usage and enter conservative ALCHEMY_MONTHLY_UNTRACKED_CU",
     "Explicitly approve Render Starter charge within the $7 ceiling",
-    "Verify first complete hosted window, idle suspension, memory and full rotating coverage after activation"
+    "Verify first complete hosted window, idle suspension, memory and full rotating coverage after activation",
+    "Verify Render variable charges/remaining bandwidth and an enforceable ceiling; a $7 compute plan alone is not a guaranteed $7 invoice"
   ],
   "limitations": [
     "Worker model is not a Neon billing meter; web/other workloads and restarts add usage",
@@ -427,5 +428,15 @@
     "Prices and chain source ages remain visible and can be stale between windows",
     "Finite Free storage cannot retain an unlimited growing archive; guard halts ingestion without deleting evidence",
     "New Vercel Schedules beta differs from legacy daily Hobby Cron, but the process worker has no verified serverless adapter"
-  ]
+  ],
+  "renderBilling": {
+    "computeBaseUSDMonthly": 7,
+    "workspaceIncludedOutboundGB": 5,
+    "outboundOverageUSDPerGB": 0.15,
+    "generalInvoiceHardCapVerified": false,
+    "workspaceUsageVerified": false,
+    "workerWireEgressMeasured": false,
+    "pipelineSpendLimitIsNotGeneralBillingCap": true,
+    "activationAuthorized": false
+  }
 }
