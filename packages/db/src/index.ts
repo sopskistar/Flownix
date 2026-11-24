@@ -23,7 +23,13 @@ function createClient(max: number) {
     },
     max,
     prepare: false,
-    connection: { statement_timeout: 30000, application_name: "flownix" },
+    connection: {
+      statement_timeout: 30000,
+      application_name:
+        process.env.WORKER_EXECUTION_MODE === "duty_cycle"
+          ? "flownix-duty"
+          : "flownix",
+    },
     connect_timeout: 20,
     idle_timeout: 20,
     transform: { undefined: null },

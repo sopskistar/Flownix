@@ -11,6 +11,32 @@ services:
     autoDeployTrigger: off
     maxShutdownDelaySeconds: 90
     envVars:
+      - key: WORKER_EXECUTION_MODE
+        value: "duty_cycle"
+      - key: WORKER_DUTY_INTERVAL_SECONDS
+        value: "43200"
+      - key: WORKER_DUTY_ACTIVE_SECONDS
+        value: "1500"
+      - key: WORKER_DUTY_NEON_MAX_CU
+        value: "2"
+      - key: WORKER_DUTY_MONTHLY_CU_LIMIT
+        value: "70"
+      - key: DATABASE_STORAGE_LIMIT_MB
+        value: "750"
+      - key: MARKET_TOKEN_LIMIT
+        value: "25"
+      - key: ALPHA_REQUESTS_PER_MINUTE
+        value: "30"
+      - key: SCAN_BLOCKS
+        value: "10"
+      - key: WORKER_MARKET_OVERLAP
+        value: "true"
+      - key: MARKET_HISTORY_BACKFILL_ENABLED
+        value: "false"
+      - key: ALCHEMY_ENRICHMENT_DAILY_CU_LIMIT
+        value: "5000"
+      - key: ALCHEMY_HISTORICAL_DAILY_CU_LIMIT
+        value: "1000"
       - key: DATABASE_URL
         sync: false
       - key: DATABASE_URL_WORKER

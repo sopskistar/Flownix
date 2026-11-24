@@ -1,6 +1,7 @@
 import { parseEnv } from "node:util";
 import { readFileSync, writeFileSync } from "node:fs";
 import { envSchema } from "../packages/core/src/config";
+import { budgetWorkerDefaults } from "../packages/core/src/duty-cycle";
 
 // Explicit worker schema only: OAuth, Vercel, GitHub, signing and unrelated API
 // secrets in the source file cannot be copied into the collector environment.
@@ -21,13 +22,17 @@ try {
   for (const [, value] of entries)
     if (/[\r\n\0]/.test(value)) throw Error("INVALID_ENV_VALUE");
   const environment = Object.fromEntries(entries);
+  if (process.argv.includes("--budget"))
+    Object.assign(environment, budgetWorkerDefaults);
   environment.PROVIDER_DNS_SERVERS = process.argv.includes("--keep-local-dns")
     ? (input.PROVIDER_DNS_SERVERS ?? "")
     : "";
   environment.TELEGRAM_ENABLED = "false";
   environment.PAID_ENRICHMENT_ENABLED = "false";
   environment.PAID_DAILY_BUDGET_USD = "0";
-  const path = ".env.worker.runtime";
+  const path = process.argv.includes("--budget")
+    ? ".env.worker.budget"
+    : ".env.worker.runtime";
   writeFileSync(
     path,
     Object.entries(environment)

@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 const links = [
   ["/", "Alpha Radar"],
   ["/watchlist", "Accumulation Watchlist"],
@@ -13,20 +12,16 @@ const links = [
   ["/settings", "Data Health"],
 ];
 export function Navigation() {
-  const path = usePathname(),
-    router = useRouter();
-  useEffect(() => {
-    const t = setInterval(() => {
-      if (document.visibilityState === "visible") router.refresh();
-    }, 60000);
-    return () => clearInterval(t);
-  }, [router]);
+  // No unattended server polling: it would keep Neon awake even while the
+  // collector sleeps. Navigation, reload and completed actions still refresh.
+  const path = usePathname();
   return (
     <nav aria-label="Main navigation">
       {links.map(([href, label]) => (
         <Link
           key={href}
           href={href}
+          prefetch={false}
           aria-current={path === href ? "page" : undefined}
         >
           {label}

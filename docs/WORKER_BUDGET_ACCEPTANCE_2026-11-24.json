@@ -1,0 +1,431 @@
+{
+  "at": "2026-11-24T03:06:15.274036+00:00",
+  "baseCommit": "9206ca5b204506b4cc11e4668b46b66342019656",
+  "billingChanged": false,
+  "paidWorkerActivated": false,
+  "profile": {
+    "WORKER_EXECUTION_MODE": "duty_cycle",
+    "WORKER_DUTY_INTERVAL_SECONDS": "43200",
+    "WORKER_DUTY_ACTIVE_SECONDS": "1500",
+    "WORKER_DUTY_NEON_MAX_CU": "2",
+    "WORKER_DUTY_MONTHLY_CU_LIMIT": "70",
+    "DATABASE_STORAGE_LIMIT_MB": "750",
+    "MARKET_TOKEN_LIMIT": "25",
+    "ALPHA_REQUESTS_PER_MINUTE": "30",
+    "BASELINE_SCAN_INTERVAL_SECONDS": "21600",
+    "SOLANA_BASELINE_INTERVAL_SECONDS": "21600",
+    "SCAN_BLOCKS": "10",
+    "WORKER_MARKET_OVERLAP": "true",
+    "MARKET_HISTORY_BACKFILL_ENABLED": "false",
+    "ALCHEMY_MONTHLY_CU_LIMIT": "27000000",
+    "ALCHEMY_DAILY_CU_LIMIT": "900000",
+    "ALCHEMY_ENRICHMENT_DAILY_CU_LIMIT": "5000",
+    "ALCHEMY_HISTORICAL_DAILY_CU_LIMIT": "1000",
+    "TELEGRAM_ENABLED": "false",
+    "PAID_ENRICHMENT_ENABLED": "false",
+    "PAID_DAILY_BUDGET_USD": "0"
+  },
+  "neonModel": [
+    {
+      "activeSeconds": 1500,
+      "intervalSeconds": 43200,
+      "suspendTailSeconds": 300,
+      "awakeSeconds": 1800,
+      "maxCycles": 62,
+      "maxCU": 0.25,
+      "microCUPerCycle": 125000,
+      "workerCUHoursUpperModel": 7.75,
+      "accountUsageMeasured": false,
+      "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+    },
+    {
+      "activeSeconds": 1500,
+      "intervalSeconds": 43200,
+      "suspendTailSeconds": 300,
+      "awakeSeconds": 1800,
+      "maxCycles": 62,
+      "maxCU": 0.5,
+      "microCUPerCycle": 250000,
+      "workerCUHoursUpperModel": 15.5,
+      "accountUsageMeasured": false,
+      "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+    },
+    {
+      "activeSeconds": 1500,
+      "intervalSeconds": 43200,
+      "suspendTailSeconds": 300,
+      "awakeSeconds": 1800,
+      "maxCycles": 62,
+      "maxCU": 1,
+      "microCUPerCycle": 500000,
+      "workerCUHoursUpperModel": 31,
+      "accountUsageMeasured": false,
+      "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+    },
+    {
+      "activeSeconds": 1500,
+      "intervalSeconds": 43200,
+      "suspendTailSeconds": 300,
+      "awakeSeconds": 1800,
+      "maxCycles": 62,
+      "maxCU": 2,
+      "microCUPerCycle": 1000000,
+      "workerCUHoursUpperModel": 62,
+      "accountUsageMeasured": false,
+      "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+    }
+  ],
+  "neonModeledGuardCUHours": 70,
+  "neonAccountMeterVerified": false,
+  "environmentAudit": "WORKER_ENV_AUDIT.json",
+  "actualPreflight": {
+    "ok": false,
+    "reason": "UNTRACKED_CU_RECONCILIATION_REQUIRED",
+    "missingVariable": "ALCHEMY_MONTHLY_UNTRACKED_CU",
+    "syntheticOffsetInserted": false
+  },
+  "database": {
+    "nativePooledDirectTargetVerified": true,
+    "nativeTransientTimeoutsObserved": true,
+    "httpsSQLAlsoVerified": true,
+    "migrations": 16,
+    "newMigrations": 0,
+    "bytesBefore": 238346240,
+    "bytesAfterFirstWindow": 239837184,
+    "bytesFinal": 240795648,
+    "finalMiB": 229.640625,
+    "oneOffGrowthBytes": 2449408,
+    "collectorLocksFinal": 0,
+    "billedStorageMeasured": false,
+    "guardMiB": 750
+  },
+  "universe": {
+    "registryIdentities": 687,
+    "currentEligible": 377,
+    "supportedCurrent": 365,
+    "currentByChain": [
+      {
+        "chain_id": "1",
+        "tokens": 19
+      },
+      {
+        "chain_id": "146",
+        "tokens": 4
+      },
+      {
+        "chain_id": "42161",
+        "tokens": 2
+      },
+      {
+        "chain_id": "4663",
+        "tokens": 5
+      },
+      {
+        "chain_id": "56",
+        "tokens": 287
+      },
+      {
+        "chain_id": "8453",
+        "tokens": 26
+      },
+      {
+        "chain_id": "CT_195",
+        "tokens": 3
+      },
+      {
+        "chain_id": "CT_501",
+        "tokens": 22
+      },
+      {
+        "chain_id": "CT_784",
+        "tokens": 9
+      }
+    ],
+    "permanentTokenSelectionLimit": false,
+    "fullSupportedCycleVerified": false,
+    "continuousHistoryVerified": false
+  },
+  "liveEvidence": {
+    "marketSnapshotsAdded": 50,
+    "recentEvmSamples": [
+      {
+        "event": "scan",
+        "token": "FLOCK",
+        "chain": "8453",
+        "coverage": "bounded_recent_sample",
+        "from": 61483806,
+        "to": 61483815,
+        "events": 0,
+        "detection": "Fresh market price and minimum liquidity required"
+      },
+      {
+        "event": "scan",
+        "token": "PONS",
+        "chain": "4663",
+        "coverage": "bounded_recent_sample",
+        "from": 121892526,
+        "to": 121892535,
+        "events": 0,
+        "detection": "Fresh market price and minimum liquidity required"
+      },
+      {
+        "event": "scan",
+        "token": "BEETS",
+        "chain": "146",
+        "coverage": "bounded_recent_sample",
+        "from": 83044074,
+        "to": 83044083,
+        "events": 0,
+        "detection": "Fresh market price and minimum liquidity required"
+      },
+      {
+        "event": "scan",
+        "token": "LAVA",
+        "chain": "42161",
+        "coverage": "bounded_recent_sample",
+        "from": 526989282,
+        "to": 526989291,
+        "events": 0,
+        "detection": "Fresh market price and minimum liquidity required"
+      },
+      {
+        "event": "scan",
+        "token": "RION",
+        "chain": "56",
+        "coverage": "bounded_recent_sample",
+        "from": 135382953,
+        "to": 135382962,
+        "events": 0,
+        "detection": "Fresh market price and minimum liquidity required"
+      },
+      {
+        "event": "scan",
+        "token": "ATH",
+        "chain": "1",
+        "coverage": "bounded_recent_sample",
+        "from": 26481997,
+        "to": 26482006,
+        "events": 1,
+        "detection": "Fresh market price and minimum liquidity required"
+      },
+      {
+        "event": "scan",
+        "token": "PFEon",
+        "chain": "56",
+        "coverage": "bounded_recent_sample",
+        "from": 135383231,
+        "to": 135383240,
+        "events": 0,
+        "detection": "Fresh market price and minimum liquidity required"
+      }
+    ],
+    "solanaSamples": [
+      {
+        "event": "solana_alpha_scan",
+        "tokenId": "2ff130d804a46f760503f677c673df96",
+        "slot": 473182701,
+        "topAccounts": 20,
+        "transactions": 2,
+        "balanceDeltas": 4,
+        "gapAccounts": 20,
+        "completeHistory": false
+      }
+    ],
+    "before": {
+      "transfers": 318,
+      "solana": 1678,
+      "swaps": 18,
+      "relationships": 162,
+      "historicalRuns": 21,
+      "signals": 0
+    },
+    "after": {
+      "transfers": 319,
+      "solana": 1702,
+      "swaps": 18,
+      "relationships": 162,
+      "historicalRuns": 21,
+      "signals": 0
+    },
+    "newSignals": 0,
+    "originalHistoricalRunsPreserved": true,
+    "latestMarket": {
+      "pairs": 318,
+      "latest": "2026-11-24T02:28:59.419+00:00",
+      "sourceLatest": "2026-11-24T02:28:46.441+00:00"
+    }
+  },
+  "alchemy": {
+    "trackedEstimatedCUBefore": 8474,
+    "afterEvmWindow": 9424,
+    "final": 10574,
+    "diagnosticIncrement": 2100,
+    "accountWideUsageVerified": false,
+    "monthlyAppCap": 27000000,
+    "freeAllowancePublished": 30000000,
+    "untrackedOffsetConfigured": false,
+    "fullUniverseSixHourOrdinaryRequirement": 13032960,
+    "fullUniverseTwelveHourOrdinaryRequirement": 6516480,
+    "requirementIsAchievedCadence": false
+  },
+  "storedJobTimingsBeforeAcceptance": [
+    {
+      "job_kind": "derivatives",
+      "chain_id": null,
+      "status": "completed",
+      "n": 1,
+      "mean_seconds": 31.032933,
+      "median_seconds": 31.032933
+    },
+    {
+      "job_kind": "market",
+      "chain_id": null,
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 171.230671,
+      "median_seconds": 171.230671
+    },
+    {
+      "job_kind": "notifications",
+      "chain_id": null,
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 0.723592,
+      "median_seconds": 0.723592
+    },
+    {
+      "job_kind": "operations",
+      "chain_id": null,
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 5.0258365,
+      "median_seconds": 5.0258365000000005
+    },
+    {
+      "job_kind": "outcomes",
+      "chain_id": null,
+      "status": "completed",
+      "n": 1,
+      "mean_seconds": 0.991783,
+      "median_seconds": 0.991783
+    },
+    {
+      "job_kind": "persistence",
+      "chain_id": null,
+      "status": "completed",
+      "n": 1,
+      "mean_seconds": 47.109883,
+      "median_seconds": 47.109883
+    },
+    {
+      "job_kind": "registry",
+      "chain_id": null,
+      "status": "completed",
+      "n": 3,
+      "mean_seconds": 17.686235333333332,
+      "median_seconds": 19.39379
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "1",
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 38.397373,
+      "median_seconds": 38.397373
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "146",
+      "status": "completed",
+      "n": 1,
+      "mean_seconds": 32.952419,
+      "median_seconds": 32.952419
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "42161",
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 37.5852005,
+      "median_seconds": 37.5852005
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "4663",
+      "status": "completed",
+      "n": 1,
+      "mean_seconds": 39.233671,
+      "median_seconds": 39.233671
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "56",
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 35.3599145,
+      "median_seconds": 35.3599145
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "8453",
+      "status": "completed",
+      "n": 2,
+      "mean_seconds": 35.4796245,
+      "median_seconds": 35.4796245
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "CT_501",
+      "status": "completed",
+      "n": 1,
+      "mean_seconds": 237.650568,
+      "median_seconds": 237.650568
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "CT_501",
+      "status": "retry",
+      "n": 1,
+      "mean_seconds": 246.035906,
+      "median_seconds": 246.035906
+    }
+  ],
+  "verification": {
+    "unitAndPostgresTests": 167,
+    "testFiles": 28,
+    "authenticatedLocalBrowserJourneys": 9,
+    "idleTabDoesNotPoll": true,
+    "noSqlSessionsDuringLocalScheduledIdle": true,
+    "durableCooldownAndBudgetAcrossRestart": true,
+    "monthLongSleepDoesNotOverflowTimer": true,
+    "modeledQuotaBoundaryAndAlert": true,
+    "typecheck": "passed",
+    "lint": "passed",
+    "productionBuild": "passed",
+    "workerImageBuild": "passed; local Docker required host networking for package registry",
+    "offlineContainerStartupMiB": 104.2,
+    "offlineHealthCorrectlyReportsBlocked": true,
+    "offlineContainerStopped": true,
+    "screenshotsInspected": ["desktop-dark.png", "tablet.png", "phone.png"],
+    "hostedSoakPassed": false,
+    "ownerAuthenticatedProductionVerified": false,
+    "staticLaunchValidationBeforeAllocationWrites": true,
+    "offlineContainerFinalIdleMiB": 137,
+    "offlineContainerFinalCpuPercent": 0.15,
+    "offlineContainerResourceScope": "Supervisor only, blocked configuration, networking disabled; not a hosted active parent-plus-worker soak",
+    "finalOfflineMissingConfiguration": "DIRECT_DATABASE_URL_REQUIRED"
+  },
+  "launchDependencies": [
+    "Confirm existing Neon Free compute/storage/egress remaining allowance, other branches and actual suspension",
+    "Confirm Alchemy Free account usage and enter conservative ALCHEMY_MONTHLY_UNTRACKED_CU",
+    "Explicitly approve Render Starter charge within the $7 ceiling",
+    "Verify first complete hosted window, idle suspension, memory and full rotating coverage after activation"
+  ],
+  "limitations": [
+    "Worker model is not a Neon billing meter; web/other workloads and restarts add usage",
+    "Sparse blockchain windows and Solana account samples do not establish continuous history or full holder census",
+    "Prices and chain source ages remain visible and can be stale between windows",
+    "Finite Free storage cannot retain an unlimited growing archive; guard halts ingestion without deleting evidence",
+    "New Vercel Schedules beta differs from legacy daily Hobby Cron, but the process worker has no verified serverless adapter"
+  ]
+}

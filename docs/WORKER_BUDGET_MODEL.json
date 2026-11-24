@@ -1,0 +1,285 @@
+{
+  "generatedAt": "2026-11-24T02:55:11.220Z",
+  "assumptions": "30 days/720 hours. EVM bounded sample 202 CU including checkpoint totalSupply (prior 176 + 26); extra event blocks, receipts and retries add cost. Optional enrichment capped at 150000 CU/day, historical Alchemy at 25000 CU/day, both also charged to shared daily/monthly caps. Solana upper ordinary 20-account sample 1870 CU; mint/holder snapshot reuses responses. New Sonic/Robinhood public RPCs add no Alchemy CU but consume database/host resources. Local graph research makes no external requests. Public Binance price/derivatives history uses no Alchemy. Methods checked 2026-11-22; PAYG advertised $0.52/M checked 2026-11-23 (supersedes earlier $0.45 model; billing FAQ may round differently). Profiles include stalls and bounded runs; projections are not sustained throughput, continuous ledger coverage or account billing. PAYG replaces free allowance and charges every CU.",
+  "measuredRuns": [
+    {
+      "file": "worker-2026-11-21T13-38-00.672Z.json",
+      "seconds": 1095.892,
+      "alchemyEstimatedCU": 5168,
+      "projected30DayCU": 12223336,
+      "meanRssMiB": 141.35026610262008,
+      "peakRssMiB": 160.40625,
+      "meanCpuPercent": 3.0466485748595664,
+      "sqlStatements": 2006
+    },
+    {
+      "file": "worker-2026-11-21T14-05-24.418Z.json",
+      "seconds": 1065.423,
+      "alchemyEstimatedCU": 9002,
+      "projected30DayCU": 21900394,
+      "meanRssMiB": 139.46100756726457,
+      "peakRssMiB": 166.05859375,
+      "meanCpuPercent": 4.896050395007429,
+      "sqlStatements": 2761
+    },
+    {
+      "file": "worker-2026-11-21T14-23-54.103Z.json",
+      "seconds": 2301.487,
+      "alchemyEstimatedCU": 16868,
+      "projected30DayCU": 18997220,
+      "meanRssMiB": 127.55558455114823,
+      "peakRssMiB": 157.2265625,
+      "meanCpuPercent": 4.438438626852987,
+      "sqlStatements": 5191
+    },
+    {
+      "file": "worker-2026-11-21T15-26-57.655Z.json",
+      "seconds": 2855.9309999999996,
+      "alchemyEstimatedCU": 23228,
+      "projected30DayCU": 21081383,
+      "meanRssMiB": 158.06687315867003,
+      "peakRssMiB": 184.8125,
+      "meanCpuPercent": 5.672693107781666,
+      "sqlStatements": 7317
+    },
+    {
+      "file": "worker-2026-11-21T17-09-45.480Z.json",
+      "seconds": 612.868,
+      "alchemyEstimatedCU": 3130,
+      "projected30DayCU": 13237696,
+      "meanRssMiB": 132.19808959960938,
+      "peakRssMiB": 148.39453125,
+      "meanCpuPercent": 3.733448148704125,
+      "sqlStatements": 1154
+    },
+    {
+      "file": "worker-2026-11-21T17-39-25.126Z.json",
+      "seconds": 1329.2459999999999,
+      "alchemyEstimatedCU": 4510,
+      "projected30DayCU": 8794399,
+      "meanRssMiB": 118.95183238636363,
+      "peakRssMiB": 150.3046875,
+      "meanCpuPercent": 2.2647104448687454,
+      "sqlStatements": 1440
+    },
+    {
+      "file": "worker-2026-11-22T17-26-24.135Z.json",
+      "seconds": 159.82399999999998,
+      "alchemyEstimatedCU": 272,
+      "projected30DayCU": 4411252,
+      "meanRssMiB": 158.9488525390625,
+      "peakRssMiB": 173.90234375,
+      "meanCpuPercent": 1.8183551907097808,
+      "sqlStatements": 395
+    },
+    {
+      "file": "worker-2026-11-22T17-40-39.855Z.json",
+      "seconds": 737.415,
+      "alchemyEstimatedCU": 2228,
+      "projected30DayCU": 7831379,
+      "meanRssMiB": 138.4634506118881,
+      "peakRssMiB": 157.42578125,
+      "meanCpuPercent": 1.4380744899412137,
+      "sqlStatements": 2907
+    },
+    {
+      "file": "worker-2026-11-22T17-53-40.912Z.json",
+      "seconds": 35.256,
+      "alchemyEstimatedCU": 40,
+      "projected30DayCU": 2940776,
+      "meanRssMiB": 106.7294921875,
+      "peakRssMiB": 119.46484375,
+      "meanCpuPercent": 1.9464601769911503,
+      "sqlStatements": 46
+    },
+    {
+      "file": "worker-2026-11-22T17-55-54.229Z.json",
+      "seconds": 293.45300000000003,
+      "alchemyEstimatedCU": 660,
+      "projected30DayCU": 5829622,
+      "meanRssMiB": 99.5718201754386,
+      "peakRssMiB": 103.4921875,
+      "meanCpuPercent": 0.5662000388477881,
+      "sqlStatements": 310
+    },
+    {
+      "file": "worker-2026-11-23T05-32-38.147Z.json",
+      "seconds": 844.168,
+      "alchemyEstimatedCU": 3630,
+      "projected30DayCU": 11145838,
+      "meanRssMiB": 164.89740349264707,
+      "peakRssMiB": 185.28515625,
+      "meanCpuPercent": 1.4663172496469896,
+      "sqlStatements": 3212
+    },
+    {
+      "file": "worker-2026-11-23T06-32-45.877Z.json",
+      "seconds": 440.081,
+      "alchemyEstimatedCU": 1326,
+      "projected30DayCU": 7809908,
+      "meanRssMiB": 99.81425561797752,
+      "peakRssMiB": 159.765625,
+      "meanCpuPercent": 0.7261826800066351,
+      "sqlStatements": 862
+    }
+  ],
+  "cadenceScenarios": [
+    {
+      "evmIntervalHours": 1,
+      "solanaIntervalHours": 6,
+      "evmTokens": 334,
+      "solanaTokens": 22,
+      "monthlyCU": 53513760,
+      "free30MHeadroomCU": -23513760,
+      "configured27MHeadroomCU": -26513760,
+      "paygTotalUSD": 27.8271552,
+      "withOptionalDailyCapsMonthlyCU": 58763760
+    },
+    {
+      "evmIntervalHours": 2,
+      "solanaIntervalHours": 6,
+      "evmTokens": 334,
+      "solanaTokens": 22,
+      "monthlyCU": 29225280,
+      "free30MHeadroomCU": 774720,
+      "configured27MHeadroomCU": -2225280,
+      "paygTotalUSD": 15.1971456,
+      "withOptionalDailyCapsMonthlyCU": 34475280
+    },
+    {
+      "evmIntervalHours": 3,
+      "solanaIntervalHours": 6,
+      "evmTokens": 334,
+      "solanaTokens": 22,
+      "monthlyCU": 21129120,
+      "free30MHeadroomCU": 8870880,
+      "configured27MHeadroomCU": 5870880,
+      "paygTotalUSD": 10.9871424,
+      "withOptionalDailyCapsMonthlyCU": 26379120
+    },
+    {
+      "evmIntervalHours": 4,
+      "solanaIntervalHours": 6,
+      "evmTokens": 334,
+      "solanaTokens": 22,
+      "monthlyCU": 17081040,
+      "free30MHeadroomCU": 12918960,
+      "configured27MHeadroomCU": 9918960,
+      "paygTotalUSD": 8.882140800000002,
+      "withOptionalDailyCapsMonthlyCU": 22331040
+    },
+    {
+      "evmIntervalHours": 6,
+      "solanaIntervalHours": 6,
+      "evmTokens": 334,
+      "solanaTokens": 22,
+      "monthlyCU": 13032960,
+      "free30MHeadroomCU": 16967040,
+      "configured27MHeadroomCU": 13967040,
+      "paygTotalUSD": 6.7771392,
+      "withOptionalDailyCapsMonthlyCU": 18282960
+    }
+  ],
+  "neon": {
+    "freeMonthlyCUHours": 100,
+    "minimumAssumedComputeCU": 0.25,
+    "continuous30DayCUHours": 180,
+    "freeDeficitCUHours": 80,
+    "maximumActiveHoursAtQuarterCU": 400,
+    "launchComputeUSD30Days": 19.08,
+    "launchComputeUSD31Days": 19.716,
+    "launchStorageUSDPerGBMonth": 0.35,
+    "launchHistoryUSDPerChangedGBMonth": 0.2,
+    "freeStorageGB": 1,
+    "freeEgressGB": 5,
+    "measuredDatabaseBytes": 238346240,
+    "accountUsageVerified": false
+  },
+  "host": {
+    "renderStarterUSDMonthly": 7,
+    "railwayHobbyMinimumUSDMonthly": 5,
+    "railwayFormula": "max(5, mean RAM GB*10 + mean vCPU*20 + egress GB*0.05). Node profiles exclude loader/container overhead."
+  },
+  "dutyCycle": {
+    "profile": {
+      "WORKER_EXECUTION_MODE": "duty_cycle",
+      "WORKER_DUTY_INTERVAL_SECONDS": "43200",
+      "WORKER_DUTY_ACTIVE_SECONDS": "1500",
+      "WORKER_DUTY_NEON_MAX_CU": "2",
+      "WORKER_DUTY_MONTHLY_CU_LIMIT": "70",
+      "DATABASE_STORAGE_LIMIT_MB": "750",
+      "MARKET_TOKEN_LIMIT": "25",
+      "ALPHA_REQUESTS_PER_MINUTE": "30",
+      "BASELINE_SCAN_INTERVAL_SECONDS": "21600",
+      "SOLANA_BASELINE_INTERVAL_SECONDS": "21600",
+      "SCAN_BLOCKS": "10",
+      "WORKER_MARKET_OVERLAP": "true",
+      "MARKET_HISTORY_BACKFILL_ENABLED": "false",
+      "ALCHEMY_MONTHLY_CU_LIMIT": "27000000",
+      "ALCHEMY_DAILY_CU_LIMIT": "900000",
+      "ALCHEMY_ENRICHMENT_DAILY_CU_LIMIT": "5000",
+      "ALCHEMY_HISTORICAL_DAILY_CU_LIMIT": "1000",
+      "TELEGRAM_ENABLED": "false",
+      "PAID_ENRICHMENT_ENABLED": "false",
+      "PAID_DAILY_BUDGET_USD": "0"
+    },
+    "estimates": [
+      {
+        "activeSeconds": 1500,
+        "intervalSeconds": 43200,
+        "suspendTailSeconds": 300,
+        "awakeSeconds": 1800,
+        "maxCycles": 62,
+        "maxCU": 0.25,
+        "microCUPerCycle": 125000,
+        "workerCUHoursUpperModel": 7.75,
+        "accountUsageMeasured": false,
+        "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+      },
+      {
+        "activeSeconds": 1500,
+        "intervalSeconds": 43200,
+        "suspendTailSeconds": 300,
+        "awakeSeconds": 1800,
+        "maxCycles": 62,
+        "maxCU": 0.5,
+        "microCUPerCycle": 250000,
+        "workerCUHoursUpperModel": 15.5,
+        "accountUsageMeasured": false,
+        "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+      },
+      {
+        "activeSeconds": 1500,
+        "intervalSeconds": 43200,
+        "suspendTailSeconds": 300,
+        "awakeSeconds": 1800,
+        "maxCycles": 62,
+        "maxCU": 1,
+        "microCUPerCycle": 500000,
+        "workerCUHoursUpperModel": 31,
+        "accountUsageMeasured": false,
+        "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+      },
+      {
+        "activeSeconds": 1500,
+        "intervalSeconds": 43200,
+        "suspendTailSeconds": 300,
+        "awakeSeconds": 1800,
+        "maxCycles": 62,
+        "maxCU": 2,
+        "microCUPerCycle": 1000000,
+        "workerCUHoursUpperModel": 62,
+        "accountUsageMeasured": false,
+        "excludes": "Web traffic, other branches, deployment/restart probes and suspension not occurring as expected"
+      }
+    ],
+    "guardCUHours": 70,
+    "freeMonthlyCUHours": 100,
+    "modeledWorstWorkerHeadroomCUHours": 38,
+    "coverage": "Every supported eligible identity remains scheduled; partial rotations span multiple windows. Neither complete-universe 12h cadence nor sustained freshness has passed acceptance.",
+    "alchemyFullUniverse12hOrdinaryCU": 6516480,
+    "alchemyActualForecast": "Throughput-limited; derive from measured active runs. Full-universe formula is a counterfactual load requirement, not achieved coverage. Extra RPC operations/retries also consume durable budgets.",
+    "billingMeter": false,
+    "condition": "Neon must actually suspend after each window; web traffic, other branches and restart probes consume the remaining project allowance. Account usage requires dashboard verification."
+  }
+}

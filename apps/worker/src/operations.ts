@@ -109,6 +109,24 @@ export async function monitorWorker(sql = sqlClient()) {
         "Defer optional workload; baseline remains eligible within shared quota",
     });
   }
+  if (c.WORKER_EXECUTION_MODE === "duty_cycle") {
+    const modeledCUHours =
+      Number(
+        usage.find((u) => u.scope === "neon:worker-estimated-microcu:month")
+          ?.used ?? 0,
+      ) / 1000000;
+    add(
+      "neon_worker_model_budget",
+      modeledCUHours >= c.WORKER_DUTY_MONTHLY_CU_LIMIT * 0.8,
+      {
+        modeledCUHours,
+        limit: c.WORKER_DUTY_MONTHLY_CU_LIMIT,
+        accountUsageMeasured: false,
+        action:
+          "Inspect actual Neon project usage; modeled reservations do not measure billed compute",
+      },
+    );
+  }
   const codes = [...checks.keys()];
   await sql`UPDATE worker_operational_alerts SET resolved_at=now() WHERE resolved_at IS NULL AND NOT(code=ANY(${codes}))`;
   for (const [code, alert] of checks) {

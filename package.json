@@ -22,6 +22,8 @@
     "worker:acceptance": "node --env-file=.env.worker.local --import tsx scripts/operational-acceptance.ts",
     "worker:preflight": "node --env-file=.env.worker.local --import tsx scripts/worker-preflight.ts",
     "worker:env": "node --import tsx scripts/worker-env.ts",
+    "worker:env:audit": "node --import tsx scripts/worker-env-audit.ts",
+    "worker:duty": "node --env-file=.env.worker.budget --import tsx scripts/worker-duty.ts",
     "worker:cost": "node --import tsx scripts/worker-cost-report.ts",
     "worker:diagnostics": "tsx --env-file=.env.worker.local scripts/ingestion-diagnostics.ts",
     "worker:schedule": "tsx --env-file=.env.worker.local scripts/reconcile-scan-jobs.ts",

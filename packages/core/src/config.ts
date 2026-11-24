@@ -54,6 +54,17 @@ export const envSchema = z.object({
   ALCHEMY_HISTORICAL_DAILY_CU_LIMIT: integer(25000, 1, 1000000000),
   ENRICHMENT_WALLETS_PER_WINDOW: integer(20, 1, 100),
   WORKER_RUN_SECONDS: integer(0, 0, 86400),
+  WORKER_EXECUTION_MODE: z
+    .enum(["continuous", "duty_cycle"])
+    .default("continuous"),
+  WORKER_DUTY_INTERVAL_SECONDS: integer(21600, 3600, 86400),
+  WORKER_DUTY_ACTIVE_SECONDS: integer(600, 120, 1800),
+  WORKER_DUTY_NEON_MAX_CU: z.coerce.number().min(0.25).max(2).default(2),
+  WORKER_DUTY_MONTHLY_CU_LIMIT: z.coerce.number().min(1).max(70).default(70),
+  MARKET_HISTORY_BACKFILL_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
   WORKER_JOB_TIMEOUT_SECONDS: integer(900, 60, 7200),
   WORKER_STARTUP_TIMEOUT_SECONDS: integer(180, 1, 600),
   WORKER_MARKET_OVERLAP: z

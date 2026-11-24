@@ -1,4 +1,8 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
+import {
+  budgetWorkerDefaults,
+  dutyCycleModel,
+} from "../packages/core/src/duty-cycle";
 
 const runs = [];
 for (const name of (await readdir("artifacts/profiles"))
@@ -31,7 +35,11 @@ for (const name of (await readdir("artifacts/profiles"))
   });
 }
 const baseline = JSON.parse(
-  await readFile(process.argv[2] ?? "/tmp/flownix-before.json", "utf8"),
+  await readFile(
+    process.argv.slice(2).find((a) => !a.startsWith("--")) ??
+      "/tmp/flownix-before.json",
+    "utf8",
+  ),
 );
 const evm = baseline.baselineCoverage
   .filter((c: { chain_id: string }) =>
@@ -83,9 +91,34 @@ const report = {
     railwayFormula:
       "max(5, mean RAM GB*10 + mean vCPU*20 + egress GB*0.05). Node profiles exclude loader/container overhead.",
   },
+  dutyCycle: {
+    profile: budgetWorkerDefaults,
+    estimates: [0.25, 0.5, 1, 2].map((cu) =>
+      dutyCycleModel(
+        Number(budgetWorkerDefaults.WORKER_DUTY_ACTIVE_SECONDS),
+        Number(budgetWorkerDefaults.WORKER_DUTY_INTERVAL_SECONDS),
+        cu,
+      ),
+    ),
+    guardCUHours: 70,
+    freeMonthlyCUHours: 100,
+    modeledWorstWorkerHeadroomCUHours: 38,
+    coverage:
+      "Every supported eligible identity remains scheduled; partial rotations span multiple windows. Neither complete-universe 12h cadence nor sustained freshness has passed acceptance.",
+    alchemyFullUniverse12hOrdinaryCU: Math.round(
+      (evm * 202 + solana * 1870) * 60,
+    ),
+    alchemyActualForecast:
+      "Throughput-limited; derive from measured active runs. Full-universe formula is a counterfactual load requirement, not achieved coverage. Extra RPC operations/retries also consume durable budgets.",
+    billingMeter: false,
+    condition:
+      "Neon must actually suspend after each window; web traffic, other branches and restart probes consume the remaining project allowance. Account usage requires dashboard verification.",
+  },
 };
 await writeFile(
-  "docs/WORKER_COST_MODEL.json",
+  process.argv.includes("--budget")
+    ? "docs/WORKER_BUDGET_MODEL.json"
+    : "docs/WORKER_COST_MODEL.json",
   JSON.stringify(report, null, 2) + "\n",
 );
 console.log(JSON.stringify(report, null, 2));

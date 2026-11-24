@@ -226,6 +226,7 @@ export async function marketSync() {
         const oldest =
           await sql`SELECT min(open_at) AS at FROM ohlcv_candles WHERE symbol=${pair.symbol}`;
         if (
+          config().MARKET_HISTORY_BACKFILL_ENABLED &&
           oldest[0]?.at &&
           Date.now() - new Date(oldest[0].at).getTime() < 180 * 86400000 &&
           !(await settingsValue(`history_end:${pair.symbol}`, false)) &&

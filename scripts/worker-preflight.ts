@@ -1,44 +1,14 @@
-import { config, networkErrorCode } from "../packages/core/src/index";
+import {
+  config,
+  networkErrorCode,
+  validateWorkerLaunchEnvironment,
+} from "../packages/core/src/index";
 import { closeDb, sqlClient } from "../packages/db/src/index";
 
 try {
   const c = config();
-  if (!c.DATABASE_URL_WORKER) throw Error("DIRECT_DATABASE_URL_REQUIRED");
-  const direct = new URL(c.DATABASE_URL_WORKER),
-    pooled = new URL(c.DATABASE_URL ?? "");
-  if (
-    direct.hostname.includes("-pooler") ||
-    direct.hostname !== pooled.hostname.replace("-pooler", "") ||
-    direct.pathname !== pooled.pathname ||
-    direct.username !== pooled.username
-  )
-    throw Error("DATABASE_TARGET_MISMATCH");
-  if (direct.searchParams.get("sslmode") !== "require")
-    throw Error("DATABASE_TLS_REQUIRED");
-  if (c.PAID_ENRICHMENT_ENABLED || c.PAID_DAILY_BUDGET_USD !== 0)
-    throw Error("PAID_ENRICHMENT_MUST_REMAIN_DISABLED");
-  if (!/^\d+$/.test(process.env.ALCHEMY_MONTHLY_UNTRACKED_CU ?? ""))
-    throw Error("UNTRACKED_CU_RECONCILIATION_REQUIRED");
-  if (
-    process.env.WORKER_JOB_KINDS ||
-    c.WORKER_RUN_SECONDS ||
-    c.PROVIDER_PROCESS_REQUEST_BUDGET
-  )
-    throw Error("REMOVE_DIAGNOSTIC_WORKER_LIMITS");
-  for (const key of [
-    "BSC_RPC_URL",
-    "ETH_RPC_URL",
-    "BASE_RPC_URL",
-    "ARBITRUM_RPC_URL",
-    "SOLANA_RPC_URL",
-  ] as const) {
-    if (!process.env[key] || new URL(c[key]).protocol !== "https:")
-      throw Error("EXPLICIT_HTTPS_RPC_REQUIRED");
-  }
+  validateWorkerLaunchEnvironment(c, process.env);
   process.env.DATABASE_URL = c.DATABASE_URL_WORKER;
-  for (const key of ["SONIC_RPC_URL", "ROBINHOOD_RPC_URL"] as const)
-    if (new URL(c[key]).protocol !== "https:")
-      throw Error("EXPLICIT_HTTPS_RPC_REQUIRED");
   const sql = sqlClient();
   const migrated =
     await sql`SELECT name FROM schema_migrations WHERE name='0016_operational_event_studies.sql'`;

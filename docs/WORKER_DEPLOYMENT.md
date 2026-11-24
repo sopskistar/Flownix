@@ -1,3 +1,5 @@
+> Current strict-$7 handoff: [bounded collection and launch guide](SEVEN_DOLLAR_LAUNCH.md). The dated continuous-worker capacity assumptions below are preserved; use the new duty profile for Neon Free.
+
 > Current milestone: [24/7 worker readiness and cost controls (2026-11-22)](WORKER_READINESS_2026-11-22.md). This supersedes older cost/coverage snapshots below; hosting remains unactivated pending approval.
 
 # Portable private worker — deployment deferred

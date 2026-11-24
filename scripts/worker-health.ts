@@ -10,11 +10,21 @@ try {
     );
     if (
       !Number.isInteger(h.pid) ||
+      h.phase === "stopped" ||
+      (h.supervisor && !!h.lastFailure) ||
       !Number.isFinite(Date.parse(h.at)) ||
       Date.now() - Date.parse(h.at) > 90000 ||
       Date.parse(h.at) > Date.now() + 5000
     )
       throw Error("STALE_HEARTBEAT");
+    if (
+      h.supervisor &&
+      h.phase === "sleeping" &&
+      (!Number.isFinite(Date.parse(h.nextAt)) ||
+        Date.parse(h.nextAt) < Date.now() - 90000 ||
+        Date.parse(h.nextAt) > Date.now() + 32 * 86400000)
+    )
+      throw Error("INVALID_SLEEP_WINDOW");
     process.kill(h.pid, 0);
   } else {
     const rows =

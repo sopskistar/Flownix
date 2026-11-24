@@ -104,7 +104,12 @@ async function writePulse() {
       owner,
       job: [...activeJobs].sort().join("+") || null,
       platform,
-      mode: process.argv.includes("--once") ? "one-shot" : "continuous",
+      mode:
+        conf.WORKER_EXECUTION_MODE === "duty_cycle"
+          ? "bounded-cycle"
+          : process.argv.includes("--once")
+            ? "one-shot"
+            : "continuous",
       rssBytes: process.memoryUsage().rss,
       release: /^[a-f0-9]{40}$/.test(
         process.env.RAILWAY_GIT_COMMIT_SHA ??

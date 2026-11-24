@@ -608,3 +608,22 @@ test("historical studies render native JSON while malformed evidence remains exp
     await closeDb();
   }
 });
+
+test("an idle workspace tab does not poll server data while freshness labels keep their local clock", async ({
+  page,
+}) => {
+  await navigate(page, "/");
+  await expectPageReady(page, "Alpha Radar");
+  await page.waitForLoadState("networkidle");
+  await page.clock.install();
+  const requests: string[] = [];
+  page.on("request", (r) => {
+    const u = new URL(r.url());
+    if (u.searchParams.has("_rsc")) requests.push(u.pathname);
+  });
+  await page.clock.fastForward(125000);
+  expect(requests, "Unattended tabs must allow Neon idle periods").toEqual([]);
+  await expect(
+    page.getByRole("heading", { name: "Alpha Radar", exact: true }),
+  ).toBeVisible();
+});
