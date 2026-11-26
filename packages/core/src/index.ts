@@ -25,3 +25,4 @@ export * from "./solana";
 export * from "./token-visual";
 
 export * from "./worker-readiness";
+export * from "./exchange-wallet";

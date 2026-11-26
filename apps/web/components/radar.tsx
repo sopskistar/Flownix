@@ -6,6 +6,7 @@ import { freshness } from "@flownix/core/browser";
 import type { RadarToken, Health } from "../lib/data";
 import { ActionButton } from "./controls";
 import { TokenIdentity } from "./token-identity";
+import { collectorState } from "../lib/collector-state";
 import {
   compareRadarTokens,
   radarMetric,
@@ -119,10 +120,7 @@ export function Radar({
     shown = filtered.slice((safePage - 1) * size, safePage * size);
   const isFresh =
     health.registry && freshness(health.registry.at, now) === "current";
-  const workerLive =
-    health.heartbeat &&
-    !health.heartbeat.stopped &&
-    freshness(health.heartbeat.at, now, 90) === "current";
+  const worker = collectorState(health.heartbeat, health.dutyCycle, now);
   return (
     <>
       <div className="page-head">
@@ -162,10 +160,17 @@ export function Radar({
               ? "Registry stale"
               : "Registry unavailable"}
         </span>
-        <span className={workerLive ? "positive" : "warning"}>
-          {workerLive ? "Collector running" : "Collector offline / unverified"}
+        <span className={worker.active ? "positive" : "warning"}>
+          {worker.label}
         </span>
       </div>
+      {worker.state === "scheduled_idle" ? (
+        <p className="muted">
+          Next allowed collection {stamp(String(health.dutyCycle?.nextAt))}.
+          Scheduled sleep does not make old registry or market observations
+          current.
+        </p>
+      ) : null}
       {!health.database || !health.registry ? (
         <div className="notice">
           <strong>

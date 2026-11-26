@@ -1,0 +1,579 @@
+{
+  "version": "first-hosted-acceptance/1",
+  "observedAt": "2026-11-26T09:11:15.148Z",
+  "recoveryObservedAt": "2026-11-26T09:16:49.108Z",
+  "repositoryBaseCommit": "1521414249ebee11e5556e52900080b5ad2f1bba",
+  "renderDeployedCommit": null,
+  "renderCommitLimitation": "Stopped heartbeat omits release SHA; existing Render CLI credential returned HTTP 401; current dashboard deploy SHA remains unverified",
+  "readOnlyInspection": true,
+  "firstWindow": {
+    "start": "2026-11-26T03:55:01.209Z",
+    "end": "2026-11-26T04:18:48.198264+00:00",
+    "nextAt": "2026-11-26T15:55:01.209Z",
+    "phase": "idle",
+    "lastExitCode": 0,
+    "estimatedMonthlyMicroCU": "1000000"
+  },
+  "durationSeconds": 1426.989,
+  "registry": {
+    "at": "2026-11-26T04:11:56.123Z",
+    "hash": "c9547574385a2d246781955488cf00f280a82360f7926676c9ddda0a73c06945",
+    "count": 688,
+    "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list"
+  },
+  "saved": {
+    "tickers": 296,
+    "priced_identities": 296,
+    "canonical_transfers": 34,
+    "balances": 0,
+    "solana_balances": 331,
+    "database_bytes": "248233984"
+  },
+  "scanJobs": [
+    {
+      "job_kind": "scan",
+      "chain_id": "1",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 11,
+      "first_start": "2026-11-26T03:56:10.329Z",
+      "last_finish": "2026-11-26T04:18:35.166Z",
+      "max_sampled_process_rss": "150548480",
+      "process_cpu_percent": "2.28284294531621882298"
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "146",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 4,
+      "first_start": "2026-11-26T03:55:41.034Z",
+      "last_finish": "2026-11-26T04:04:52.614Z",
+      "max_sampled_process_rss": "145305600",
+      "process_cpu_percent": "0.91131829520770662473"
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "42161",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 2,
+      "first_start": "2026-11-26T03:56:02.215Z",
+      "last_finish": "2026-11-26T03:59:12.132Z",
+      "max_sampled_process_rss": "129310720",
+      "process_cpu_percent": "1.94089580436434165000"
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "4663",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 5,
+      "first_start": "2026-11-26T03:55:19.926Z",
+      "last_finish": "2026-11-26T04:07:32.230Z",
+      "max_sampled_process_rss": "145149952",
+      "process_cpu_percent": "1.48320765718352312679"
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "56",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 13,
+      "first_start": "2026-11-26T03:56:18.466Z",
+      "last_finish": "2026-11-26T04:16:43.809Z",
+      "max_sampled_process_rss": "150511616",
+      "process_cpu_percent": "1.55960840239596014249"
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "8453",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 10,
+      "first_start": "2026-11-26T03:55:11.834Z",
+      "last_finish": "2026-11-26T04:18:28.016Z",
+      "max_sampled_process_rss": "148135936",
+      "process_cpu_percent": "2.92805779039073001235"
+    },
+    {
+      "job_kind": "scan",
+      "chain_id": "CT_501",
+      "status": "completed",
+      "error_code": null,
+      "jobs": 9,
+      "first_start": "2026-11-26T03:56:25.544Z",
+      "last_finish": "2026-11-26T04:18:19.917Z",
+      "max_sampled_process_rss": "144359424",
+      "process_cpu_percent": "0.82266950232208003954"
+    }
+  ],
+  "otherJobs": [
+    {
+      "job_kind": "derivatives",
+      "chain_id": null,
+      "status": "retry",
+      "error_code": "HTTP_451",
+      "jobs": 1,
+      "first_start": "2026-11-26T03:56:18.399Z",
+      "last_finish": "2026-11-26T03:56:18.450Z",
+      "max_sampled_process_rss": "117829632",
+      "process_cpu_percent": "1.04790000000000000000"
+    },
+    {
+      "job_kind": "market",
+      "chain_id": null,
+      "status": "completed",
+      "error_code": null,
+      "jobs": 14,
+      "first_start": "2026-11-26T03:55:11.822Z",
+      "last_finish": "2026-11-26T04:17:12.791Z",
+      "max_sampled_process_rss": "152260608",
+      "process_cpu_percent": "3.56642952900691877143"
+    },
+    {
+      "job_kind": "market",
+      "chain_id": null,
+      "status": "retry",
+      "error_code": "COLLECTION_STOPPED",
+      "jobs": 1,
+      "first_start": "2026-11-26T04:18:28.094Z",
+      "last_finish": "2026-11-26T04:18:48.111Z",
+      "max_sampled_process_rss": "142438400",
+      "process_cpu_percent": "1.66712668783013800000"
+    },
+    {
+      "job_kind": "notifications",
+      "chain_id": null,
+      "status": "completed",
+      "error_code": null,
+      "jobs": 11,
+      "first_start": "2026-11-26T03:55:41.014Z",
+      "last_finish": "2026-11-26T04:18:28.031Z",
+      "max_sampled_process_rss": "145899520",
+      "process_cpu_percent": "0.12689090909090909091"
+    },
+    {
+      "job_kind": "operations",
+      "chain_id": null,
+      "status": "completed",
+      "error_code": null,
+      "jobs": 5,
+      "first_start": "2026-11-26T03:55:11.529Z",
+      "last_finish": "2026-11-26T04:18:28.082Z",
+      "max_sampled_process_rss": "138473472",
+      "process_cpu_percent": "1.35762000000000000000"
+    },
+    {
+      "job_kind": "outcomes",
+      "chain_id": null,
+      "status": "completed",
+      "error_code": null,
+      "jobs": 1,
+      "first_start": "2026-11-26T03:58:20.715Z",
+      "last_finish": "2026-11-26T03:58:20.723Z",
+      "max_sampled_process_rss": "123052032",
+      "process_cpu_percent": "0.09980000000000000000"
+    },
+    {
+      "job_kind": "persistence",
+      "chain_id": null,
+      "status": "completed",
+      "error_code": null,
+      "jobs": 1,
+      "first_start": "2026-11-26T03:58:20.750Z",
+      "last_finish": "2026-11-26T03:58:21.580Z",
+      "max_sampled_process_rss": "142508032",
+      "process_cpu_percent": "31.1157000000000000"
+    },
+    {
+      "job_kind": "registry",
+      "chain_id": null,
+      "status": "completed",
+      "error_code": null,
+      "jobs": 3,
+      "first_start": "2026-11-26T03:55:10.061Z",
+      "last_finish": "2026-11-26T04:11:56.607Z",
+      "max_sampled_process_rss": "149917696",
+      "process_cpu_percent": "29.2352793007577943"
+    }
+  ],
+  "providerResults": [
+    {
+      "provider": "binance_alpha",
+      "attempts": 318,
+      "successes": 316,
+      "failures": 2,
+      "errors": ["COLLECTION_STOPPED"]
+    },
+    {
+      "provider": "binance_futures",
+      "attempts": 1,
+      "successes": 0,
+      "failures": 1,
+      "errors": ["HTTP_451"]
+    },
+    {
+      "provider": "rpc:1",
+      "attempts": 94,
+      "successes": 94,
+      "failures": 0,
+      "errors": null
+    },
+    {
+      "provider": "rpc:146",
+      "attempts": 34,
+      "successes": 34,
+      "failures": 0,
+      "errors": null
+    },
+    {
+      "provider": "rpc:42161",
+      "attempts": 18,
+      "successes": 18,
+      "failures": 0,
+      "errors": null
+    },
+    {
+      "provider": "rpc:4663",
+      "attempts": 42,
+      "successes": 42,
+      "failures": 0,
+      "errors": null
+    },
+    {
+      "provider": "rpc:56",
+      "attempts": 105,
+      "successes": 105,
+      "failures": 0,
+      "errors": null
+    },
+    {
+      "provider": "rpc:8453",
+      "attempts": 85,
+      "successes": 85,
+      "failures": 0,
+      "errors": null
+    },
+    {
+      "provider": "rpc:CT_501",
+      "attempts": 472,
+      "successes": 472,
+      "failures": 0,
+      "errors": null
+    }
+  ],
+  "chainSamples": [
+    {
+      "chain_id": "1",
+      "windows": 11,
+      "first_source": "2026-11-26T03:49:59.000Z",
+      "last_source": "2026-11-26T04:14:23.000Z"
+    },
+    {
+      "chain_id": "146",
+      "windows": 4,
+      "first_source": "2026-11-26T03:54:29.000Z",
+      "last_source": "2026-11-26T04:03:42.000Z"
+    },
+    {
+      "chain_id": "42161",
+      "windows": 2,
+      "first_source": "2026-11-26T03:55:54.000Z",
+      "last_source": "2026-11-26T03:58:58.000Z"
+    },
+    {
+      "chain_id": "4663",
+      "windows": 5,
+      "first_source": "2026-11-26T03:55:17.000Z",
+      "last_source": "2026-11-26T04:07:06.000Z"
+    },
+    {
+      "chain_id": "56",
+      "windows": 13,
+      "first_source": "2026-11-26T03:56:06.000Z",
+      "last_source": "2026-11-26T04:16:28.000Z"
+    },
+    {
+      "chain_id": "8453",
+      "windows": 10,
+      "first_source": "2026-11-26T03:55:07.000Z",
+      "last_source": "2026-11-26T04:18:17.000Z"
+    }
+  ],
+  "progress": {
+    "last_recent_evm": "2026-11-26T04:18:34.172Z",
+    "last_solana": "2026-11-26T04:18:19.905Z",
+    "active_leases": 0,
+    "expired_leases": 2
+  },
+  "otherDatabaseSessions": [],
+  "collectorCount": 0,
+  "activeDutyState": {
+    "phase": "idle",
+    "nextAt": "2026-11-26T15:55:01.209Z",
+    "lastExitCode": 0
+  },
+  "coverage": {
+    "supportedEligible": 366,
+    "supportedMissingJobs": 0,
+    "unsupportedEligible": 12,
+    "chains": [
+      {
+        "chain_id": "1",
+        "eligible": 19,
+        "scheduled": 19,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-21T16:54:34.552Z"
+      },
+      {
+        "chain_id": "146",
+        "eligible": 4,
+        "scheduled": 4,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-26T09:56:02.194Z"
+      },
+      {
+        "chain_id": "42161",
+        "eligible": 2,
+        "scheduled": 2,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-26T09:56:10.306Z"
+      },
+      {
+        "chain_id": "4663",
+        "eligible": 5,
+        "scheduled": 5,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-26T09:55:40.995Z"
+      },
+      {
+        "chain_id": "56",
+        "eligible": 288,
+        "scheduled": 288,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-21T09:50:55.789Z"
+      },
+      {
+        "chain_id": "8453",
+        "eligible": 26,
+        "scheduled": 26,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-21T15:26:25.489Z"
+      },
+      {
+        "chain_id": "CT_195",
+        "eligible": 3,
+        "scheduled": 0,
+        "missing_jobs": 3,
+        "oldest_due": null
+      },
+      {
+        "chain_id": "CT_501",
+        "eligible": 22,
+        "scheduled": 22,
+        "missing_jobs": 0,
+        "oldest_due": "2026-11-21T20:44:09.334Z"
+      },
+      {
+        "chain_id": "CT_784",
+        "eligible": 9,
+        "scheduled": 0,
+        "missing_jobs": 9,
+        "oldest_due": null
+      }
+    ],
+    "fullUniverseCycleVerified": false
+  },
+  "freshness": {
+    "latest_market_collection": "2026-11-26T04:18:44.271Z",
+    "latest_market_source": "2026-11-26T04:16:26.888Z",
+    "fresh_tickers": 0
+  },
+  "operationalAlerts": [
+    {
+      "code": "evm_stalled",
+      "severity": "critical",
+      "detail": {
+        "at": "2026-11-24T02:31:02.264Z"
+      },
+      "last_seen": "2026-11-26T03:55:11.755Z",
+      "resolved_at": "2026-11-26T04:01:00.793Z"
+    },
+    {
+      "code": "leases_expired",
+      "severity": "warning",
+      "detail": {
+        "jobs": 2
+      },
+      "last_seen": "2026-11-26T04:18:28.066Z",
+      "resolved_at": null
+    },
+    {
+      "code": "market_stale",
+      "severity": "warning",
+      "detail": {
+        "tokens": 277
+      },
+      "last_seen": "2026-11-26T04:18:28.055Z",
+      "resolved_at": null
+    },
+    {
+      "code": "providers_deferred",
+      "severity": "warning",
+      "detail": {
+        "providers": [
+          {
+            "reason": "HTTP_451",
+            "failures": 1,
+            "provider": "binance_futures",
+            "blocked_until": "2026-11-27T03:56:18.437Z"
+          }
+        ]
+      },
+      "last_seen": "2026-11-26T04:18:28.071Z",
+      "resolved_at": null
+    },
+    {
+      "code": "recent_source_overdue",
+      "severity": "warning",
+      "detail": {
+        "tokens": 300,
+        "coverage": "Bounded recent samples, not continuous history"
+      },
+      "last_seen": "2026-11-26T04:18:28.059Z",
+      "resolved_at": null
+    },
+    {
+      "code": "scans_overdue",
+      "severity": "warning",
+      "detail": {
+        "tokens": 312
+      },
+      "last_seen": "2026-11-26T04:18:28.063Z",
+      "resolved_at": null
+    },
+    {
+      "code": "solana_stalled",
+      "severity": "warning",
+      "detail": {
+        "at": "2026-11-24T02:51:39.076Z"
+      },
+      "last_seen": "2026-11-26T03:55:11.774Z",
+      "resolved_at": "2026-11-26T04:01:00.793Z"
+    }
+  ],
+  "recoveryJobs": [
+    {
+      "key": "scan:848545d06eb30cb73d8b17a983bd6c50",
+      "kind": "scan",
+      "payload": {
+        "chainId": "56",
+        "tokenId": "848545d06eb30cb73d8b17a983bd6c50"
+      },
+      "status": "retry",
+      "lease_until": null,
+      "run_after": "2026-11-18T12:53:02.470Z",
+      "last_error": "NETWORK_OR_PARSE_ERROR",
+      "updated_at": "2026-11-21T08:41:53.833Z",
+      "symbol": "SHARE",
+      "chain_id": "56"
+    },
+    {
+      "key": "scan:4fd4c74c53b5b985f360857f71423815",
+      "kind": "scan",
+      "payload": {
+        "chainId": "CT_501",
+        "tokenId": "4fd4c74c53b5b985f360857f71423815"
+      },
+      "status": "running",
+      "lease_until": "2026-11-22T18:00:15.368Z",
+      "run_after": "2026-11-22T17:28:10.012Z",
+      "last_error": "PROVIDER_DEFERRED",
+      "updated_at": "2026-11-22T17:56:06.529Z",
+      "symbol": "MEW",
+      "chain_id": "CT_501"
+    },
+    {
+      "key": "scan:319323e6324fac07203f609b55e8bb4a",
+      "kind": "scan",
+      "payload": {
+        "chainId": "CT_501",
+        "tokenId": "319323e6324fac07203f609b55e8bb4a"
+      },
+      "status": "running",
+      "lease_until": "2026-11-23T06:41:55.870Z",
+      "run_after": "2026-11-23T05:46:41.466Z",
+      "last_error": "COLLECTION_STOPPED",
+      "updated_at": "2026-11-23T06:36:38.717Z",
+      "symbol": "TROLL",
+      "chain_id": "CT_501"
+    }
+  ],
+  "alchemy": {
+    "monthlyTrackedEstimatedCU": 30388,
+    "todayTrackedEstimatedCU": 19814,
+    "caseHistoricalCU": 312,
+    "firstWindowEstimatedCU": 19502,
+    "modelTwoWindows31DaysCU": 1209124,
+    "applicationBudgetSatisfied": true,
+    "accountWideUsageVerified": false
+  },
+  "verified": [
+    "First recorded duty window completed with exit zero inside the 25-minute bound",
+    "Existing Neon contains hosted market/EVM/Solana observations",
+    "EVM and Solana stalled alerts resolved during the window",
+    "No collector lock, active leases or other database sessions at inspection",
+    "Durable next window retained without forcing a run",
+    "All current supported identities have scheduled jobs"
+  ],
+  "incomplete": [
+    "Neon compute suspension requires the account graph; this inspection itself wakes compute",
+    "Container-wide memory and restart counts require Render metrics/events; sampled child RSS is not container peak",
+    "Actual next scheduled resumption and full supported-universe rotation",
+    "Account-wide Alchemy usage including other applications",
+    "Exact deployed Render SHA; API inspection returned 401"
+  ],
+  "failed": ["Binance Futures HTTP_451; provider cooled down without bypass"],
+  "releaseDecision": "Owner confirms Render automatic deploy disabled. Commit/push the verified source and allow the existing Vercel deployment; do not trigger Render redeployment.",
+  "continuousIntelligenceValidated": false,
+  "renderAutomaticDeployDisabledOwnerConfirmed": true,
+  "renderApiReadStatus": 401,
+  "reportingCorrections": {
+    "scheduledIdle": "Local regression/browser verified; scheduled idle remains host-unverified",
+    "supportedChainTotals": "Sonic and Robinhood included; seven adapters match worker scheduler",
+    "registryStaleness": "Actual 15-minute freshness warnings preserved"
+  },
+  "verification": {
+    "unitTests": 181,
+    "postgresIntegration": "passed rollback-only local fixtures",
+    "browserJourneys": 11,
+    "typecheck": "passed",
+    "lint": "passed after relocating preserved generated cache outside repository",
+    "productionBuild": "passed final webpack build",
+    "ownerAuthenticatedProductionJourney": "not performed"
+  },
+  "legacyJobMembership": [
+    {
+      "id": "848545d06eb30cb73d8b17a983bd6c50",
+      "symbol": "SHARE",
+      "chain_id": "56",
+      "status": "offline",
+      "last_seen": "2026-11-26T04:11:56.123Z"
+    },
+    {
+      "id": "319323e6324fac07203f609b55e8bb4a",
+      "symbol": "TROLL",
+      "chain_id": "CT_501",
+      "status": "current",
+      "last_seen": "2026-11-26T04:11:56.123Z"
+    },
+    {
+      "id": "4fd4c74c53b5b985f360857f71423815",
+      "symbol": "MEW",
+      "chain_id": "CT_501",
+      "status": "current",
+      "last_seen": "2026-11-26T04:11:56.123Z"
+    }
+  ]
+}

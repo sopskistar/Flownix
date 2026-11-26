@@ -1,7 +1,7 @@
 import "server-only";
 import { requireAccess } from "./auth";
 import { sqlClient } from "@flownix/db";
-import { tokenVisual, type TokenVisual } from "@flownix/core";
+import { tokenVisual, evmChains, type TokenVisual } from "@flownix/core";
 export type { DbRows } from "@flownix/db";
 export type RadarToken = {
   visual: TokenVisual;
@@ -49,6 +49,7 @@ export type Health = {
     lastCycle: Record<string, unknown> | null;
   };
   heartbeat: { at: string; stopped?: boolean } | null;
+  dutyCycle?: Record<string, unknown> | null;
   providers: {
     provider: string;
     last_ok: string | null;
@@ -91,10 +92,11 @@ export type Health = {
 export async function health(): Promise<Health> {
   await requireAccess();
   try {
-    const sql = sqlClient();
+    const sql = sqlClient(),
+      supportedChains = [...Object.keys(evmChains), "CT_501"];
     const [settings, providers, jobs, chains, snapshots, market, scanCoverage] =
       await Promise.all([
-        sql`SELECT key,value FROM settings WHERE key IN ('registry_sync','worker_heartbeat','market_coverage_sync')`,
+        sql`SELECT key,value FROM settings WHERE key IN ('registry_sync','worker_heartbeat','worker_duty_cycle','market_coverage_sync')`,
         sql`SELECT provider,max(started_at) AS last_attempt,max(started_at) FILTER(WHERE ok) AS last_ok,count(*)::int AS calls,count(*) FILTER(WHERE NOT ok)::int AS failures,sum(cost_usd)::text AS cost FROM provider_runs WHERE started_at>now()-interval '24 hours' GROUP BY provider ORDER BY provider`,
         sql`SELECT key,kind,status,run_after,last_error,attempts FROM worker_jobs ORDER BY run_after LIMIT 30`,
         sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.status='current')::int AS active,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(DISTINCT coalesce(c.token_id,sc.token_id))::int AS scanned,max(coalesce(c.scanned_at,sc.scanned_at)) AS last_scan,coalesce(bool_or(sc.coverage_gap),false) AS coverage_gap FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN (SELECT token_id,max(scanned_at) AS scanned_at,bool_or(coverage_gap) AS coverage_gap FROM solana_account_cursors GROUP BY token_id) sc ON sc.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
@@ -112,13 +114,13 @@ export async function health(): Promise<Health> {
         LEFT JOIN LATERAL (SELECT provider_time,price FROM market_snapshots WHERE token_id=t.id AND source_kind='alpha_market' ORDER BY observed_at DESC LIMIT 1) p ON true
         LEFT JOIN LATERAL (SELECT 1 AS token_id FROM market_symbols s WHERE s.alpha_id=t.alpha_id AND s.active AND (s.status='TRADING' OR s.status IS NULL) LIMIT 1) s ON true`,
         sql`SELECT
-        (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND chain_id IN ('56','1','8453','42161','CT_501')) AS eligible,
-        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501')) AS scheduled,
-        (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND NOT EXISTS(SELECT 1 FROM worker_jobs j WHERE j.key='scan:'||t.id AND j.kind='scan')) AS missing_jobs,
-        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND j.run_after<=now()) AS due,
-        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND j.status='retry') AS retrying,
-        (SELECT min(j.run_after) FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id IN ('56','1','8453','42161','CT_501') AND j.run_after<=now()) AS oldest_due,
-        (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND chain_id NOT IN ('56','1','8453','42161','CT_501')) AS unsupported,
+        (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND chain_id=ANY(${supportedChains})) AS eligible,
+        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id=ANY(${supportedChains})) AS scheduled,
+        (SELECT count(*)::int FROM alpha_tokens t WHERE t.status='current' AND t.chain_id=ANY(${supportedChains}) AND NOT EXISTS(SELECT 1 FROM worker_jobs j WHERE j.key='scan:'||t.id AND j.kind='scan')) AS missing_jobs,
+        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id=ANY(${supportedChains}) AND j.run_after<=now()) AS due,
+        (SELECT count(*)::int FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id=ANY(${supportedChains}) AND j.status='retry') AS retrying,
+        (SELECT min(j.run_after) FROM worker_jobs j JOIN alpha_tokens t ON j.key='scan:'||t.id WHERE j.kind='scan' AND t.status='current' AND t.chain_id=ANY(${supportedChains}) AND j.run_after<=now()) AS oldest_due,
+        (SELECT count(*)::int FROM alpha_tokens WHERE status='current' AND NOT(chain_id=ANY(${supportedChains}))) AS unsupported,
         (SELECT count(*)::int FROM token_investigation_queue WHERE active) AS intensive,
         (SELECT count(*)::int FROM token_investigation_queue WHERE active AND next_investigation_at<=now()) AS intensive_waiting`,
       ]);
@@ -141,6 +143,7 @@ export async function health(): Promise<Health> {
           lastCycle: s.market_coverage_sync ?? null,
         },
         heartbeat: s.worker_heartbeat ?? null,
+        dutyCycle: s.worker_duty_cycle ?? null,
         providers,
         jobs,
         scanCoverage: {

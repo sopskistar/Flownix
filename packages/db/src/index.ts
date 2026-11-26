@@ -5,6 +5,7 @@ import * as schema from "./schema";
 import type { Observation, RequestAudit } from "@flownix/core";
 import { providerLookup, countMetric } from "@flownix/core";
 export * from "./worker-operations";
+export * from "./wallet-exchange";
 export type DbRows = postgres.Row[];
 let client: ReturnType<typeof postgres> | undefined;
 let ormClient: ReturnType<typeof postgres> | undefined;

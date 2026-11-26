@@ -107,6 +107,86 @@ function rollingBounds(rows: StudyCandle[], count: number) {
   }
   return result;
 }
+function fixedOutcomes(rows: StudyCandle[], reference: string, start: number) {
+  return historicalEpisodeSpec.outcomeDays.map((days) => {
+    const end = start + days * DAY,
+      path = rows.filter((r) => ms(r.openAt) >= start && ms(r.openAt) < end),
+      ok = complete(path, start, end);
+    return {
+      days,
+      status: ok ? "observed" : "censored_or_gapped",
+      returnPct: ok ? pct(path.at(-1)!.close, reference) : null,
+      maePct: ok
+        ? pct(Decimal.min(...path.map((r) => r.low)).toFixed(), reference)
+        : null,
+      bars: path.length,
+      expectedBars: days * 24,
+      sourceHashes: [...new Set(path.map((r) => r.hash))].sort(),
+      outcomeAvailableAt: path.length
+        ? new Date(
+            Math.max(...path.map((r) => ms(r.availableAt))),
+          ).toISOString()
+        : null,
+    };
+  });
+}
+/** The same fixed horizons as Runner Lab, anchored by an actual evidence event.
+ * Prior hourly close is a reference, never an asserted exchange execution. */
+export function historicalSignalStudy(
+  series: HistoricalSeries,
+  signalAt: string,
+  signalAvailableAt: string,
+  asOf: string,
+) {
+  assertHistoricalIdentity(series);
+  if (
+    ![signalAt, signalAvailableAt, asOf].every((at) =>
+      Number.isFinite(ms(at)),
+    ) ||
+    ms(signalAvailableAt) < ms(signalAt) ||
+    ms(signalAvailableAt) > ms(asOf)
+  )
+    throw Error("INVALID_SIGNAL_AVAILABILITY");
+  const rows = usableStudyCandles(series.candles, asOf).filter(
+      (r) =>
+        ms(r.closeAt) - ms(r.openAt) === HOUR - 1 && ms(r.openAt) % HOUR === 0,
+    ),
+    reference = rows
+      .filter(
+        (r) =>
+          ms(r.closeAt) <= ms(signalAt) && ms(r.closeAt) >= ms(signalAt) - HOUR,
+      )
+      .at(-1),
+    start = Math.ceil(ms(signalAt) / HOUR) * HOUR;
+  return {
+    version: "historical-signal/1",
+    tokenId: series.tokenId,
+    market: series.symbol,
+    quote: series.quoteAsset,
+    signalAt,
+    signalAvailableAt,
+    baseline: "last completed hourly close within one hour before event",
+    referencePrice: reference?.close ?? null,
+    referenceAt: reference?.closeAt ?? null,
+    referenceAvailableAt: reference?.availableAt ?? null,
+    outcomeStartAt: new Date(start).toISOString(),
+    retrospectiveOnly:
+      ms(signalAvailableAt) > ms(signalAt) ||
+      (!!reference && ms(reference.availableAt) > ms(signalAt)),
+    historicalMembershipProven:
+      series.membershipAt !== null && ms(series.membershipAt) <= ms(signalAt),
+    outcomes: reference
+      ? fixedOutcomes(rows, reference.close, start)
+      : historicalEpisodeSpec.outcomeDays.map((days) => ({
+          days,
+          status: "baseline_unavailable",
+          returnPct: null,
+          maePct: null,
+        })),
+    executable: false,
+    strategyValidated: false,
+  };
+}
 export function historicalEpisodes(series: HistoricalSeries, asOf: string) {
   assertHistoricalIdentity(series);
   const rows = usableStudyCandles(series.candles, asOf).filter(
@@ -139,31 +219,11 @@ export function historicalEpisodes(series: HistoricalSeries, asOf: string) {
     executable: false,
   };
   const outcomes = (index: number) =>
-    historicalEpisodeSpec.outcomeDays.map((days) => {
-      const start = ms(rows[index].closeAt) + 1,
-        end = start + days * DAY,
-        path = rows.slice(index + 1).filter((r) => ms(r.openAt) < end);
-      const ok = complete(path, start, end);
-      return {
-        days,
-        status: ok ? "observed" : "censored_or_gapped",
-        returnPct: ok ? pct(path.at(-1)!.close, rows[index].close) : null,
-        maePct: ok
-          ? pct(
-              Decimal.min(...path.map((r) => r.low)).toFixed(),
-              rows[index].close,
-            )
-          : null,
-        bars: path.length,
-        expectedBars: days * 24,
-        sourceHashes: [...new Set(path.map((r) => r.hash))].sort(),
-        outcomeAvailableAt: path.length
-          ? new Date(
-              Math.max(...path.map((r) => ms(r.availableAt))),
-            ).toISOString()
-          : null,
-      };
-    });
+    fixedOutcomes(
+      rows.slice(index + 1),
+      rows[index].close,
+      ms(rows[index].closeAt) + 1,
+    );
   const episodes = [];
   const bounds = new Map(
     [7, 30].map((days) => [days, rollingBounds(rows, days * 24)]),

@@ -14,7 +14,17 @@ import { iso, num } from "../../../../../lib/data";
 import { CopyAddress, ResearchNote } from "../../../../../components/controls";
 import { MutationForm } from "../../../../../components/forms";
 import { TokenIdentity } from "../../../../../components/token-identity";
+import { WalletExchangeContext } from "../../../../../components/wallet-exchange-context";
 export const metadata = { title: "Wallet Detective" };
+function labelNote(value: string) {
+  try {
+    const detail = JSON.parse(value);
+    if (typeof detail?.notes === "string") return detail.notes;
+  } catch {
+    /* existing prose labels */
+  }
+  return value;
+}
 export default async function Wallet({
   params,
 }: {
@@ -26,7 +36,7 @@ export default async function Wallet({
   const address = contractIdentity(chain, input).contract,
     sql = sqlClient();
   const [transfers, balances, labels, notes] = await Promise.all([
-    sql`SELECT e.*,t.symbol,to_jsonb(t) AS token_identity FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id WHERE e.chain_id=${chain} AND (from_address=${address} OR to_address=${address}) AND e.canonical ORDER BY event_time DESC LIMIT 100`,
+    sql`SELECT e.*,t.symbol,to_jsonb(t) AS token_identity FROM token_transfers e JOIN alpha_tokens t ON t.id=e.token_id AND t.chain_id=e.chain_id WHERE e.chain_id=${chain} AND (from_address=${address} OR to_address=${address}) AND e.canonical ORDER BY event_time DESC,log_index DESC LIMIT 101`,
     chain === "CT_501"
       ? sql`SELECT DISTINCT ON(b.token_id) b.*,b.post_raw::text AS raw_quantity,b.slot AS block_number,t.symbol,to_jsonb(t) AS token_identity FROM solana_balance_observations b JOIN alpha_tokens t ON t.id=b.token_id WHERE (b.owner_address=${address} OR b.token_account=${address}) AND b.canonical ORDER BY b.token_id,b.slot DESC,b.observed_at DESC`
       : sql`SELECT DISTINCT ON (b.token_id) b.*,t.symbol,to_jsonb(t) AS token_identity,t.metadata->>'decimals' AS decimals FROM wallet_balance_snapshots b JOIN alpha_tokens t ON t.id=b.token_id WHERE b.chain_id=${chain} AND b.address=${address} AND b.canonical ORDER BY b.token_id,b.observed_at DESC`,
@@ -70,6 +80,12 @@ export default async function Wallet({
           ? " Solana rows are individual token-account samples, not aggregated owner holdings or a complete wallet census."
           : ""}
       </div>
+      <WalletExchangeContext
+        chain={chain}
+        address={address}
+        transfers={transfers.slice(0, 100)}
+        truncated={transfers.length > 100}
+      />
       <section className="workbench">
         <div className="section-top">
           <h2>Observed balance samples</h2>
@@ -141,7 +157,7 @@ export default async function Wallet({
               </tr>
             </thead>
             <tbody>
-              {transfers.map((t) => {
+              {transfers.slice(0, 100).map((t) => {
                 const other =
                   t.from_address === address ? t.to_address : t.from_address;
                 return (
@@ -199,7 +215,18 @@ export default async function Wallet({
                   <p>
                     {l.confidence} / valid from {iso(l.valid_from)}
                   </p>
-                  <p>{l.notes}</p>
+                  <p>{labelNote(l.notes)}</p>
+                  <p className="muted">
+                    First locally recorded {iso(l.created_at)} / review{" "}
+                    {l.reviewed_by ?? "independently unverified"} / valid until{" "}
+                    {l.valid_to ? iso(l.valid_to) : "no end asserted"}
+                  </p>
+                  {l.notes.startsWith("{") ? (
+                    <details>
+                      <summary>Versioned assertion metadata</summary>
+                      <pre>{l.notes}</pre>
+                    </details>
+                  ) : null}
                   <a href={l.source_url} target="_blank" rel="noreferrer">
                     Evidence source
                   </a>

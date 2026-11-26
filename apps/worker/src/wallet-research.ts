@@ -15,6 +15,9 @@ import {
   type LedgerWindow,
   type EvidenceLabel,
   type ResearchState,
+  walletExchangeResearch,
+  exchangeLabelFromRow,
+  evmChains,
 } from "@flownix/core";
 import { sqlClient, jsonParam, setSetting } from "@flownix/db";
 
@@ -152,18 +155,38 @@ export async function walletResearchSync() {
             at: new Date(b.block_time).toISOString(),
             availableAt: new Date(b.observed_at).toISOString(),
           }));
-        const report = walletResearch({
-          address: monitor.address,
-          start,
-          end: now,
-          asOf: now,
-          balances,
-          transfers: transfers.filter(
-            (t) => t.from === monitor.address || t.to === monitor.address,
-          ),
-          swaps,
-          windows: ledger,
-        });
+        const report = {
+          ...walletResearch({
+            address: monitor.address,
+            start,
+            end: now,
+            asOf: now,
+            balances,
+            transfers: transfers.filter(
+              (t) => t.from === monitor.address || t.to === monitor.address,
+            ),
+            swaps,
+            windows: ledger,
+          }),
+          exchangeTransfers: evmChains[token.chain_id]
+            ? walletExchangeResearch({
+                token: {
+                  id: token.id,
+                  chain: token.chain_id,
+                  contract: token.contract,
+                },
+                address: monitor.address,
+                asOf: now,
+                truncated,
+                labels: labels.map(exchangeLabelFromRow),
+                transfers: transfers.filter(
+                  (t) =>
+                    t.eventTime >= start &&
+                    (t.from === monitor.address || t.to === monitor.address),
+                ),
+              })
+            : null,
+        };
         reports.push(report);
         if (days === 30) walletReports.push(report);
         materializedWallets.push({

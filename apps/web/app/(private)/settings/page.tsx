@@ -4,11 +4,13 @@ import { health, iso } from "../../../lib/data";
 import { requireAccess } from "../../../lib/auth";
 import { ActionButton } from "../../../components/controls";
 import { MutationForm } from "../../../components/forms";
+import { collectorState } from "../../../lib/collector-state";
 export const metadata = { title: "Settings and Data Health" };
 export default async function Settings() {
   await requireAccess();
   const h = await health(),
-    c = config();
+    c = config(),
+    worker = collectorState(h.heartbeat, h.dutyCycle);
   let thresholds = defaultSignalConfig,
     issues: Record<string, unknown>[] = [];
   try {
@@ -41,21 +43,8 @@ export default async function Settings() {
         <span>
           Registry count <strong>{h.registry?.count ?? "Unverified"}</strong>
         </span>
-        <span
-          className={
-            h.heartbeat &&
-            !h.heartbeat.stopped &&
-            freshness(h.heartbeat.at, Date.now(), 90) === "current"
-              ? "positive"
-              : "warning"
-          }
-        >
-          Worker{" "}
-          {h.heartbeat &&
-          !h.heartbeat.stopped &&
-          freshness(h.heartbeat.at, Date.now(), 90) === "current"
-            ? "current"
-            : "offline / unverified"}
+        <span className={worker.active ? "positive" : "warning"}>
+          {worker.label}
         </span>
         <span>
           24h estimated paid cost{" "}
@@ -64,6 +53,13 @@ export default async function Settings() {
           </strong>
         </span>
       </div>
+      {worker.state === "scheduled_idle" ? (
+        <p className="muted">
+          Next allowed collection {iso(String(h.dutyCycle?.nextAt))}. The host
+          must be checked separately; data freshness still uses each source
+          timestamp.
+        </p>
+      ) : null}
       {!h.database ? (
         <div className="notice">
           <strong>Connect PostgreSQL to begin</strong>
@@ -84,20 +80,45 @@ export default async function Settings() {
       <section className="workbench">
         <div className="section-top">
           <h2>Automatic discovery queue</h2>
-          <span>Watchlist enrollment is optional and does not gate discovery</span>
+          <span>
+            Watchlist enrollment is optional and does not gate discovery
+          </span>
         </div>
         <div className="status-strip">
-          <span>Supported current Alpha identities <strong>{h.scanCoverage.eligible}</strong></span>
-          <span>Durable baseline jobs <strong>{h.scanCoverage.scheduled}</strong></span>
-          <span>Missing jobs <strong>{h.scanCoverage.missingJobs}</strong></span>
-          <span>Due now <strong>{h.scanCoverage.due}</strong></span>
-          <span>Retrying <strong>{h.scanCoverage.retrying}</strong></span>
-          <span>Intensive investigations <strong>{h.scanCoverage.intensive}</strong></span>
-          <span>Intensive due <strong>{h.scanCoverage.intensiveWaiting}</strong></span>
-          <span>Other-chain baseline unavailable <strong>{h.scanCoverage.unsupported}</strong></span>
+          <span>
+            Supported current Alpha identities{" "}
+            <strong>{h.scanCoverage.eligible}</strong>
+          </span>
+          <span>
+            Durable baseline jobs <strong>{h.scanCoverage.scheduled}</strong>
+          </span>
+          <span>
+            Missing jobs <strong>{h.scanCoverage.missingJobs}</strong>
+          </span>
+          <span>
+            Due now <strong>{h.scanCoverage.due}</strong>
+          </span>
+          <span>
+            Retrying <strong>{h.scanCoverage.retrying}</strong>
+          </span>
+          <span>
+            Intensive investigations <strong>{h.scanCoverage.intensive}</strong>
+          </span>
+          <span>
+            Intensive due <strong>{h.scanCoverage.intensiveWaiting}</strong>
+          </span>
+          <span>
+            Other-chain baseline unavailable{" "}
+            <strong>{h.scanCoverage.unsupported}</strong>
+          </span>
         </div>
         <div className="panel-content">
-          <p>Oldest overdue scan: {iso(h.scanCoverage.oldestDue)}. EVM baseline windows and Solana account sampling are partial observations, not complete wallet histories. Unsupported-chain identities remain in the official Alpha Radar and are not reported as scanned.</p>
+          <p>
+            Oldest overdue scan: {iso(h.scanCoverage.oldestDue)}. EVM baseline
+            windows and Solana account sampling are partial observations, not
+            complete wallet histories. Unsupported-chain identities remain in
+            the official Alpha Radar and are not reported as scanned.
+          </p>
         </div>
       </section>
       <section className="workbench">
@@ -106,17 +127,49 @@ export default async function Settings() {
           <span>Official Alpha tickers only; DEX quotes remain separate</span>
         </div>
         <div className="status-strip">
-          <span><strong>{h.market.freshPrices}</strong> fresh prices</span>
-          <span><strong>{h.market.stalePrices}</strong> stale prices</span>
-          <span><strong>{h.market.eligiblePairs}</strong> active pair identities</span>
-          <span><strong>{h.market.pending}</strong> pending</span>
-          <span><strong>{h.market.missingPair}</strong> without an active pair</span>
-          <span><strong>{h.market.errors}</strong> provider errors</span>
-          <span><strong>{h.market.registryPrices}</strong> registry metadata prices</span>
+          <span>
+            <strong>{h.market.freshPrices}</strong> fresh prices
+          </span>
+          <span>
+            <strong>{h.market.stalePrices}</strong> stale prices
+          </span>
+          <span>
+            <strong>{h.market.eligiblePairs}</strong> active pair identities
+          </span>
+          <span>
+            <strong>{h.market.pending}</strong> pending
+          </span>
+          <span>
+            <strong>{h.market.missingPair}</strong> without an active pair
+          </span>
+          <span>
+            <strong>{h.market.errors}</strong> provider errors
+          </span>
+          <span>
+            <strong>{h.market.registryPrices}</strong> registry metadata prices
+          </span>
         </div>
         <div className="panel-content">
-          <p>Latest official Alpha ticker observed: {iso(h.market.at)}. Latest market cycle: {h.market.lastCycle ? JSON.stringify(h.market.lastCycle) : "not observed"}.</p>
-          <p className="muted">The {c.MARKET_TOKEN_LIMIT}-identity limit is a per-cycle batch size; persistent coverage rotates across every eligible online Alpha identity with a tradable pair. Baseline on-chain jobs cover all current identities on supported networks at a {Math.round(c.BASELINE_SCAN_INTERVAL_SECONDS / 60)}-minute schedule. Credible findings enter the persistent intensive-investigation queue. Price, volume and quote currency are retained as returned by the official Alpha pair. Registry prices have no assumed quote currency. DEX prices and Alpha ticker prices remain separate sources.</p>
+          <p>
+            Latest official Alpha ticker observed: {iso(h.market.at)}. Latest
+            market cycle:{" "}
+            {h.market.lastCycle
+              ? JSON.stringify(h.market.lastCycle)
+              : "not observed"}
+            .
+          </p>
+          <p className="muted">
+            The {c.MARKET_TOKEN_LIMIT}-identity limit is a per-cycle batch size;
+            persistent coverage rotates across every eligible online Alpha
+            identity with a tradable pair. Baseline on-chain jobs cover all
+            current identities on supported networks at a{" "}
+            {Math.round(c.BASELINE_SCAN_INTERVAL_SECONDS / 60)}-minute schedule.
+            Credible findings enter the persistent intensive-investigation
+            queue. Price, volume and quote currency are retained as returned by
+            the official Alpha pair. Registry prices have no assumed quote
+            currency. DEX prices and Alpha ticker prices remain separate
+            sources.
+          </p>
         </div>
       </section>
       <section className="workbench">
@@ -208,7 +261,9 @@ export default async function Settings() {
                   <td>
                     {ch.chain_name} · chain ID {ch.chain_id}
                   </td>
-                  <td>{ch.tokens} / {ch.active}</td>
+                  <td>
+                    {ch.tokens} / {ch.active}
+                  </td>
                   <td>
                     {ch.deep} / {ch.scanned}
                   </td>

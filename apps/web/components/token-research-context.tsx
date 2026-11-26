@@ -36,6 +36,7 @@ export async function TokenResearchContext({
     volume,
     pools,
     recent,
+    monitors,
   ] = await Promise.all([
     sql`SELECT * FROM holder_metrics WHERE token_id=${token.id} AND canonical ORDER BY observed_at DESC LIMIT 2`,
     sql`SELECT * FROM wallet_labels WHERE chain_id=${token.chain_id}`,
@@ -46,6 +47,7 @@ export async function TokenResearchContext({
     sql`SELECT value FROM settings WHERE key=${"volume_quality:" + token.id}`,
     sql`SELECT p.*,(SELECT max(end_time) FROM scan_windows w WHERE w.token_id=p.token_id AND w.to_block=p.verified_at_block) AS verified_block_time FROM token_dex_pools p WHERE p.token_id=${token.id}`,
     sql`SELECT * FROM live_scan_checkpoints WHERE token_id=${token.id}`,
+    sql`SELECT address,chain_id,reason,added_at FROM wallet_monitoring WHERE token_id=${token.id} AND chain_id=${token.chain_id} AND active ORDER BY added_at LIMIT 100`,
   ]);
   const snapshot = holders[0]?.evidence as HolderSnapshot | undefined;
   const attribution: ChainLabel[] = labels.map((l) => ({
@@ -107,6 +109,37 @@ export async function TokenResearchContext({
   };
   return (
     <>
+      <section className="workbench">
+        <div className="section-top">
+          <h2>Investigation wallets</h2>
+          <span>Address monitoring / ownership unproven</span>
+        </div>
+        <div className="panel-content">
+          {monitors.length ? (
+            <ul>
+              {monitors.map((m) => (
+                <li key={m.address}>
+                  <Link href={`/wallet/${m.chain_id}/${m.address}`}>
+                    <code>{m.address}</code>
+                  </Link>
+                  <p>{m.reason}</p>
+                  <small>Registered {iso(m.added_at)}</small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>
+              No active investigation wallets registered for this exact chain
+              and contract.
+            </p>
+          )}
+          <p className="muted">
+            Monitoring does not establish accumulation or beneficial ownership.
+            Bounded collection windows leave historical gaps and cannot provide
+            real-time alerts between windows.
+          </p>
+        </div>
+      </section>
       <section className="workbench" aria-labelledby="supply-research-heading">
         <div className="section-top">
           <h2 id="supply-research-heading">

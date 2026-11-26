@@ -1,0 +1,35 @@
+# First hosted duty-window acceptance — 26 November 2026
+
+This is a bounded acceptance record, not proof of continuous 24/7 intelligence. Sources are the existing Neon duty state, job observations, canonical evidence, provider ledger, sessions and leases. The [machine-readable evidence](evidence/FIRST_HOSTED_ACCEPTANCE_2026_11_26.json) records inspection times and limitations. No collector was started or forced, and no Render service, billing setting, credential, checkpoint or duty reservation was changed.
+
+## Verified
+
+- The first recorded Render window ran **03:55:01–04:18:48 UTC**, approximately **23m47s**, inside its 25-minute wall. Durable state is `idle`, `lastExitCode=0`, with the next reservation at **15:55:01 UTC / 10:55 EST on 26 November**. The actual persisted model remains 1,500 active seconds every 43,200 seconds. Its one modeled CU-hour reservation is not billed Neon usage.
+- Existing Neon contains **296 official ticker observations for 296 identities**, **34 canonical transfers**, **331 Solana balance observations**, **45 completed EVM scan jobs across all six implemented EVM networks**, and **nine completed Solana jobs** from that window. These counts exclude the later manual wallet case. EVM and Solana stalled alerts resolved at approximately **04:01 UTC**; final source progress was approximately **04:18 UTC**. All **366 current supported identities** have durable jobs; **12 Sui/TRON identities** remain explicitly unsupported. A full-universe rotation was not completed.
+- At the 09:11 UTC inspection there were **zero collector locks, zero active job leases and zero other database sessions**, excluding the read-only inspector. Thus worker database connections were closed at the sampled point. The inspector also closed its connection; periodic SQL polling was not enabled. This read itself can wake Neon.
+- The local Alchemy ledger is **30,388 estimated monthly CUs**. The current-day total is **19,814**, including **312** for the separately requested bounded wallet check; the observed hosted-window estimate is approximately **19,502**. Repeating that workload twice daily would model roughly **1.21M CUs in 31 days**, before other applications, retries or changed activity. Durable application quotas, including the configured outside-usage offset, remain satisfied. This is not an independent account-wide Alchemy meter.
+- Wallet completion and health-reporting fixes passed **181 automated tests**, local PostgreSQL integration, typecheck, lint, the final production build and **11 authenticated local browser journeys**. Desktop/tablet/phone wallet screenshots were inspected; a clipped contract address was corrected using existing wrapping styles. No owner-authenticated production browser journey is claimed.
+
+## Incomplete
+
+- **Actual Neon suspension and billed CU-hours:** SQL session absence is not the compute-state graph. Check the Neon Monitoring/Compute graph after at least five quiet minutes, without SQL Editor polling, dashboard reloads or external SQL health probes.
+- **Container-wide memory and restart history:** the maximum sampled worker-process RSS was **152,260,608 bytes / 145.2 MiB**. This excludes the supervisor and cannot certify the combined container peak against 512 MB. Inspect Render's first-window memory graph and events for unexpected restarts. A Live badge alone is insufficient.
+- **Actual next-window resumption:** durable state and local restart/idling tests support safe resumption, but the future hosted wake has not yet been observed. Leave the service alone until 15:55 UTC; verify a new reservation, successful preflight, progressing jobs, clean completion and subsequent idle. Never clear the next wake or refund a reservation to force work.
+- **Two legacy expired leases:** MEW and TROLL remain current Solana identities, with leases left over from **22/23 November**, before this hosted deployment. They are eligible for normal expired-lease recovery when their fair turn arrives; recovery of those specific rows has not yet been observed. No manual reset was performed. The old SHARE retry is for an **offline** identity and is correctly excluded from current monitoring.
+- **Exact deployed Render commit:** shutdown overwrites the active heartbeat's release metadata. The existing local Render CLI credential returned **HTTP 401** to a read-only service query; no login refresh, credential replacement or settings change was attempted. Confirm the deployed SHA in Render's Deploys tab. This inspection authorization failure does not mean the worker failed.
+- **Account-wide Alchemy allowance, remaining Neon compute/storage/transfer and full-universe cadence:** account dashboards and more hosted windows remain necessary. Bounded recent blocks/account samples do not establish complete historical transfers, holder retention or sustained real-time alerts.
+
+## Failed / corrected reporting
+
+- **Binance Futures returned HTTP 451**. The collector deferred that provider until **27 November 03:56 UTC**, without changing endpoints to evade the restriction. Spot/chain collection continued. No fresh Futures result is fabricated.
+- Two public Alpha requests and one market job recorded `COLLECTION_STOPPED` during orderly shutdown. They are expected bounded cancellation/retry observations, not evidence of a crashed duty window.
+- The deployed UI's child-heartbeat-only logic describes planned sleep as “Collector offline / unverified.” The verified correction displays **“Scheduled idle / host unverified”** only for a successful, valid, not-yet-due durable plan; failed, malformed and overdue plans remain warnings. It does **not** claim host liveness or make old data current. The real **Registry stale** and ticker freshness warnings remain intact.
+- Data Health's old supported totals omitted Sonic and Robinhood. The correction derives the same seven supported chain IDs as the worker scheduler; unsupported identities remain visible. No adapter or scheduling behavior was added.
+
+## Release decision and remaining actions
+
+The owner confirmed **Render Automatic Deploy is disabled**. Push the verified repository and allow the existing Vercel release; **do not trigger a Render redeploy**. At the inspected idle point, a restart would not interrupt the already completed first window, but there is no need to disturb the initial hosted soak. GitHub/Vercel verification is separate from the unchanged running worker.
+
+The existing deployed worker already understands the three newly registered wallet monitors. New wallet research materialization code requires a later approved worker revision, but it must not be rushed into this first acceptance window. No schema migration is required.
+
+Personal checks remaining: inspect Render's deployed SHA, combined memory and restart events; confirm actual Neon suspension/allowances; observe the next scheduled cycle and the legacy Solana recovery. Do not upgrade a plan, enable paid enrichment, add another collector, force a backfill, or call the first successful window sustained 24/7 acceptance.

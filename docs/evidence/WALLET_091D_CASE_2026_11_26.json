@@ -1,0 +1,528 @@
+{
+  "version": "wallet-091d-case/1",
+  "checkedAt": "2026-11-26T08:15:37.240Z",
+  "address": "0x091d1c972cb1648537a2ba78eaba371b1ce18336",
+  "priorMonitoring": [],
+  "identities": [
+    {
+      "id": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+      "chain_id": "56",
+      "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+      "symbol": "AKE",
+      "alpha_id": "ALPHA_331",
+      "status": "current",
+      "first_seen": "2026-11-16T15:12:35.520Z",
+      "last_seen": "2026-11-26T04:11:56.123Z",
+      "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "response_hash": "c9547574385a2d246781955488cf00f280a82360f7926676c9ddda0a73c06945"
+    },
+    {
+      "id": "ca7500bd474bdbee663a1c1fc147f41c",
+      "chain_id": "56",
+      "contract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+      "symbol": "EVAA",
+      "alpha_id": "ALPHA_409",
+      "status": "current",
+      "first_seen": "2026-11-16T15:12:35.520Z",
+      "last_seen": "2026-11-26T04:11:56.123Z",
+      "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "response_hash": "c9547574385a2d246781955488cf00f280a82360f7926676c9ddda0a73c06945"
+    },
+    {
+      "id": "ae221b235227fa3ad23ecfb78a01a71d",
+      "chain_id": "56",
+      "contract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+      "symbol": "Q",
+      "alpha_id": "ALPHA_349",
+      "status": "current",
+      "first_seen": "2026-11-16T15:12:35.520Z",
+      "last_seen": "2026-11-26T04:11:56.123Z",
+      "source": "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list",
+      "response_hash": "c9547574385a2d246781955488cf00f280a82360f7926676c9ddda0a73c06945"
+    }
+  ],
+  "monitoring": [
+    {
+      "token_id": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+      "chain_id": "56",
+      "active": true,
+      "symbol": "AKE"
+    },
+    {
+      "token_id": "ca7500bd474bdbee663a1c1fc147f41c",
+      "chain_id": "56",
+      "active": true,
+      "symbol": "EVAA"
+    },
+    {
+      "token_id": "ae221b235227fa3ad23ecfb78a01a71d",
+      "chain_id": "56",
+      "active": true,
+      "symbol": "Q"
+    }
+  ],
+  "verifiedMovements": [
+    {
+      "chain": "56",
+      "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+      "txHash": "0xeaf7e246446d40612dd8b4f76bd5a049cd23ec03a6fbdecabcc71858fafff743",
+      "logIndex": 329,
+      "blockNumber": 135638748,
+      "blockHash": "0xe4c5db9e48aae45e26c03dec562cfb3fa382b96ae91954d5b8d96900b8c324b8",
+      "eventTime": "2026-11-25T10:27:38.000Z",
+      "from": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
+      "to": "0x091d1c972cb1648537a2ba78eaba371b1ce18336",
+      "rawQuantity": "499999806000000000000000",
+      "decimals": 18,
+      "kind": "unknown_transfer",
+      "source": "configured_rpc:56",
+      "availableAt": "2026-11-26T04:58:09.549Z"
+    }
+  ],
+  "currentBalanceSamples": [
+    {
+      "tokenId": "f3a3dbcb62776d5b9a1b9537cbe5c3cd",
+      "symbol": "AKE",
+      "contract": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+      "raw": "0",
+      "decimals": 18,
+      "block": 135786567,
+      "blockHash": "0xbc266ab3ba3bcd0a6dcf26dd57deafc3e64bd65a7a9e43db7b0b9692940e467c",
+      "blockTime": "2026-11-26T04:56:58.000Z",
+      "availableAt": "2026-11-26T04:57:35.563Z"
+    },
+    {
+      "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+      "symbol": "EVAA",
+      "contract": "0xaa036928c9c0df07d525b55ea8ee690bb5a628c1",
+      "raw": "500025318400000000000000",
+      "decimals": 18,
+      "block": 135786567,
+      "blockHash": "0xbc266ab3ba3bcd0a6dcf26dd57deafc3e64bd65a7a9e43db7b0b9692940e467c",
+      "blockTime": "2026-11-26T04:56:58.000Z",
+      "availableAt": "2026-11-26T04:57:50.819Z"
+    },
+    {
+      "tokenId": "ae221b235227fa3ad23ecfb78a01a71d",
+      "symbol": "Q",
+      "contract": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+      "raw": "7950000000000000000",
+      "decimals": 18,
+      "block": 135786567,
+      "blockHash": "0xbc266ab3ba3bcd0a6dcf26dd57deafc3e64bd65a7a9e43db7b0b9692940e467c",
+      "blockTime": "2026-11-26T04:56:58.000Z",
+      "availableAt": "2026-11-26T04:58:03.090Z"
+    }
+  ],
+  "labels": [
+    {
+      "chain_id": "56",
+      "address": "0xa4856e07d14045014b2c3fece5460bd37b310f10",
+      "role": "possible_exchange",
+      "entity": "Bitget",
+      "source_url": "https://arkm.com/explorer/address/0xa4856e07d14045014b2c3fece5460bd37b310f10",
+      "confidence": "Third-party attribution; independently unverified",
+      "valid_from": "2026-11-16T17:49:23.375Z",
+      "valid_to": null,
+      "reviewed_by": null,
+      "created_at": "2026-11-16T17:50:04.738Z"
+    },
+    {
+      "chain_id": "56",
+      "address": "0x091d1c972cb1648537a2ba78eaba371b1ce18336",
+      "role": "possible_market_maker",
+      "entity": "Cumberland (provisional)",
+      "source_url": "https://arkm.com/explorer/address/0x091d1c972cb1648537a2ba78eaba371b1ce18336",
+      "confidence": "Third-party attribution; ownership unverified",
+      "valid_from": "2026-11-26T04:56:55.267Z",
+      "valid_to": null,
+      "reviewed_by": null,
+      "created_at": "2026-11-26T04:56:56.432Z"
+    },
+    {
+      "chain_id": "56",
+      "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
+      "role": "verified_exchange",
+      "entity": "Gate",
+      "source_url": "https://www.gate.com/announcements/article/34187",
+      "confidence": "Exchange-published chain-specific address; independently source-reviewed",
+      "valid_from": "2024-01-24T01:03:00.000Z",
+      "valid_to": null,
+      "reviewed_by": "public-source-review/2026-11-26",
+      "created_at": "2026-11-26T04:56:58.467Z"
+    }
+  ],
+  "sourceClaims": [
+    {
+      "symbol": "Q",
+      "claim": "Reported 33M received from Gate below $0.04 and 19M returned near $0.20, followed by a decline; quantities, prices and outcomes unverified",
+      "status": "unverified aggregate; isolated receipt evidence is separate"
+    },
+    {
+      "symbol": "AKE",
+      "claim": "Reported 248.4M received on November 13 and later returned to Gate; quantities, year and complete return history unverified",
+      "status": "unverified aggregate; isolated receipt evidence is separate"
+    },
+    {
+      "symbol": "EVAA",
+      "claim": "Reported 800K received, 300K returned and another approximately 500K received on November 25, 2026; each leg requires canonical evidence",
+      "status": "unverified aggregate; isolated receipt evidence is separate"
+    }
+  ],
+  "eventStudies": [
+    {
+      "eventId": "56:0xeaf7e246446d40612dd8b4f76bd5a049cd23ec03a6fbdecabcc71858fafff743:329",
+      "anchor": "2026-11-25T10:27:38.000Z",
+      "signalAvailableAt": "2026-11-26T04:58:09.549Z",
+      "controls": {
+        "selected": [
+          {
+            "tokenId": "f6fdb847f92c4ffbd2ea6ac7ee8f7e5f",
+            "projectKey": "ALPHA_386",
+            "chain": "56",
+            "quote": "USDT",
+            "marketSymbol": "ALPHA_386USDT",
+            "anchor": "2026-11-25T10:27:38.000Z",
+            "membershipAt": "2026-11-16T15:12:35.520Z",
+            "membershipAvailableAt": "2026-11-24T02:48:11.545Z",
+            "liquidity": "463422.999261385151179799687204649235",
+            "liquidityAvailableAt": "2026-11-22T17:50:32.603Z",
+            "coverage": "partial_observed"
+          },
+          {
+            "tokenId": "c6a2e24548adc8ea17ffdf7b4d110986",
+            "projectKey": "ALPHA_971",
+            "chain": "56",
+            "quote": "USDT",
+            "marketSymbol": "ALPHA_971USDT",
+            "anchor": "2026-11-25T10:27:38.000Z",
+            "membershipAt": "2026-11-16T15:12:35.520Z",
+            "membershipAvailableAt": "2026-11-24T02:48:11.545Z",
+            "liquidity": "462361.81617147671408818155511720810142",
+            "liquidityAvailableAt": "2026-11-24T02:28:36.888Z",
+            "coverage": "partial_observed"
+          },
+          {
+            "tokenId": "abfbdf9935896cde2a22a6737062dbb0",
+            "projectKey": "ALPHA_604",
+            "chain": "56",
+            "quote": "USDT",
+            "marketSymbol": "ALPHA_604USDT",
+            "anchor": "2026-11-25T10:27:38.000Z",
+            "membershipAt": "2026-11-16T15:12:35.520Z",
+            "membershipAvailableAt": "2026-11-24T02:48:11.545Z",
+            "liquidity": "455379.767597713996076466761868660766",
+            "liquidityAvailableAt": "2026-11-24T02:26:16.212Z",
+            "coverage": "partial_observed"
+          }
+        ],
+        "suppressed": null,
+        "excluded": 207,
+        "method": "Same UTC anchor/chain/quote/coverage, observation-age bucket, liquidity within 0.5–2x; nearest absolute liquidity then age then exact ID. No future return filter."
+      },
+      "outcomes": [
+        {
+          "version": "historical-signal/1",
+          "tokenId": "ca7500bd474bdbee663a1c1fc147f41c",
+          "market": "ALPHA_409USDT",
+          "quote": "USDT",
+          "signalAt": "2026-11-25T10:27:38.000Z",
+          "signalAvailableAt": "2026-11-26T04:58:09.549Z",
+          "baseline": "last completed hourly close within one hour before event",
+          "referencePrice": null,
+          "referenceAt": null,
+          "referenceAvailableAt": null,
+          "outcomeStartAt": "2026-11-25T11:00:00.000Z",
+          "retrospectiveOnly": true,
+          "historicalMembershipProven": true,
+          "outcomes": [
+            {
+              "days": 1,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 3,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 7,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 14,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 30,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 60,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 90,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            }
+          ],
+          "executable": false,
+          "strategyValidated": false
+        },
+        {
+          "version": "historical-signal/1",
+          "tokenId": "f6fdb847f92c4ffbd2ea6ac7ee8f7e5f",
+          "market": "ALPHA_386USDT",
+          "quote": "USDT",
+          "signalAt": "2026-11-25T10:27:38.000Z",
+          "signalAvailableAt": "2026-11-26T04:58:09.549Z",
+          "baseline": "last completed hourly close within one hour before event",
+          "referencePrice": null,
+          "referenceAt": null,
+          "referenceAvailableAt": null,
+          "outcomeStartAt": "2026-11-25T11:00:00.000Z",
+          "retrospectiveOnly": true,
+          "historicalMembershipProven": true,
+          "outcomes": [
+            {
+              "days": 1,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 3,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 7,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 14,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 30,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 60,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 90,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            }
+          ],
+          "executable": false,
+          "strategyValidated": false
+        },
+        {
+          "version": "historical-signal/1",
+          "tokenId": "c6a2e24548adc8ea17ffdf7b4d110986",
+          "market": "ALPHA_971USDT",
+          "quote": "USDT",
+          "signalAt": "2026-11-25T10:27:38.000Z",
+          "signalAvailableAt": "2026-11-26T04:58:09.549Z",
+          "baseline": "last completed hourly close within one hour before event",
+          "referencePrice": null,
+          "referenceAt": null,
+          "referenceAvailableAt": null,
+          "outcomeStartAt": "2026-11-25T11:00:00.000Z",
+          "retrospectiveOnly": true,
+          "historicalMembershipProven": true,
+          "outcomes": [
+            {
+              "days": 1,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 3,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 7,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 14,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 30,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 60,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 90,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            }
+          ],
+          "executable": false,
+          "strategyValidated": false
+        },
+        {
+          "version": "historical-signal/1",
+          "tokenId": "abfbdf9935896cde2a22a6737062dbb0",
+          "market": "ALPHA_604USDT",
+          "quote": "USDT",
+          "signalAt": "2026-11-25T10:27:38.000Z",
+          "signalAvailableAt": "2026-11-26T04:58:09.549Z",
+          "baseline": "last completed hourly close within one hour before event",
+          "referencePrice": null,
+          "referenceAt": null,
+          "referenceAvailableAt": null,
+          "outcomeStartAt": "2026-11-25T11:00:00.000Z",
+          "retrospectiveOnly": true,
+          "historicalMembershipProven": true,
+          "outcomes": [
+            {
+              "days": 1,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 3,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 7,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 14,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 30,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 60,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            },
+            {
+              "days": 90,
+              "status": "baseline_unavailable",
+              "returnPct": null,
+              "maePct": null
+            }
+          ],
+          "executable": false,
+          "strategyValidated": false
+        }
+      ],
+      "selectionUsesFutureReturns": false,
+      "strategyValidated": false
+    }
+  ],
+  "cost": {
+    "rpcRequests": 15,
+    "estimatedAlchemyCU": 312,
+    "alchemyLedgerBefore": [
+      {
+        "scope": "alchemy:month",
+        "used": "30076"
+      }
+    ],
+    "alchemyLedgerAfter": [
+      {
+        "scope": "alchemy:month",
+        "used": "30388"
+      },
+      {
+        "scope": "alchemy:historical:day",
+        "used": "312"
+      }
+    ],
+    "databaseBytesBefore": "248168448",
+    "databaseBytesAfter": "248233984",
+    "physicalGrowthBytes": 65536,
+    "neonAccountCUHoursMeasured": false
+  },
+  "preservation": {
+    "beforeEvidence": [
+      {
+        "transfers": 353,
+        "swaps": 18,
+        "relationships": 163
+      }
+    ],
+    "afterEvidence": {
+      "transfers": 354,
+      "swaps": 18,
+      "relationships": 163,
+      "case_balances": 3,
+      "case_leads": 3,
+      "database_bytes": "248233984"
+    },
+    "collectorLocks": 0,
+    "dutyScheduleUnchanged": true,
+    "newMigration": false,
+    "secretsChanged": false,
+    "paidServicesActivated": false
+  },
+  "limitations": [
+    "One transaction lead plus confirmed current balances; no broad historical scan or full scan window created",
+    "No price outcome, profit, fixed-horizon strategy or complete round trip has been established",
+    "Social publication times unavailable; local collection/review times are not backdated",
+    "The existing duty schedule and universal jobs are unchanged"
+  ],
+  "ownershipVerified": false,
+  "completeHistory": false,
+  "strategyValidated": false
+}

@@ -1,6 +1,7 @@
 import { it, expect } from "vitest";
 import {
   historicalEpisodes,
+  historicalSignalStudy,
   historicalFeatureCutoffs,
   matchHistoricalControls,
   researchPatternComparison,
@@ -40,6 +41,43 @@ const path = () =>
   Array.from({ length: 400 }, (_, i) =>
     bar(i, i === 168 ? "2" : i === 169 ? "4" : "1"),
   );
+it("uses fixed forward horizons for actual wallet events without a hindsight entry or future baseline", () => {
+  const rows = Array.from({ length: 26 }, (_, i) =>
+      bar(i, i === 0 ? "1" : "2"),
+    ),
+    event = new Date(start + 3600000 + 1800000).toISOString();
+  const r = historicalSignalStudy(
+    series(rows),
+    event,
+    "2026-01-01T00:00:00Z",
+    asOf,
+  );
+  expect(r.referencePrice).toBe("1");
+  expect(r.outcomeStartAt).toBe(new Date(start + 2 * HOUR).toISOString());
+  expect(r.outcomes[0]).toMatchObject({
+    days: 1,
+    status: "observed",
+    returnPct: "100.000000",
+  });
+  expect(r.outcomes[1]).toMatchObject({
+    days: 3,
+    status: "censored_or_gapped",
+    returnPct: null,
+  });
+  expect(r.retrospectiveOnly).toBe(true);
+  expect(r.strategyValidated).toBe(false);
+  const missing = historicalSignalStudy(
+    series(rows.slice(1)),
+    event,
+    "2026-01-01T00:00:00Z",
+    asOf,
+  );
+  expect(missing.referencePrice).toBeNull();
+  expect(missing.outcomes[0].status).toBe("baseline_unavailable");
+  expect(() =>
+    historicalSignalStudy(series(rows), event, "2027-01-01T00:00:00Z", asOf),
+  ).toThrow("AVAILABILITY");
+});
 it("rejects contract, market and quote misidentification", () => {
   const s = series(path());
   expect(() =>
