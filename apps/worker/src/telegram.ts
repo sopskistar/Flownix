@@ -82,7 +82,14 @@ export async function deliverNotifications(testId?: string) {
       AND CASE WHEN ${!!testId} THEN id=${testId ?? ""} AND payload->>'test'='true' AND payload->>'explicit'='true'
         AND payload->>'destination'=${destination}
         ELSE coalesce(payload->>'test','false')<>'true' AND created_at>now()-interval '15 minutes'
-          AND EXISTS(SELECT 1 FROM signal_events s WHERE s.id=notification_deliveries.signal_id AND s.first_detected_at>=${since ?? "1970-01-01T00:00:00Z"}::timestamptz) END
+          AND EXISTS(SELECT 1 FROM signal_events s
+            WHERE s.id=notification_deliveries.signal_id AND s.status='active'
+              AND s.first_detected_at>=${since ?? "1970-01-01T00:00:00Z"}::timestamptz
+              AND s.first_detected_at>now()-interval '15 minutes'
+              AND (s.evidence_confidence IN ('supported','high')
+                OR (${c.TELEGRAM_RESEARCH_DIGEST_ENABLED} AND s.evidence_confidence IN ('provisional','limited')))
+              AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR EXISTS(
+                SELECT 1 FROM watchlists w WHERE w.token_id=s.token_id AND NOT w.archived))) END
       ORDER BY CASE WHEN payload->>'priority'='research_alert' THEN 0 ELSE 1 END,created_at FOR UPDATE SKIP LOCKED LIMIT ${testId ? 1 : 5}) RETURNING *`;
   for (const row of rows) {
     try {

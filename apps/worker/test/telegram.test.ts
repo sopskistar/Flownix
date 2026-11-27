@@ -149,6 +149,13 @@ it.skipIf(!process.env.DATABASE_URL)(
         );
         expect(fixture.sends).toBe(2);
         fixture.digest = false;
+        await deliverNotifications();
+        expect(fixture.sends).toBe(2);
+        expect(
+          (
+            await tx`SELECT status,attempts FROM notification_deliveries WHERE signal_id=${signalId}`
+          )[0],
+        ).toEqual({ status: "queued", attempts: 0 });
         fixture.enabled = false;
         checked = true;
         throw Error("ROLLBACK_TELEGRAM_FIXTURE");

@@ -31,6 +31,23 @@ jobs:
           docker run --rm --network host -e DATABASE_URL -e TELEGRAM_ENABLED=false flownix-worker:ci \
             node --import tsx scripts/telegram-test.ts --status 3e6e67a8-06b5-4c42-9d40-a50b04e5680a |
             jq -e '.id == "telegram-test:3e6e67a8-06b5-4c42-9d40-a50b04e5680a" and .status == "not_found"'
+          # A production-style worker URL requires the durable policy. Seed a
+          # cooldown so the real CLI must reach the database guard before any HTTP.
+          docker exec ${{ job.services.postgres.id }} psql -v ON_ERROR_STOP=1 -U flownix -d flownix \
+            -c "INSERT INTO worker_provider_state(provider,blocked_until,reason) VALUES ('telegram',now()+interval '10 minutes','CI_TEST')"
+          exit_code=0
+          output=$(docker run --rm --network host -e DATABASE_URL_WORKER="$DATABASE_URL" \
+            -e TELEGRAM_ENABLED=false -e TELEGRAM_BOT_TOKEN=123:ci-placeholder -e TELEGRAM_CHAT_ID=456 \
+            flownix-worker:ci node --import tsx scripts/telegram-test.ts --send-one \
+            3e6e67a8-06b5-4c42-9d40-a50b04e5680a --confirm-private-target 2>&1) || exit_code=$?
+          printf '%s\n' "$output"
+          test "$exit_code" -eq 1
+          [[ "$output" == "TELEGRAM_PROVIDER_DEFERRED;"* ]]
+          docker run --rm --network host -e DATABASE_URL flownix-worker:ci \
+            node --import tsx scripts/telegram-test.ts --status 3e6e67a8-06b5-4c42-9d40-a50b04e5680a |
+            jq -e '.status == "not_found"'
+          docker exec ${{ job.services.postgres.id }} psql -v ON_ERROR_STOP=1 -U flownix -d flownix \
+            -c "DELETE FROM worker_provider_state WHERE provider='telegram' AND reason='CI_TEST'"
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - name: Retain synthetic integration screenshots for visual acceptance

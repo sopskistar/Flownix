@@ -59,7 +59,7 @@ Repeated invocation with the **same UUID** cannot resend a claimed/delivered mes
 
 ## Enable genuine alerts only after the owner separately approves
 
-Do not perform this section as part of the test. Keep both flags false until the delivered application test and its visible receipt are accepted by the owner. Limited/provisional research digests are separately opt-in and never promoted to high-confidence accumulation alerts.
+The accepted application test is `80532dfd-21ad-49eb-ae96-5ad50cacfa90`, delivered once as Telegram message 5 on November 27, 2026 at 14:30:25 UTC. Use this receipt for activation. Proceed only after separate owner approval.
 
 While sleeping with both flags false, use this transaction with the accepted test UUID. It refuses active collection and preserves all source evidence and delivery history:
 
@@ -80,8 +80,12 @@ BEGIN
     RAISE EXCEPTION 'Verified sleeping interval required';
   END IF;
   IF NOT EXISTS(SELECT 1 FROM notification_deliveries
-    WHERE id='telegram-test:YOUR_RECORDED_UUID' AND status='delivered'
+    WHERE id='telegram-test:80532dfd-21ad-49eb-ae96-5ad50cacfa90'
+    AND channel='telegram' AND signal_id IS NULL AND status='delivered'
+    AND payload->>'test'='true' AND payload->>'explicit'='true'
+    AND delivered_at IS NOT NULL AND error IS NULL
     AND attempts=1 AND (receipt::jsonb)->>'ok'='true'
+    AND (receipt::jsonb)->>'message_id'='5'
     AND (receipt::jsonb)->>'privateTargetMatches'='true') THEN
     RAISE EXCEPTION 'Accepted pipeline receipt required';
   END IF;
@@ -89,13 +93,14 @@ END $$;
 UPDATE notification_deliveries SET status='cancelled',error='PRE_ACTIVATION_HISTORY'
 WHERE channel='telegram' AND status='queued';
 INSERT INTO settings(key,value) VALUES('telegram_activation',
-  jsonb_build_object('since',now(),'acceptedTestId','telegram-test:YOUR_RECORDED_UUID'))
+  jsonb_build_object('since',now(),'acceptedTestId','telegram-test:80532dfd-21ad-49eb-ae96-5ad50cacfa90'))
 ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=now();
+SELECT value->>'since' AS activation_cutoff FROM settings WHERE key='telegram_activation';
 COMMIT;
 ```
 
-Only after approval, Save only `TELEGRAM_ENABLED=true` and manually apply the environment during verified sleep. Keep `TELEGRAM_RESEARCH_DIGEST_ENABLED=false` for supported/high-confidence findings only; set it true only if the owner also wants clearly labelled lower-priority incomplete research from existing signal events. There is no new digest scanner or notification engine.
+After the transaction commits, open **flownix-worker → Environment**. Set `TELEGRAM_ENABLED=true` and `TELEGRAM_RESEARCH_DIGEST_ENABLED=false` using **Save only**. Keep the verified bot and chat values on this service. Keep the current `TELEGRAM_WATCHLIST_ONLY` setting: `true` restricts delivery to watched tokens and `false` (default) covers the Alpha universe. Keep Auto-Deploy **Off**. During the same sleeping interval, use **Manual Deploy → Deploy a specific commit** with the verified release SHA. Check `RENDER_GIT_COMMIT`, verify the flags in the new Shell, and confirm sleeping with the same `nextAt`. Check notifications after the next scheduled window.
 
-Both queueing and sending require an activation watermark. Only newly detected signals after it, within 15 minutes, are eligible; historical signals/backlogs and test rows cannot be released by ordinary delivery. Watchlist restrictions remain respected. The first natural alert still needs review against its linked scientific evidence. With duty sleep, real-time alerting is not promised. Disable `TELEGRAM_ENABLED` and apply during sleep to pause delivery; do not delete evidence or reset attempts.
+Queueing and delivery require an activation cutoff and an active signal detected at or after the cutoff within the last 15 minutes. With digests off, only `supported` or `high` qualifies. Review the first genuine alert against its linked evidence. To pause delivery, save `TELEGRAM_ENABLED=false` and apply it during sleep. Preserve delivery records and attempts.
 
 Manual deployments and environment application follow [Render deploy documentation](https://render.com/docs/deploys) and [environment configuration](https://render.com/docs/configure-environment-variables). Private targeting and receipts use the official [Telegram Bot API](https://core.telegram.org/bots/api).
