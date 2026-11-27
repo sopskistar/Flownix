@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { collectPassiveSwaps } from "./passive-swaps";
 import { scanSolanaToken } from "./solana";
 import { collectEvmSupply } from "./supply";
+import { transferInvestigationCandidate } from "../../../packages/core/src/investigation";
 import {
   AlphaProvider,
   bookQuote,
@@ -305,6 +306,14 @@ export async function marketSync() {
     observed,
     noPair,
     failures,
+    outcome:
+      tokens.length === 0
+        ? "no_due_identities"
+        : observed === 0 && noPair === tokens.length
+          ? "no_active_pairs"
+          : failures > 0
+            ? "provider_or_persistence_failures"
+            : "observed_quotes",
     requestCap: config().MARKET_TOKEN_LIMIT,
     remainingDue,
   });
@@ -639,6 +648,23 @@ export async function scanToken(
     maxAgeSeconds: c.MAX_DATA_AGE_SECONDS,
     minLiquidity: c.MIN_LIQUIDITY_USD,
   });
+  // Candidate selection must not require the fresh ticker that gates alerts.
+  // Only completed equal-block baseline windows; existing enrichment quotas still apply.
+  if (
+    transferInvestigationCandidate(
+      transfers.length,
+      baseline
+        .filter((w) => Number(w.to_block) - Number(w.from_block) === to - from)
+        .map((w) => ({ count: Number(w.count), complete: !!w.complete })),
+    )
+  ) {
+    await sql.begin(async (tx) => {
+      await tx`SELECT pg_advisory_xact_lock(726035)`;
+      await tx`INSERT INTO token_investigation_queue(token_id,priority,reasons)
+        SELECT ${id},100,${jsonParam([{ kind: "TRANSFER_RESEARCH_CANDIDATE", at: observedAt, events: transfers.length, limitation: "Transfer anomaly only; purchases and intent unverified" }])}::jsonb
+        ON CONFLICT(token_id) DO NOTHING`;
+    });
+  }
   const result = detectTransferActivity(
     {
       now: observedAt,
@@ -646,10 +672,15 @@ export async function scanToken(
       membershipStatus: t.status,
       marketObservedAt: market
         ? new Date(
-            Math.min(
-              new Date(market.observed_at).getTime(),
-              new Date(market.provider_time).getTime(),
-            ),
+            market.provider_time === null
+              ? 0
+              : new Date(market.provider_time).getTime() >
+                  Date.parse(observedAt)
+                ? new Date(market.provider_time).getTime()
+                : Math.min(
+                    new Date(market.observed_at).getTime(),
+                    new Date(market.provider_time).getTime(),
+                  ),
           ).toISOString()
         : null,
       price: market?.price ?? null,

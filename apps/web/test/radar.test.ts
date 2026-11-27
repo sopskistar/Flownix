@@ -74,7 +74,7 @@ describe("Radar initial freshness snapshot", () => {
         createElement(Radar, { tokens: [token], health, asOf }),
       );
       expect(server.replace(/<!--.*?-->/g, "")).toContain(
-        "current Alpha ticker",
+        "Recent market observation",
       );
       expect(initialClient).toBe(server);
       expect(server).not.toContain('scope="col">Alpha identity');

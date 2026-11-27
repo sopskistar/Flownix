@@ -80,6 +80,7 @@ export const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
   TELEGRAM_ENABLED: bool,
+  TELEGRAM_RESEARCH_DIGEST_ENABLED: bool,
   TELEGRAM_WATCHLIST_ONLY: z
     .enum(["true", "false"])
     .default("false")

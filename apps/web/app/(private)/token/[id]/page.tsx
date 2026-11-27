@@ -47,9 +47,10 @@ export default async function Token({
     cursors,
     persistence,
     classificationRows,
+    factualResearch,
   ] = await Promise.all([
     sql`SELECT * FROM market_symbols WHERE alpha_id=${t.alpha_id} AND active ORDER BY quote_asset`,
-    sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind IN ('alpha_market','alpha_registry') AND price IS NOT NULL ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1`,
+    sql`SELECT * FROM market_snapshots WHERE token_id=${id} AND source_kind IN ('alpha_market','alpha_registry') AND price>0 ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1`,
     sql`SELECT * FROM token_transfers WHERE token_id=${id} AND canonical AND event_time>=${r.start} AND event_time<=${r.end} ORDER BY event_time DESC LIMIT 100`,
     sql`SELECT * FROM signal_events WHERE token_id=${id} ORDER BY first_detected_at DESC LIMIT 30`,
     sql`SELECT * FROM manual_research_notes WHERE token_id=${id} ORDER BY created_at DESC LIMIT 100`,
@@ -57,6 +58,11 @@ export default async function Token({
     sql`SELECT c.*,s.value AS trace FROM block_cursors c LEFT JOIN settings s ON s.key='trace:'||c.token_id WHERE token_id=${id}`,
     sql`SELECT DISTINCT ON(window_days) * FROM accumulation_observations WHERE token_id=${id} ORDER BY window_days,computed_at DESC`,
     sql`SELECT * FROM token_project_classifications WHERE token_id=${id}`,
+    sql`SELECT * FROM (
+      SELECT 'Verified swap settlement' AS kind,event_time,available_at AS observed_at,tx_hash AS transaction,chain_id,actor AS address,classification AS limitation FROM verified_swaps WHERE token_id=${id} AND canonical
+      UNION ALL SELECT 'Balance snapshot',block_time,observed_at,NULL,chain_id,address,'Retention and beneficial ownership not established' FROM wallet_balance_snapshots WHERE token_id=${id} AND canonical
+      UNION ALL SELECT CASE WHEN observation_type='top_holder_snapshot' THEN 'Solana holder sample' ELSE 'Solana transaction balance change' END,block_time,observed_at,signature,'CT_501',owner_address,'Partial account sample; not verified buying or complete history' FROM solana_balance_observations WHERE token_id=${id} AND canonical
+    ) evidence ORDER BY observed_at DESC LIMIT 20`,
   ]);
   const m = markets[0],
     symbol =
@@ -85,6 +91,9 @@ export default async function Token({
             membership
           </p>
         </div>
+        <ActionButton payload={{ action: "market_refresh", tokenId: id }}>
+          Refresh official quote (5 min cache)
+        </ActionButton>
         <ActionButton
           className="primary"
           payload={{ action: "watch", tokenId: id, enabled: !t.watched }}
@@ -255,7 +264,90 @@ export default async function Token({
           symbol={symbol ?? "unavailable"}
         />
       </section>
-      <TokenResearchContext token={t as { id: string; chain_id: string; contract: string }} />
+      <section className="workbench" id="collected-research">
+        <div className="section-top">
+          <h2>Collected research observations</h2>
+          <span>Latest 20 persisted observations</span>
+        </div>
+        <div className="panel-content">
+          <p>
+            Factual observations remain available when accumulation gates fail.
+            Small completed scan windows do not establish complete historical
+            coverage. Canonical transfer evidence appears in the ledger below.
+          </p>
+          {persistence[0]?.metrics?.thesis ? (
+            <p className="warning">{persistence[0].metrics.thesis.reason}</p>
+          ) : null}
+          {persistence[0]?.metrics?.thesis?.suppressionReasons?.length ? (
+            <ul>
+              {persistence[0].metrics.thesis.suppressionReasons.map(
+                (reason: string) => (
+                  <li key={reason}>{reason}</li>
+                ),
+              )}
+            </ul>
+          ) : null}
+        </div>
+        <div
+          className="table-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label="Collected research evidence"
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>Observation</th>
+                <th>Event time (UTC)</th>
+                <th>First local availability (UTC)</th>
+                <th>Limits / source</th>
+              </tr>
+            </thead>
+            <tbody>
+              {factualResearch.map((e, i) => (
+                <tr key={i}>
+                  <td>
+                    {e.kind}
+                    {e.address ? (
+                      <small>
+                        <Link href={`/wallet/${e.chain_id}/${e.address}`}>
+                          {e.address.slice(0, 14)}…
+                        </Link>
+                      </small>
+                    ) : null}
+                  </td>
+                  <td>{iso(e.event_time)}</td>
+                  <td>{iso(e.observed_at)}</td>
+                  <td>
+                    {e.limitation}
+                    {e.transaction &&
+                    explorerUrl(e.chain_id, "tx", e.transaction) ? (
+                      <small>
+                        <a
+                          href={explorerUrl(e.chain_id, "tx", e.transaction)!}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Primary transaction
+                        </a>
+                      </small>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!factualResearch.length ? (
+            <p className="empty">
+              No stored swap or balance observations for this identity.
+              Transfers and scan gaps are separate evidence below.
+            </p>
+          ) : null}
+        </div>
+      </section>
+      <TokenResearchContext
+        token={t as { id: string; chain_id: string; contract: string }}
+      />
       <div className="two-column">
         <section className="workbench">
           <div className="section-top">

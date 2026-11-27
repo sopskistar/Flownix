@@ -77,6 +77,7 @@ export class HttpClient {
     private audit: (a: RequestAudit) => Promise<void> = async () => {},
     private fetcher: Fetcher = providerFetch,
     private sleep = wait,
+    private maxAttempts = 3,
   ) {}
   private async record(audit: RequestAudit) {
     try {
@@ -91,7 +92,7 @@ export class HttpClient {
     parse: (data: unknown) => T,
     init: RequestInit = {},
   ): Promise<Observation<T>> {
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < this.maxAttempts; attempt++) {
       if (this.fetcher === providerFetch)
         this.nextAt = Math.max(
           this.nextAt,
@@ -209,7 +210,7 @@ export class HttpClient {
           retryAfterSeconds,
         });
         if (
-          attempt === 2 ||
+          attempt === this.maxAttempts - 1 ||
           code === "COLLECTION_STOPPED" ||
           /^(SOLANA_RPC_|RPC_)/.test(code) ||
           (status !== null && status < 500 && status !== 429)
@@ -285,11 +286,14 @@ export const exchangeSchema = z
 export const tickerSchema = z
   .object({
     symbol: z.string(),
-    lastPrice: z.string(),
-    priceChangePercent: z.string(),
-    volume: z.string(),
-    quoteVolume: z.string(),
-    closeTime: z.coerce.number(),
+    lastPrice: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/)
+      .refine((v) => Number(v) > 0 && Number.isFinite(Number(v))),
+    priceChangePercent: z.string().regex(/^-?\d+(\.\d+)?$/),
+    volume: z.string().regex(/^\d+(\.\d+)?$/),
+    quoteVolume: z.string().regex(/^\d+(\.\d+)?$/),
+    closeTime: z.coerce.number().int().positive().max(8640000000000000),
   })
   .passthrough();
 export const klineSchema = z.array(

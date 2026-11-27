@@ -31,6 +31,17 @@ export type RadarToken = {
   first_signal: string | null;
   signal_count: number;
   baseline_trace: string | null;
+  price_observed_at?: string | null;
+  provider_time?: string | null;
+  market_status?: string | null;
+  scan_source_time?: string | null;
+  scan_supported?: boolean;
+  investigation_active?: boolean;
+  transfer_count?: number;
+  swap_count?: number;
+  balance_count?: number;
+  solana_count?: number;
+  research_reason?: string | null;
 };
 export type Health = {
   database: boolean;
@@ -99,7 +110,7 @@ export async function health(): Promise<Health> {
         sql`SELECT key,value FROM settings WHERE key IN ('registry_sync','worker_heartbeat','worker_duty_cycle','market_coverage_sync')`,
         sql`SELECT provider,max(started_at) AS last_attempt,max(started_at) FILTER(WHERE ok) AS last_ok,count(*)::int AS calls,count(*) FILTER(WHERE NOT ok)::int AS failures,sum(cost_usd)::text AS cost FROM provider_runs WHERE started_at>now()-interval '24 hours' GROUP BY provider ORDER BY provider`,
         sql`SELECT key,kind,status,run_after,last_error,attempts FROM worker_jobs ORDER BY run_after LIMIT 30`,
-        sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.status='current')::int AS active,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(DISTINCT coalesce(c.token_id,sc.token_id))::int AS scanned,max(coalesce(c.scanned_at,sc.scanned_at)) AS last_scan,coalesce(bool_or(sc.coverage_gap),false) AS coverage_gap FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN (SELECT token_id,max(scanned_at) AS scanned_at,bool_or(coverage_gap) AS coverage_gap FROM solana_account_cursors GROUP BY token_id) sc ON sc.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
+        sql`SELECT t.chain_id,max(t.metadata->>'chainName') AS chain_name,count(*)::int AS tokens,count(*) FILTER(WHERE t.status='current')::int AS active,count(*) FILTER(WHERE t.deep_selected)::int AS deep,count(DISTINCT coalesce(l.token_id,c.token_id,sc.token_id))::int AS scanned,max(greatest(l.observed_at,c.scanned_at,sc.scanned_at)) AS last_scan,coalesce(bool_or(sc.coverage_gap),false) AS coverage_gap FROM alpha_tokens t LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN live_scan_checkpoints l ON l.token_id=t.id LEFT JOIN (SELECT token_id,max(at) AS scanned_at,bool_or(coverage_gap) AS coverage_gap FROM (SELECT token_id,scanned_at AS at,coverage_gap FROM solana_account_cursors UNION ALL SELECT token_id,observed_at AS at,true AS coverage_gap FROM solana_balance_observations WHERE canonical) samples GROUP BY token_id) sc ON sc.token_id=t.id WHERE t.status<>'removed' GROUP BY t.chain_id ORDER BY tokens DESC`,
         sql`SELECT changes FROM alpha_membership_snapshots ORDER BY observed_at DESC LIMIT 1`,
         sql`SELECT count(*) FILTER(WHERE t.status='current')::int AS online,
         count(*) FILTER(WHERE t.status='current' AND s.token_id IS NOT NULL)::int AS eligible_pairs,
@@ -207,13 +218,21 @@ export async function radar(): Promise<RadarToken[]> {
   const sql = sqlClient();
   const rows =
     await sql`SELECT t.id,t.symbol,t.name,t.chain_id,t.metadata->>'chainName' AS chain_name,t.metadata,t.source,t.response_hash,t.contract,t.alpha_id,t.status,t.research_state,coalesce(rc.classification,'unclassified') AS classification,t.deep_selected,t.first_seen,t.last_seen,(w.token_id IS NOT NULL AND NOT w.archived) AS watchlisted,
-  m.price::text,m.quote_asset,m.source_kind AS price_source,least(m.observed_at,coalesce(m.provider_time,m.observed_at)) AS price_at,m.change_24h::text,m.volume_24h::text,
-  t.metadata->>'liquidity' AS liquidity,t.metadata->>'marketCap' AS market_cap,c.scanned_at AS last_scan,
+  m.price::text,m.quote_asset,m.source_kind AS price_source,CASE WHEN m.source_kind='alpha_market' AND m.provider_time IS NULL THEN NULL WHEN m.provider_time>now()+interval '30 seconds' THEN m.provider_time ELSE least(m.observed_at,coalesce(m.provider_time,m.observed_at)) END AS price_at,m.change_24h::text,m.volume_24h::text,
+  t.metadata->>'liquidity' AS liquidity,t.metadata->>'marketCap' AS market_cap,coalesce(l.observed_at,(SELECT max(observed_at) FROM solana_balance_observations sb WHERE sb.token_id=t.id AND sb.canonical),c.scanned_at) AS last_scan,
+  l.source_time AS scan_source_time,m.observed_at AS price_observed_at,m.provider_time,mc.status AS market_status,
+  EXISTS(SELECT 1 FROM token_investigation_queue q WHERE q.token_id=t.id AND q.active) AS investigation_active,
+  (SELECT count(*)::int FROM token_transfers e WHERE e.token_id=t.id AND e.canonical) AS transfer_count,
+  (SELECT count(*)::int FROM verified_swaps e WHERE e.token_id=t.id AND e.canonical) AS swap_count,
+  (SELECT count(*)::int FROM wallet_balance_snapshots e WHERE e.token_id=t.id AND e.canonical) AS balance_count,
+  (SELECT count(*)::int FROM solana_balance_observations e WHERE e.token_id=t.id AND e.canonical) AS solana_count,
+  (SELECT metrics->'thesis'->>'reason' FROM accumulation_observations a WHERE a.token_id=t.id ORDER BY computed_at DESC LIMIT 1) AS research_reason,
   (SELECT min(first_detected_at) FROM signal_events s WHERE s.token_id=t.id) AS first_signal,
   (SELECT count(*)::int FROM signal_events s WHERE s.token_id=t.id AND s.status='active') AS signal_count,
   (SELECT value->>'reason' FROM settings WHERE key='trace:'||t.id) AS baseline_trace
  FROM alpha_tokens t LEFT JOIN watchlists w ON w.token_id=t.id LEFT JOIN block_cursors c ON c.token_id=t.id LEFT JOIN token_project_classifications rc ON rc.token_id=t.id
- LEFT JOIN LATERAL (SELECT price,quote_asset,source_kind,observed_at,provider_time,change_24h,volume_24h FROM market_snapshots WHERE token_id=t.id AND source_kind IN ('alpha_market','alpha_registry') AND price IS NOT NULL ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1) m ON true
+ LEFT JOIN live_scan_checkpoints l ON l.token_id=t.id LEFT JOIN market_coverage mc ON mc.token_id=t.id
+ LEFT JOIN LATERAL (SELECT price,quote_asset,source_kind,observed_at,provider_time,change_24h,volume_24h FROM market_snapshots WHERE token_id=t.id AND source_kind IN ('alpha_market','alpha_registry') AND price>0 ORDER BY CASE source_kind WHEN 'alpha_market' THEN 0 ELSE 1 END,observed_at DESC LIMIT 1) m ON true
  ORDER BY t.symbol,t.chain_id,t.id`;
   return JSON.parse(
     JSON.stringify(
@@ -224,7 +243,11 @@ export async function radar(): Promise<RadarToken[]> {
           response_hash: _hash,
           ...row
         } = t;
-        return { ...row, visual: tokenVisual(t) };
+        return {
+          ...row,
+          scan_supported: !!evmChains[t.chain_id] || t.chain_id === "CT_501",
+          visual: tokenVisual(t),
+        };
       }),
     ),
   );

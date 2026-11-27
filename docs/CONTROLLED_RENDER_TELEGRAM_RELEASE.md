@@ -1,0 +1,96 @@
+# Manual Render release and one-message Telegram acceptance
+
+This plan supersedes the earlier readiness-only handoff. No Render deployment, genuine Telegram activation, second collector or billing change is authorized by this document. No migration is needed. The original untracked handoff was preserved locally at `/tmp/flownix-controlled-render-release-before-integration.md` before this revision.
+
+## Release the verified commit manually
+
+1. Require successful GitHub `checks` and Vercel status on the final pushed `main` SHA. Record that full SHA; do not assume Render follows GitHub. In the **existing** Render worker verify Auto-Deploy **Off**, one Starter instance, `TELEGRAM_ENABLED=false`, `TELEGRAM_RESEARCH_DIGEST_ENABLED=false` (default), duty interval **43200**, active bound **1500**, and all existing quotas/checkpoints unchanged. Keep credentials on Render.
+2. In that worker's Shell, run `node --import tsx scripts/worker-health.ts` and inspect `cat /tmp/flownix-worker-health.json`. Require a recent `sleeping` phase, a future `nextAt`, no `lastFailure`, and health exit 0. If collecting or near the next wake, wait. The local health check does not wake Neon.
+3. If needed, make **one** database inspection, not a polling loop:
+
+   ```sql
+   BEGIN READ ONLY;
+   SELECT key,value FROM settings
+   WHERE key IN ('worker_duty_cycle','worker_heartbeat');
+   SELECT count(*) AS collector_locks FROM pg_locks
+   WHERE locktype='advisory' AND classid=0 AND objid=726032 AND granted;
+   COMMIT;
+   ```
+
+   Require successful idle duty state, future nextAt and zero locks. A stopped child heartbeat alone does not prove host liveness or Neon suspension.
+
+4. Use Render **Manual Deploy → Deploy a specific commit**, with the verified full SHA from step 1. Do not change the start command, clear checkpoints, create another service or run `worker:once`/`worker:duty` yourself.
+5. In the new Shell, require `git rev-parse HEAD` (if Git metadata is present) or `printenv RENDER_GIT_COMMIT` to equal that SHA, and verify the same SHA in Render's deployment details. Require `duty_reservation` with `run:false`, `reason:planned_idle` and unchanged future nextAt; rerun the local health check to confirm sleeping. Save-only environment values become available when the deployment applies them.
+
+## Send exactly one application-generated test, while genuine alerts stay OFF
+
+This is an explicit owner Shell command, not a public endpoint and not a worker startup hook. Personally confirm that Render contains your independently verified bot and private destination. The code checks `getMe`, `getChat`, matching bot identity and a positive numeric private chat ID; it cannot infer who owns a different valid private chat. It never accepts a destination from the command line.
+
+Generate one UUID and **record it**:
+
+```sh
+node -e 'console.log(require("node:crypto").randomUUID())'
+```
+
+Then substitute that same UUID once:
+
+```sh
+node --import tsx scripts/telegram-test.ts --send-one YOUR_RECORDED_UUID --confirm-private-target
+```
+
+Keep `TELEGRAM_ENABLED=false`. The command refuses genuine-alert mode, inserts/deduplicates one `telegram-test:UUID` row, and invokes the same delivery function used by the scheduled notification job with an exact test-row selector. It sends only `FLOWNIX TEST ONLY`, never drains other rows and never starts a collector. There is no need to wake the scheduled worker or move secrets to Vercel.
+
+Inspect its receipt:
+
+```sql
+SELECT id,status,attempts,created_at,delivered_at,receipt,error,payload->>'test' AS test
+FROM notification_deliveries
+WHERE id='telegram-test:YOUR_RECORDED_UUID';
+```
+
+Acceptance requires your private Telegram chat visibly receiving **one** marked message and that same row showing `delivered`, `attempts=1`, timestamp, and a JSON receipt containing `ok:true`, `message_id`, Telegram `date`, `privateTargetMatches:true` and response hash. The receipt deliberately omits token/chat ID and personal profile data. Do not paste credentials or entire environment output.
+
+Repeated invocation with the **same UUID** cannot resend a claimed/delivered message. If status is `uncertain` or remains `sending` after interruption, **do not create a new UUID or reset the row**. A timeout can mean Telegram already accepted the message. Inspect your chat and reconcile the row manually; there is no automatic retry after an ambiguous send. A queued row with zero attempts can be retried with the same UUID after resolving metadata/provider problems. Confirm local worker health returns/remains sleeping afterward; the CLI closes its database connections.
+
+## Enable genuine alerts only after the owner separately approves
+
+Do not perform this section as part of the test. Keep both flags false until the delivered application test and its visible receipt are accepted by the owner. Limited/provisional research digests are separately opt-in and never promoted to high-confidence accumulation alerts.
+
+While sleeping with both flags false, use this transaction with the accepted test UUID. It refuses active collection and preserves all source evidence and delivery history:
+
+```sql
+BEGIN;
+SET LOCAL lock_timeout='2s';
+DO $$
+DECLARE duty jsonb;
+BEGIN
+  IF NOT pg_try_advisory_xact_lock(726032) THEN
+    RAISE EXCEPTION 'Collector active; wait';
+  END IF;
+  SELECT value INTO duty FROM settings WHERE key='worker_duty_cycle';
+  IF duty->>'phase' IS DISTINCT FROM 'idle'
+    OR duty->>'lastExitCode' IS DISTINCT FROM '0'
+    OR duty->>'nextAt' IS NULL
+    OR (duty->>'nextAt')::timestamptz<=now()+interval '10 minutes' THEN
+    RAISE EXCEPTION 'Verified sleeping interval required';
+  END IF;
+  IF NOT EXISTS(SELECT 1 FROM notification_deliveries
+    WHERE id='telegram-test:YOUR_RECORDED_UUID' AND status='delivered'
+    AND attempts=1 AND (receipt::jsonb)->>'ok'='true'
+    AND (receipt::jsonb)->>'privateTargetMatches'='true') THEN
+    RAISE EXCEPTION 'Accepted pipeline receipt required';
+  END IF;
+END $$;
+UPDATE notification_deliveries SET status='cancelled',error='PRE_ACTIVATION_HISTORY'
+WHERE channel='telegram' AND status='queued';
+INSERT INTO settings(key,value) VALUES('telegram_activation',
+  jsonb_build_object('since',now(),'acceptedTestId','telegram-test:YOUR_RECORDED_UUID'))
+ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=now();
+COMMIT;
+```
+
+Only after approval, Save only `TELEGRAM_ENABLED=true` and manually apply the environment during verified sleep. Keep `TELEGRAM_RESEARCH_DIGEST_ENABLED=false` for supported/high-confidence findings only; set it true only if the owner also wants clearly labelled lower-priority incomplete research from existing signal events. There is no new digest scanner or notification engine.
+
+Both queueing and sending require an activation watermark. Only newly detected signals after it, within 15 minutes, are eligible; historical signals/backlogs and test rows cannot be released by ordinary delivery. Watchlist restrictions remain respected. The first natural alert still needs review against its linked scientific evidence. With duty sleep, real-time alerting is not promised. Disable `TELEGRAM_ENABLED` and apply during sleep to pause delivery; do not delete evidence or reset attempts.
+
+Manual deployments and environment application follow [Render deploy documentation](https://render.com/docs/deploys) and [environment configuration](https://render.com/docs/configure-environment-variables). Private targeting and receipts use the official [Telegram Bot API](https://core.telegram.org/bots/api).

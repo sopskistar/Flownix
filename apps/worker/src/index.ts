@@ -17,6 +17,7 @@ import {
   sqlClient,
   closeDb,
   setSetting,
+  settingsValue,
   workerRequestPolicy,
 } from "@flownix/db";
 import { registrySync, marketSync, scanToken } from "./ingest";
@@ -232,6 +233,7 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     startedCounters = processMetrics();
   let outcome = "failed",
     outcomeError: string | null = null;
+  let marketBatch: unknown = null;
   activeJobs.add(job.kind);
   let forceStop: NodeJS.Timeout | undefined;
   const deadline = setTimeout(() => {
@@ -272,6 +274,7 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
       await reconcileScanJobs();
     } else if (job.kind === "market") {
       marketRemaining = (await marketSync()).remainingDue;
+      marketBatch = await settingsValue("market_coverage_sync", null);
       scanAfterMarket = true;
       maintenanceAfterMarket = true;
     } else if (job.kind === "scan")
@@ -328,7 +331,7 @@ async function runJob(job: NonNullable<Awaited<ReturnType<typeof next>>>) {
     const counters = processMetrics(),
       cpu = process.cpuUsage(startedCpu);
     try {
-      await sql`INSERT INTO worker_job_observations(id,job_kind,token_id,chain_id,started_at,finished_at,status,error_code,measurements) VALUES(${randomUUID()},${job.kind},${job.payload?.tokenId ?? null},${job.payload?.chainId ?? null},${startedAt},now(),${outcome},${outcomeError},${jsonParam({ durationSeconds: (Date.now() - +startedAt) / 1000, rssBytes: process.memoryUsage().rss, cpuMicros: cpu.user + cpu.system, counters: Object.fromEntries(Object.entries(counters).map(([k, v]) => [k, v - (startedCounters[k] ?? 0)])), scope: "Process deltas; overlapping market work is included, not token-exclusive billing" })}::jsonb)`;
+      await sql`INSERT INTO worker_job_observations(id,job_kind,token_id,chain_id,started_at,finished_at,status,error_code,measurements) VALUES(${randomUUID()},${job.kind},${job.payload?.tokenId ?? null},${job.payload?.chainId ?? null},${startedAt},now(),${outcome},${outcomeError},${jsonParam({ durationSeconds: (Date.now() - +startedAt) / 1000, rssBytes: process.memoryUsage().rss, cpuMicros: cpu.user + cpu.system, counters: Object.fromEntries(Object.entries(counters).map(([k, v]) => [k, v - (startedCounters[k] ?? 0)])), ...(marketBatch ? { marketBatch } : {}), scope: "Process deltas; overlapping market work is included, not token-exclusive billing" })}::jsonb)`;
     } catch {
       console.error(JSON.stringify({ event: "job_measurement_unavailable" }));
     }

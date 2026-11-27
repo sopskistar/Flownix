@@ -3,6 +3,7 @@ import Decimal from "decimal.js";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { accessAllowed } from "../../../lib/auth";
+import { refreshMarketQuote } from "../../../lib/market-refresh";
 import { jsonParam, sqlClient, setSetting } from "@flownix/db";
 import {
   config,
@@ -20,6 +21,7 @@ const tokenId = z.string().regex(/^[a-f0-9]{32}$/),
 const schemas = z.discriminatedUnion("action", [
   researchLeadSchema,
   z.object({ action: z.literal("sync") }),
+  z.object({ action: z.literal("market_refresh"), tokenId }),
   z.object({
     action: z.literal("classification"),
     tokenId,
@@ -123,6 +125,10 @@ export async function POST(request: Request) {
         { error: "Rate limit reached. Try again in one minute." },
         { status: 429 },
       );
+    if (data.action === "market_refresh")
+      return NextResponse.json({
+        message: await refreshMarketQuote(data.tokenId),
+      });
     if ("tokenId" in data && data.tokenId) {
       if (
         !(await sql`SELECT id FROM alpha_tokens WHERE id=${data.tokenId}`)
@@ -204,16 +210,11 @@ export async function POST(request: Request) {
       });
     }
     if (data.action === "notification_test") {
-      if (
-        data.channel === "telegram" &&
-        (!config().TELEGRAM_ENABLED ||
-          !config().TELEGRAM_BOT_TOKEN ||
-          !config().TELEGRAM_CHAT_ID)
-      )
+      if (data.channel === "telegram")
         return NextResponse.json(
           {
             error:
-              "Telegram is not configured. Set server environment values and restart the worker.",
+              "Run the explicit one-message test in the existing Render worker Shell with production Telegram disabled. Credentials stay on Render.",
           },
           { status: 400 },
         );
@@ -327,7 +328,7 @@ export async function POST(request: Request) {
       );
     const known =
       e instanceof Error &&
-      /^(Fresh |Liquidity |Maximum |Costs |Open paper|Invalid address|Invalid label)/.test(
+      /^(Fresh |Liquidity |Maximum |Costs |Open paper|Invalid address|Invalid label|Recent official|No recently|Quote refresh|Daily owner|Monthly owner|Official quote)/.test(
         e.message,
       );
     return NextResponse.json(

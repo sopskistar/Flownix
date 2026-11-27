@@ -20,10 +20,13 @@ export type RequestPolicy = {
   complete: (audit: RequestAudit) => Promise<void>;
 };
 let policy: RequestPolicy | undefined;
+const scopedPolicy = new AsyncLocalStorage<RequestPolicy>();
+export const withRequestPolicy = <T>(value: RequestPolicy, run: () => T): T =>
+  scopedPolicy.run(value, run);
 /** The worker installs durable guards; no credentials or request bodies enter the ledger. */
 export function installRequestPolicy(value: RequestPolicy | undefined) {
   policy = value;
 }
 export function requestPolicy() {
-  return policy;
+  return scopedPolicy.getStore() ?? policy;
 }

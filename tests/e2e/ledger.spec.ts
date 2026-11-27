@@ -98,7 +98,7 @@ test("Universe Ledger sorts the entire filtered universe and preserves identity,
       9,
     );
     await expect(
-      page.getByText("stale Alpha ticker", { exact: true }).first(),
+      page.getByText("Stale / unavailable market", { exact: true }).first(),
     ).toBeVisible();
     await expect(table.locator(".token-portrait").first()).toBeVisible();
     const links = () =>

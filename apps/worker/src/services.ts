@@ -1,73 +1,18 @@
-import { randomUUID } from "node:crypto";
-import { z } from "zod";
 import { walletResearchSync } from "./wallet-research";
 import { graphResearchSync } from "./graph-research";
 import {
-  config,
   quoteUsable,
   outcomeWindows,
-  HttpClient,
-  explorerUrl,
   simulateOutcome,
   defaultPaperAssumptions,
   type Candle,
 } from "@flownix/core";
-import { jsonParam, sqlClient, auditRequest } from "@flownix/db";
-export async function enqueueTelegramTest() {
-  const sql = sqlClient();
-  await sql`INSERT INTO notification_deliveries(id,channel,status,payload) VALUES(${randomUUID()},'telegram','queued',${jsonParam({ test: true, text: "Flownix connection test — independent Alpha research. Simulation only. No trading action." })}::jsonb)`;
-}
-export async function deliverNotifications() {
-  const sql = sqlClient(),
-    c = config();
-  if (!c.TELEGRAM_ENABLED || !c.TELEGRAM_BOT_TOKEN || !c.TELEGRAM_CHAT_ID)
-    return;
-  const queued =
-    await sql`SELECT * FROM notification_deliveries WHERE channel='telegram' AND status='queued' AND next_attempt_at<=now() ORDER BY created_at LIMIT 5`;
-  const http = new HttpClient("telegram", 20, auditRequest);
-  for (const n of queued) {
-    try {
-      const r = await http.json(
-        `https://api.telegram.org/bot${c.TELEGRAM_BOT_TOKEN}/sendMessage`,
-        (body) =>
-          z
-            .object({
-              ok: z.literal(true),
-              result: z.object({ message_id: z.number() }),
-            })
-            .parse(body),
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: c.TELEGRAM_CHAT_ID,
-            text: String(n.payload.text).slice(0, 4000),
-            link_preview_options: { is_disabled: true },
-          }),
-        },
-      );
-      await sql`UPDATE notification_deliveries SET status='delivered',delivered_at=now(),attempts=attempts+1,receipt=${String(r.data.result.message_id)},error=null WHERE id=${n.id}`;
-    } catch {
-      await sql`UPDATE notification_deliveries SET attempts=attempts+1,status=CASE WHEN attempts>=4 THEN 'failed' ELSE 'queued' END,next_attempt_at=now()+(power(2,least(attempts,8))*interval '1 minute'),error='DELIVERY_FAILED' WHERE id=${n.id}`;
-    }
-  }
-}
-export async function queueResearchAlerts() {
-  const c = config();
-  if (!c.TELEGRAM_ENABLED) return;
-  const sql = sqlClient();
-  const rows =
-    await sql`SELECT s.*,t.symbol,t.chain_id,t.contract,t.metadata FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id LEFT JOIN watchlists w ON w.token_id=t.id WHERE s.status='active' AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR (w.token_id IS NOT NULL AND NOT w.archived)) AND NOT EXISTS (SELECT 1 FROM notification_deliveries n WHERE n.signal_id=s.id AND n.channel='telegram') ORDER BY s.first_detected_at LIMIT 100`;
-  for (const s of rows) {
-    const evidence =
-      await sql`SELECT * FROM signal_evidence WHERE signal_id=${s.id} LIMIT 3`;
-    const text = `Flownix research — ${s.symbol} (${s.chain_id}, ${s.contract})\n${s.kind}\n${s.message}\nPrice at first detection: ${s.price_at_detection} ${s.quote_asset}. First detected ${new Date(s.first_detected_at).toISOString()}. Evidence confidence: ${s.evidence_confidence}.\nLiquidity (registry metadata): ${s.metadata.liquidity ?? "unknown"}.\nUnknown: buys, entity ownership and intent. Investigate; this is not a prediction.\n${evidence
-      .map((e) => explorerUrl(e.chain_id, "tx", e.tx_hash))
-      .filter(Boolean)
-      .join("\n")}`;
-    await sql`INSERT INTO notification_deliveries(id,signal_id,channel,status,payload) VALUES(${randomUUID()},${s.id},'telegram','queued',${jsonParam({ text })}::jsonb) ON CONFLICT(signal_id,channel) DO NOTHING`;
-  }
-}
+import { sqlClient, jsonParam } from "@flownix/db";
+export {
+  deliverNotifications,
+  enqueueTelegramTest,
+  queueResearchAlerts,
+} from "./telegram";
 export async function persistenceSync() {
   await graphResearchSync();
   await walletResearchSync();

@@ -268,7 +268,9 @@ export default async function Settings() {
                     {ch.deep} / {ch.scanned}
                   </td>
                   <td>
-                    {["56", "1", "8453", "42161"].includes(ch.chain_id)
+                    {["56", "1", "8453", "42161", "146", "4663"].includes(
+                      ch.chain_id,
+                    )
                       ? ch.scanned
                         ? "EVM RPC logs observed; history may be behind"
                         : "EVM adapter; runtime not verified"
@@ -404,11 +406,10 @@ export default async function Settings() {
               >
                 Test in-app
               </ActionButton>
-              <ActionButton
-                payload={{ action: "notification_test", channel: "telegram" }}
-              >
-                Test Telegram
-              </ActionButton>
+              <span>
+                Telegram test: run the explicit one-message command in the
+                existing worker Shell.
+              </span>
             </div>
             <p className="muted">
               Credentials stay in server environment variables. No browser

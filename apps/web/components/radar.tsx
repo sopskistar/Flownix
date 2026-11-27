@@ -6,6 +6,7 @@ import { freshness } from "@flownix/core/browser";
 import type { RadarToken, Health } from "../lib/data";
 import { ActionButton } from "./controls";
 import { TokenIdentity } from "./token-identity";
+import { researchSummary, marketObservation } from "../lib/radar-evidence";
 import { collectorState } from "../lib/collector-state";
 import {
   compareRadarTokens,
@@ -34,6 +35,14 @@ const stamp = (s: string | null) =>
         minute: "2-digit",
       }) + " UTC"
     : "Unavailable";
+const ageLabel = (at: string, now: number) => {
+  const minutes = Math.max(0, Math.floor((now - Date.parse(at)) / 60000));
+  return minutes >= 1440
+    ? `${Math.floor(minutes / 1440)}d ago`
+    : minutes >= 60
+      ? `${Math.floor(minutes / 60)}h ${minutes % 60}m ago`
+      : `${minutes}m ago`;
+};
 const days = (at: string, now: number) =>
   Math.max(0, Math.floor((now - Date.parse(at)) / 86400000));
 export function Radar({
@@ -147,7 +156,11 @@ export function Radar({
         </span>
         <span>
           <strong>{tokens.filter((t) => t.deep_selected).length}</strong>{" "}
-          selected for deeper research
+          manually prioritized for deeper research
+        </span>
+        <span>
+          <strong>{tokens.filter((t) => t.investigation_active).length}</strong>{" "}
+          automatic investigations
         </span>
         <span>
           <strong>{tokens.filter((t) => t.last_scan).length}</strong> with
@@ -191,6 +204,11 @@ export function Radar({
           succeeds again.
         </div>
       ) : null}
+      <p className="muted">
+        Prices are stored observations, not a live feed. Open a token to request
+        one official quote; five-minute cache, 6 owner refreshes per day, 24 per
+        month. On-chain collection follows its separate duty schedule.
+      </p>
       <section className="workbench" aria-label="Alpha universe">
         <div className="section-top">
           <h2>{watchlist ? "Your monitored theses" : "Universe ledger"}</h2>
@@ -380,12 +398,8 @@ export function Radar({
                   </td>
                   <td className="numeric">
                     {n(t.price, 8)}
-                    <small>
-                      {t.price_source === "alpha_market"
-                        ? `Alpha ticker · ${t.quote_asset}`
-                        : t.price_source === "alpha_registry"
-                          ? "Alpha registry · quote unspecified"
-                          : "No price observation"}
+                    <small title={marketObservation(t)}>
+                      {t.quote_asset ?? "Quote unspecified"}
                     </small>
                   </td>
                   <td className={`numeric ${changeClass(t.change_24h)}`}>
@@ -401,30 +415,61 @@ export function Radar({
                     <span className="tag">
                       {t.research_state.replaceAll("_", " ").toLowerCase()}
                     </span>
-                    <small className="muted">
-                      {t.signal_count
-                        ? `${t.signal_count} activity alerts`
-                        : "Insufficient accumulation evidence"}
+                    <small>
+                      <Link
+                        href={`/token/${t.id}`}
+                        title={
+                          t.research_reason ??
+                          t.baseline_trace ??
+                          "Inspect collected evidence and its limitations"
+                        }
+                      >
+                        {researchSummary(t)}
+                      </Link>
+                    </small>
+                    <small
+                      className="muted"
+                      title={t.research_reason ?? undefined}
+                    >
+                      {t.baseline_trace ?? "Accumulation not validated"}
                     </small>
                   </td>
                   <td className="secondary">
-                    <small className="muted">{t.status} membership</small>
-                    <span>{days(t.first_seen, now)} days observed</span>
-                    <small
+                    <span
                       className={
                         freshness(t.price_at, now) === "current"
                           ? "positive"
                           : "warning"
                       }
+                      title={marketObservation(t)}
                     >
-                      {freshness(t.price_at, now)}{" "}
-                      {t.price_source === "alpha_market"
-                        ? "Alpha ticker"
-                        : t.price_source === "alpha_registry"
-                          ? "registry metadata"
-                          : "market data"}
+                      {freshness(t.price_at, now) === "current"
+                        ? "Recent market observation"
+                        : "Stale / unavailable market"}
+                    </span>
+                    <small>
+                      {stamp(t.price_at)}
+                      {t.price_at ? ` (${ageLabel(t.price_at, now)})` : ""}
                     </small>
-                    <small className="muted">{stamp(t.price_at)}</small>
+                    {t.market_status === "error" ? (
+                      <small className="warning">
+                        Refresh failed; last valid quote retained
+                      </small>
+                    ) : t.market_status === "no_pair" ? (
+                      <small className="warning">
+                        No active Alpha pair at last check
+                      </small>
+                    ) : null}
+                    <small className="muted">
+                      {t.scan_supported === false
+                        ? "No blockchain adapter"
+                        : t.last_scan
+                          ? `On-chain sample ${stamp(t.last_scan)}; partial history`
+                          : "No on-chain sample yet"}
+                    </small>
+                    {worker.state === "scheduled_idle" ? (
+                      <small className="muted">Collector sleeping</small>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -481,12 +526,12 @@ export function Radar({
                 >
                   {freshness(t.price_at, now)}{" "}
                   {t.price_source === "alpha_market"
-                    ? "Alpha ticker"
+                    ? "market observation"
                     : t.price_source === "alpha_registry"
                       ? "registry metadata"
                       : "market data"}
                 </span>
-                <small>{stamp(t.price_at)}</small>
+                <small title={marketObservation(t)}>{stamp(t.price_at)}</small>
               </div>
               <ActionButton
                 payload={{
@@ -499,6 +544,25 @@ export function Radar({
               </ActionButton>
               <details className="radar-mobile-evidence">
                 <summary>Identity, statistics & evidence</summary>
+                <p>
+                  <Link href={`/token/${t.id}`}>{researchSummary(t)}</Link>
+                </p>
+                <p className="muted">
+                  {t.baseline_trace ??
+                    t.research_reason ??
+                    "Accumulation not validated"}
+                </p>
+                <p className="muted">
+                  {t.last_scan
+                    ? `On-chain sample ${stamp(t.last_scan)}; partial history`
+                    : t.scan_supported === false
+                      ? "No blockchain adapter"
+                      : "No on-chain sample yet"}
+                  .{" "}
+                  {worker.state === "scheduled_idle"
+                    ? "Collector sleeping."
+                    : ""}
+                </p>
                 <dl>
                   <dt>Membership</dt>
                   <dd>{t.status}</dd>
