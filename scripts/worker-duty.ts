@@ -13,6 +13,10 @@ import {
   reserveDutyCycle,
   finishDutyCycle,
 } from "../apps/worker/src/duty-cycle";
+import {
+  finalizeDutyResearch,
+  closeDutyResearchResources,
+} from "../apps/worker/src/duty-research";
 const c = config();
 if (c.WORKER_EXECUTION_MODE !== "duty_cycle") throw Error("DUTY_MODE_REQUIRED");
 dutyCycleModel(
@@ -159,6 +163,19 @@ try {
             clearTimeout(terminate);
           }
         }
+        // Use the existing shutdown allowance, before sleeping closes SQL.
+        if (code === 0 && !stopping) {
+          try {
+            await finalizeDutyResearch(reservation.owner);
+          } catch (error) {
+            console.error(
+              JSON.stringify({
+                event: "duty_research_failed",
+                error: networkErrorCode(error),
+              }),
+            );
+          }
+        }
         await finishDutyCycle(reservation.owner, code, sqlClient());
         lastFailure = code === 0 ? null : `CYCLE_EXIT_${code}`;
         await closeDb();
@@ -184,6 +201,7 @@ try {
         }),
       );
     } finally {
+      await closeDutyResearchResources();
       await closeDb();
       await closeProviderNetwork();
       if (cycleDeadline) clearTimeout(cycleDeadline);

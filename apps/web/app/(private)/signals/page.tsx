@@ -14,6 +14,7 @@ export default async function Signals({
 }) {
   await requireAccess();
   const { status = "active" } = await searchParams;
+  let observedCount: number | undefined;
   let signals: DbRows = [],
     notifications: DbRows = [];
   try {
@@ -22,6 +23,10 @@ export default async function Signals({
       await sql`SELECT s.*,t.symbol,t.chain_id,t.contract,to_jsonb(t) AS token_identity FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id WHERE s.status=${status} ORDER BY first_detected_at DESC LIMIT 100`;
     notifications =
       await sql`SELECT * FROM notification_deliveries ORDER BY created_at DESC LIMIT 20`;
+    const [cycle] =
+      await sql`SELECT value FROM settings WHERE key='observed_research_cycle'`;
+    if (typeof cycle?.value?.count === "number")
+      observedCount = cycle.value.count;
   } catch {
     signals = [];
     notifications = [];
@@ -66,13 +71,19 @@ export default async function Signals({
           Reorg invalidated
         </Link>
       </div>
+      {observedCount === 0 && (
+        <p className="muted">
+          The latest completed research window found no qualifying new on-chain
+          observations.
+        </p>
+      )}
       {!signals.length ? (
         <div className="empty workbench">
           <h2>No {status.replaceAll("_", " ")} evidence alerts</h2>
           <p>
-            Transfer detections require a current market observation and
-            complete baseline scans. Accumulation alerts require a verified
-            purchase ledger; unavailable inputs do not produce a bullish alert.
+            This view shows qualifying on-chain observations and evidence
+            alerts. Accumulation alerts require a verified purchase ledger and
+            stronger coverage.
           </p>
           <ActionButton
             payload={{ action: "notification_test", channel: "in_app" }}
@@ -98,6 +109,20 @@ export default async function Signals({
               </div>
               <div className="panel-content">
                 <p>{s.message}</p>
+                {s.stage === "OBSERVED" &&
+                  /^https:\/\//.test(s.observed?.evidenceUrl ?? "") && (
+                    <p>
+                      Event {iso(s.observed.eventTime)} · Collected{" "}
+                      {iso(s.observed.collectedAt)} ·{" "}
+                      <a
+                        href={s.observed.evidenceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View source evidence
+                      </a>
+                    </p>
+                  )}
                 <div className="status-strip">
                   <span>First detected {iso(s.first_detected_at)}</span>
                   <span>

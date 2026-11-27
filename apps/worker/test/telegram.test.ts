@@ -51,6 +51,7 @@ vi.mock("@flownix/core", async (original) => {
     },
   };
 });
+import { finalizeDutyResearch } from "../src/duty-research";
 import {
   enqueueTelegramTest,
   deliverNotifications,
@@ -131,7 +132,7 @@ it.skipIf(!process.env.DATABASE_URL)(
           wallet = "0x" + "2".repeat(40),
           txHash = "0x" + "3".repeat(64);
         await tx`INSERT INTO alpha_tokens(id,chain_id,contract,symbol,name,token_id,status,first_seen,last_seen,source,response_hash,metadata) VALUES(${tokenId},'56',${contract},'TG_FIXTURE','Synthetic label regression',${tokenId},'current',now(),now(),'synthetic-test-only','fixture','{}')`;
-        await tx`INSERT INTO signal_events(id,token_id,kind,rule_version,stage,first_detected_at,computed_at,data_available_at,evidence_confidence,thresholds,observed,counter_evidence,message) VALUES(${signalId},${tokenId},'UNUSUAL_TRANSFER_ACTIVITY','fixture','INVESTIGATE',now(),now(),now(),'limited','{}','{}','[]','Synthetic test only; not a production finding')`;
+        await tx`INSERT INTO signal_events(id,token_id,kind,rule_version,stage,first_detected_at,computed_at,data_available_at,evidence_confidence,thresholds,observed,counter_evidence,message) VALUES(${signalId},${tokenId},'UNUSUAL_TRANSFER_ACTIVITY','fixture','INVESTIGATE',now(),now(),now(),'supported','{}','{}','[]','Synthetic test only; not a production finding')`;
         await tx`INSERT INTO token_transfers(chain_id,tx_hash,log_index,token_id,block_number,block_hash,event_time,available_at,from_address,to_address,raw_quantity,decimals,kind,source) VALUES('56',${txHash},0,${tokenId},100,${txHash},now()-interval '2 minutes',now()-interval '1 minute',${wallet},${contract},1,18,'unknown_transfer','synthetic-test-only')`;
         await tx`INSERT INTO signal_evidence(signal_id,chain_id,tx_hash,log_index) VALUES(${signalId},'56',${txHash},0)`;
         for (const future of [false, true])
@@ -140,7 +141,7 @@ it.skipIf(!process.env.DATABASE_URL)(
         await queueResearchAlerts();
         const [digest] =
           await tx`SELECT payload FROM notification_deliveries WHERE signal_id=${signalId} AND channel='telegram'`;
-        expect(digest.payload.priority).toBe("research_digest");
+        expect(digest.payload.priority).toBe("research_alert");
         expect(digest.payload.text).toContain("Known label claim");
         expect(digest.payload.text).toContain("third_party_reviewed");
         expect(digest.payload.text).not.toContain("FUTURE_LABEL_MUST_NOT_LEAK");
@@ -149,6 +150,7 @@ it.skipIf(!process.env.DATABASE_URL)(
         );
         expect(fixture.sends).toBe(2);
         fixture.digest = false;
+        await tx`UPDATE signal_events SET evidence_confidence='limited' WHERE id=${signalId}`;
         await deliverNotifications();
         expect(fixture.sends).toBe(2);
         expect(
@@ -156,6 +158,56 @@ it.skipIf(!process.env.DATABASE_URL)(
             await tx`SELECT status,attempts FROM notification_deliveries WHERE signal_id=${signalId}`
           )[0],
         ).toEqual({ status: "queued", attempts: 0 });
+        // A completed duty interval materializes a recent canonical transfer
+        // even with no price and flushes the digest before sleep.
+        const { tokenKey } = await import("@flownix/core");
+        const observedContract = "0x" + "4".repeat(40),
+          exchange = "0x" + "5".repeat(40);
+        const observedToken = tokenKey("56", observedContract);
+        const currentTx = "0x" + "6".repeat(64),
+          historicalTx = "0x" + "7".repeat(64);
+        await tx`INSERT INTO alpha_tokens(id,chain_id,contract,symbol,name,token_id,alpha_id,status,first_seen,last_seen,source,response_hash,metadata)
+          VALUES(${observedToken},'56',${observedContract},'ALPHA_FIXTURE','Synthetic research',${observedToken},'ALPHA_999','current',now()-interval '2 days',now(),'synthetic-test-only','fixture','{}')`;
+        await tx`INSERT INTO wallet_labels(chain_id,address,role,entity,source_url,confidence,valid_from,added_by,reviewed_by,notes,created_at)
+          VALUES('56',${exchange},'verified_exchange','Synthetic exchange','https://example.com/synthetic-only','reviewed',now()-interval '2 days','wallet-exchange/1','fixture','Fixture',now()-interval '2 days')`;
+        for (const [hash, age] of [
+          [currentTx, 5],
+          [historicalTx, 86400],
+        ] as const)
+          await tx`INSERT INTO token_transfers(chain_id,tx_hash,log_index,token_id,block_number,block_hash,event_time,available_at,from_address,to_address,raw_quantity,decimals,kind,source)
+            VALUES('56',${hash},0,${observedToken},100,${hash},now()-(${age}*interval '1 second'),now()-interval '2 seconds',${exchange},${"0x" + "8".repeat(40)},100,18,'unknown_transfer','synthetic-test-only')`;
+        const cycle = randomUUID();
+        await tx`INSERT INTO settings(key,value) VALUES('worker_duty_cycle',
+          jsonb_build_object('owner',${cycle}::text,'at',now()-interval '10 minutes','phase','allocated'))`;
+        const scoped = Object.assign(tx, {
+          reserve: async () => Object.assign(tx, { release: () => {} }),
+        }) as unknown as typeof sql;
+        await finalizeDutyResearch(cycle, scoped);
+        expect(fixture.sends).toBe(2);
+        fixture.digest = true;
+        fixture.fail = false;
+        await finalizeDutyResearch(cycle, scoped);
+        await finalizeDutyResearch(cycle, scoped);
+        expect(fixture.sends).toBe(3);
+        const [cycleDigest] =
+          await tx`SELECT status,attempts,payload,signal_id FROM notification_deliveries WHERE id=${"telegram-digest:" + cycle}`;
+        expect(cycleDigest).toMatchObject({
+          status: "delivered",
+          attempts: 1,
+          signal_id: null,
+        });
+        expect(cycleDigest.payload.text).toContain(currentTx);
+        expect(cycleDigest.payload.text).not.toContain(historicalTx);
+        expect(cycleDigest.payload.findingIds).toHaveLength(1);
+        const [finding] =
+          await tx`SELECT kind,stage,evidence_confidence,observed,market_snapshot_id FROM signal_events WHERE id=${cycleDigest.payload.findingIds[0]}`;
+        expect(finding).toMatchObject({
+          kind: "DOCUMENTED_EXCHANGE_FLOW",
+          stage: "OBSERVED",
+          evidence_confidence: "limited",
+          market_snapshot_id: null,
+        });
+        expect(finding.observed.detail.blockHash).toBe(currentTx);
         fixture.enabled = false;
         checked = true;
         throw Error("ROLLBACK_TELEGRAM_FIXTURE");

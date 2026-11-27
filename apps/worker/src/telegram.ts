@@ -1,6 +1,17 @@
 import { z } from "zod";
-import { config, HttpClient, explorerUrl, hashResponse } from "@flownix/core";
-import { sqlClient, jsonParam, auditRequest } from "@flownix/db";
+import {
+  config,
+  HttpClient,
+  explorerUrl,
+  hashResponse,
+  withRequestPolicy,
+} from "@flownix/core";
+import {
+  sqlClient,
+  jsonParam,
+  auditRequest,
+  workerRequestPolicy,
+} from "@flownix/db";
 import { formatResearchNotification } from "../../../packages/core/src/notification-format";
 
 const http = () =>
@@ -59,7 +70,7 @@ export async function enqueueTelegramTest(testId: string) {
 }
 
 /** Same delivery engine for explicit tests and ordinary scheduled notifications. */
-export async function deliverNotifications(testId?: string) {
+export async function deliverNotifications(testId?: string, digestId?: string) {
   const c = config(),
     sql = sqlClient();
   if (testId ? c.TELEGRAM_ENABLED : !c.TELEGRAM_ENABLED) return;
@@ -68,9 +79,10 @@ export async function deliverNotifications(testId?: string) {
     : [];
   const since = testId ? null : activation[0]?.value?.since;
   if (!testId && (!since || !Number.isFinite(Date.parse(since)))) return;
+  if (digestId && !c.TELEGRAM_RESEARCH_DIGEST_ENABLED) return;
   const pending =
     await sql`SELECT id FROM notification_deliveries WHERE channel='telegram' AND status='queued' AND attempts=0
-    AND CASE WHEN ${!!testId} THEN id=${testId ?? ""} ELSE coalesce(payload->>'test','false')<>'true' AND created_at>now()-interval '15 minutes' END LIMIT 1`;
+    AND CASE WHEN ${!!testId} THEN id=${testId ?? ""} WHEN ${!!digestId} THEN id=${digestId ?? ""} ELSE signal_id IS NOT NULL AND coalesce(payload->>'test','false')<>'true' AND created_at>now()-interval '15 minutes' END LIMIT 1`;
   if (!pending.length) return;
   const destination = await verifyPrivateDestination();
   const { token, chat } = credentials();
@@ -81,16 +93,24 @@ export async function deliverNotifications(testId?: string) {
       AND attempts=0 AND next_attempt_at<=now()
       AND CASE WHEN ${!!testId} THEN id=${testId ?? ""} AND payload->>'test'='true' AND payload->>'explicit'='true'
         AND payload->>'destination'=${destination}
+        WHEN ${!!digestId} THEN id=${digestId ?? ""} AND signal_id IS NULL
+          AND payload->>'priority'='cycle_digest' AND created_at>now()-interval '5 minutes'
+          AND NOT EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(payload->'findingIds') AS f(id)
+            WHERE NOT EXISTS (SELECT 1 FROM signal_events s
+              WHERE s.id=f.id AND s.status='active' AND s.stage='OBSERVED'
+              AND (s.observed->>'eventTime')::timestamptz>=${since ?? "1970-01-01T00:00:00Z"}::timestamptz
+              AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR EXISTS(
+                SELECT 1 FROM watchlists w WHERE w.token_id=s.token_id AND NOT w.archived))))
         ELSE coalesce(payload->>'test','false')<>'true' AND created_at>now()-interval '15 minutes'
           AND EXISTS(SELECT 1 FROM signal_events s
             WHERE s.id=notification_deliveries.signal_id AND s.status='active'
               AND s.first_detected_at>=${since ?? "1970-01-01T00:00:00Z"}::timestamptz
               AND s.first_detected_at>now()-interval '15 minutes'
-              AND (s.evidence_confidence IN ('supported','high')
-                OR (${c.TELEGRAM_RESEARCH_DIGEST_ENABLED} AND s.evidence_confidence IN ('provisional','limited')))
+              AND s.evidence_confidence IN ('supported','high')
               AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR EXISTS(
                 SELECT 1 FROM watchlists w WHERE w.token_id=s.token_id AND NOT w.archived))) END
-      ORDER BY CASE WHEN payload->>'priority'='research_alert' THEN 0 ELSE 1 END,created_at FOR UPDATE SKIP LOCKED LIMIT ${testId ? 1 : 5}) RETURNING *`;
+      ORDER BY CASE WHEN payload->>'priority'='research_alert' THEN 0 ELSE 1 END,created_at FOR UPDATE SKIP LOCKED LIMIT ${testId || digestId ? 1 : 5}) RETURNING *`;
   for (const row of rows) {
     try {
       const response = await http().json(
@@ -146,8 +166,7 @@ export async function queueResearchAlerts() {
   const rows =
     await sql`SELECT s.*,t.symbol,t.chain_id,t.contract,t.research_state FROM signal_events s JOIN alpha_tokens t ON t.id=s.token_id
     WHERE s.status='active' AND s.first_detected_at>=${since}::timestamptz AND s.first_detected_at>now()-interval '15 minutes'
-    AND s.evidence_confidence IN ('supported','high','provisional','limited')
-    AND (${c.TELEGRAM_RESEARCH_DIGEST_ENABLED} OR s.evidence_confidence IN ('supported','high'))
+    AND s.evidence_confidence IN ('supported','high')
     AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR EXISTS(SELECT 1 FROM watchlists w WHERE w.token_id=t.id AND NOT w.archived))
     AND NOT EXISTS(SELECT 1 FROM notification_deliveries n WHERE n.signal_id=s.id AND n.channel='telegram') LIMIT 100`;
   for (const s of rows) {
@@ -166,6 +185,75 @@ export async function queueResearchAlerts() {
         url: explorerUrl(e.chain_id, "tx", e.tx_hash),
       })),
     );
-    await sql`INSERT INTO notification_deliveries(id,signal_id,channel,status,payload) VALUES(${`telegram:${s.id}`},${s.id},'telegram','queued',${jsonParam({ text, priority: ["supported", "high"].includes(s.evidence_confidence) ? "research_alert" : "research_digest" })}::jsonb) ON CONFLICT(signal_id,channel) DO NOTHING`;
+    await sql`INSERT INTO notification_deliveries(id,signal_id,channel,status,payload) VALUES(${`telegram:${s.id}`},${s.id},'telegram','queued',${jsonParam({ text, priority: "research_alert" })}::jsonb) ON CONFLICT(signal_id,channel) DO NOTHING`;
+  }
+}
+
+/** Invoked only by successful duty finalization. The same delivery engine
+ * claims the one consolidated row before the supervisor closes its connections. */
+export async function flushObservedDigest(
+  cycleId: string,
+  from: Date,
+  until: Date,
+) {
+  const c = config();
+  if (!c.TELEGRAM_ENABLED || !c.TELEGRAM_RESEARCH_DIGEST_ENABLED) return;
+  const sql = sqlClient();
+  const [activation] =
+    await sql`SELECT value->>'since' AS since FROM settings WHERE key='telegram_activation'`;
+  if (!activation?.since || !Number.isFinite(Date.parse(activation.since)))
+    return;
+  const since = new Date(Math.max(+from, Date.parse(activation.since)));
+  const id = `telegram-digest:${cycleId}`;
+  const findings = await sql`
+    SELECT s.id,s.observed FROM signal_events s
+    WHERE s.stage='OBSERVED' AND s.rule_version='canonical-activity/1' AND s.status='active'
+      AND s.data_available_at BETWEEN ${since} AND ${until}
+      AND (s.observed->>'eventTime')::timestamptz>=${since}
+      AND (${!c.TELEGRAM_WATCHLIST_ONLY} OR EXISTS(
+        SELECT 1 FROM watchlists w WHERE w.token_id=s.token_id AND NOT w.archived))
+      AND NOT EXISTS (SELECT 1 FROM notification_deliveries n WHERE n.channel='telegram'
+        AND n.payload->>'priority'='cycle_digest' AND (n.payload->'findingIds') ? s.id)
+    ORDER BY CASE s.kind WHEN 'DOCUMENTED_EXCHANGE_FLOW' THEN 0 WHEN 'OBSERVED_TRANSFER_SURGE' THEN 1
+        WHEN 'OBSERVED_SWAP_SETTLEMENT' THEN 2 ELSE 3 END,s.data_available_at DESC,s.id
+    LIMIT 3`;
+  if (!findings.length) return;
+  const text = [
+    "Flownix observed-activity research digest",
+    "Verified source observations with partial coverage. Accumulation, ownership and intent are unproven.",
+    ...findings.map(({ observed: f }) => {
+      const { detail } = f;
+      const attribution = Array.isArray(detail.attribution)
+        ? detail.attribution
+            .map((label: { entity: string }) =>
+              String(label.entity).slice(0, 60),
+            )
+            .join(", ")
+            .slice(0, 100)
+        : null;
+      const quantity = detail.rawQuantity
+        ? `Raw token units ${detail.rawQuantity}${Number.isInteger(detail.decimals) ? ` (decimals ${detail.decimals})` : ""}`
+        : detail.beforeRaw
+          ? `Raw balance ${detail.beforeRaw} → ${detail.afterRaw} (decimals ${detail.decimals})`
+          : `${detail.sampledTransfers} transfers, baseline mean ${Number(detail.baselineMean).toFixed(2)}`;
+      return `${String(f.symbol).slice(0, 40)} | chain ${f.chain} | ${f.contract}
+${f.message} ${attribution ? `Address attribution: ${attribution}.` : ""}
+${quantity}
+Event ${f.eventTime} | Collected ${f.collectedAt}
+${f.provenance.method}
+${f.evidenceUrl}
+https://flownix.xyz/token/${f.tokenId}`;
+    }),
+  ].join("\n\n");
+  await sql`INSERT INTO notification_deliveries(id,channel,status,payload)
+    VALUES(${id},'telegram','queued',${jsonParam({ priority: "cycle_digest", findingIds: findings.map((f) => f.id), text })}::jsonb)
+    ON CONFLICT(id) DO NOTHING`;
+  try {
+    await withRequestPolicy(workerRequestPolicy(sql), () =>
+      deliverNotifications(undefined, id),
+    );
+  } finally {
+    await sql`UPDATE notification_deliveries SET status='cancelled',error='CYCLE_DIGEST_NOT_DISPATCHED'
+      WHERE id=${id} AND status='queued'`;
   }
 }
