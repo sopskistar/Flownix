@@ -407,7 +407,9 @@ export function Radar({
                     >
                       {freshness(t.price_at, now) === "current"
                         ? "Observed"
-                        : "Stale / unavailable"}
+                        : t.price_at
+                          ? "Stale"
+                          : "Time unknown"}
                       {t.price_at ? ` (${ageLabel(t.price_at, now)})` : ""}
                     </small>
                   </td>
