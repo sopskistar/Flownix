@@ -8,6 +8,7 @@ const fixture = vi.hoisted(() => ({
   fail: false,
   private: true,
   enabled: false,
+  digest: false,
 }));
 vi.mock("@flownix/db", async (original) => ({
   ...(await original<typeof import("@flownix/db")>()),
@@ -23,6 +24,7 @@ vi.mock("@flownix/core", async (original) => {
     config: () => ({
       ...core.config(),
       TELEGRAM_ENABLED: fixture.enabled,
+      TELEGRAM_RESEARCH_DIGEST_ENABLED: fixture.digest,
       TELEGRAM_BOT_TOKEN: "123:synthetic-test-only",
       TELEGRAM_CHAT_ID: "456",
     }),
@@ -115,6 +117,31 @@ it.skipIf(!process.env.DATABASE_URL)(
         await expect(enqueueTelegramTest(randomUUID())).rejects.toThrow(
           "DISABLE_GENUINE",
         );
+        fixture.digest = true;
+        const tokenId = randomUUID().replaceAll("-", ""),
+          signalId = randomUUID(),
+          contract = "0x" + "1".repeat(40),
+          wallet = "0x" + "2".repeat(40),
+          txHash = "0x" + "3".repeat(64);
+        await tx`INSERT INTO alpha_tokens(id,chain_id,contract,symbol,name,token_id,status,first_seen,last_seen,source,response_hash,metadata) VALUES(${tokenId},'56',${contract},'TG_FIXTURE','Synthetic label regression',${tokenId},'current',now(),now(),'synthetic-test-only','fixture','{}')`;
+        await tx`INSERT INTO signal_events(id,token_id,kind,rule_version,stage,first_detected_at,computed_at,data_available_at,evidence_confidence,thresholds,observed,counter_evidence,message) VALUES(${signalId},${tokenId},'UNUSUAL_TRANSFER_ACTIVITY','fixture','INVESTIGATE',now(),now(),now(),'limited','{}','{}','[]','Synthetic test only; not a production finding')`;
+        await tx`INSERT INTO token_transfers(chain_id,tx_hash,log_index,token_id,block_number,block_hash,event_time,available_at,from_address,to_address,raw_quantity,decimals,kind,source) VALUES('56',${txHash},0,${tokenId},100,${txHash},now()-interval '2 minutes',now()-interval '1 minute',${wallet},${contract},1,18,'unknown_transfer','synthetic-test-only')`;
+        await tx`INSERT INTO signal_evidence(signal_id,chain_id,tx_hash,log_index) VALUES(${signalId},'56',${txHash},0)`;
+        for (const future of [false, true])
+          await tx`INSERT INTO wallet_labels(chain_id,address,role,entity,source_url,confidence,valid_from,added_by,reviewed_by,notes,created_at) VALUES('56',${wallet},'possible_exchange',${future ? "FUTURE_LABEL_MUST_NOT_LEAK" : "Known label claim"},'https://example.com/synthetic-only','third_party_reviewed',now()-interval '1 day','fixture','fixture','Synthetic rollback-only test',now()+(${future ? 86400 : -600}*interval '1 second'))`;
+        await tx`INSERT INTO settings(key,value) VALUES('telegram_activation',jsonb_build_object('since',now()-interval '10 minutes','acceptedTestId',${id}::text))`;
+        await queueResearchAlerts();
+        const [digest] =
+          await tx`SELECT payload FROM notification_deliveries WHERE signal_id=${signalId} AND channel='telegram'`;
+        expect(digest.payload.priority).toBe("research_digest");
+        expect(digest.payload.text).toContain("Known label claim");
+        expect(digest.payload.text).toContain("third_party_reviewed");
+        expect(digest.payload.text).not.toContain("FUTURE_LABEL_MUST_NOT_LEAK");
+        expect(digest.payload.text).toContain(
+          "ownership and intent are unknown",
+        );
+        expect(fixture.sends).toBe(2);
+        fixture.digest = false;
         fixture.enabled = false;
         checked = true;
         throw Error("ROLLBACK_TELEGRAM_FIXTURE");
@@ -126,6 +153,7 @@ it.skipIf(!process.env.DATABASE_URL)(
       fixture.client = undefined;
       fixture.fail = false;
       fixture.enabled = false;
+      fixture.digest = false;
       await db.closeDb();
     }
     expect(checked).toBe(true);

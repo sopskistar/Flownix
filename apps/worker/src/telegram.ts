@@ -145,9 +145,14 @@ export async function queueResearchAlerts() {
     AND NOT EXISTS(SELECT 1 FROM notification_deliveries n WHERE n.signal_id=s.id AND n.channel='telegram') LIMIT 100`;
   for (const s of rows) {
     const evidence =
-      await sql`SELECT e.*,coalesce(t.event_time,v.event_time) AS event_time,coalesce(t.available_at,v.available_at) AS available_at FROM signal_evidence e LEFT JOIN verified_swaps v ON v.chain_id=e.chain_id AND v.tx_hash=e.tx_hash AND v.log_index=e.log_index AND v.token_id=${s.token_id} AND v.canonical LEFT JOIN token_transfers t ON t.chain_id=e.chain_id AND t.tx_hash=e.tx_hash AND t.log_index=e.log_index AND t.token_id=${s.token_id} AND t.canonical WHERE e.signal_id=${s.id} LIMIT 3`;
+      await sql`SELECT e.*,coalesce(t.event_time,v.event_time) AS event_time,coalesce(t.available_at,v.available_at) AS available_at,
+      (SELECT coalesce(jsonb_agg(jsonb_build_object('address',l.address,'entity',l.entity,'role',l.role,'confidence',l.confidence,'reviewed',l.reviewed_by IS NOT NULL)),'[]'::jsonb)
+       FROM wallet_labels l WHERE l.chain_id=e.chain_id AND l.address IN (t.from_address,t.to_address,v.actor)
+       AND l.valid_from<=coalesce(t.event_time,v.event_time) AND (l.valid_to IS NULL OR l.valid_to>coalesce(t.event_time,v.event_time))
+       AND l.created_at<=${s.data_available_at}) AS attribution
+      FROM signal_evidence e LEFT JOIN verified_swaps v ON v.chain_id=e.chain_id AND v.tx_hash=e.tx_hash AND v.log_index=e.log_index AND v.token_id=${s.token_id} AND v.canonical LEFT JOIN token_transfers t ON t.chain_id=e.chain_id AND t.tx_hash=e.tx_hash AND t.log_index=e.log_index AND t.token_id=${s.token_id} AND t.canonical WHERE e.signal_id=${s.id} LIMIT 3`;
     const text = formatResearchNotification(
-      s,
+      { ...s, attribution: evidence.flatMap((e) => e.attribution ?? []) },
       evidence.map((e) => ({
         eventTime: e.event_time,
         availableAt: e.available_at,
