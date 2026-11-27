@@ -401,6 +401,15 @@ export function Radar({
                     <small title={marketObservation(t)}>
                       {t.quote_asset ?? "Quote unspecified"}
                     </small>
+                    <small
+                      className={`radar-price-freshness ${freshness(t.price_at, now) === "current" ? "positive" : "warning"}`}
+                      title={marketObservation(t)}
+                    >
+                      {freshness(t.price_at, now) === "current"
+                        ? "Observed"
+                        : "Stale / unavailable"}
+                      {t.price_at ? ` (${ageLabel(t.price_at, now)})` : ""}
+                    </small>
                   </td>
                   <td className={`numeric ${changeClass(t.change_24h)}`}>
                     {change(t.change_24h)}

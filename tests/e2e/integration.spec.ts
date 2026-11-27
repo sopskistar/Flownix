@@ -48,6 +48,12 @@ test("market observations retain distinct clocks and partial research links, wit
       ["phone", 390, 844],
     ] as const) {
       await page.setViewportSize({ width, height });
+      if (width === 820) {
+        await expect(row.locator(".radar-price-freshness")).toBeVisible();
+        await expect(row.locator(".radar-price-freshness")).toContainText(
+          "Stale",
+        );
+      }
       if (width < 700)
         await page.locator(".radar-mobile-token").scrollIntoViewIfNeeded();
       await page.screenshot({

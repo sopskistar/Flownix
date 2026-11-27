@@ -1229,3 +1229,11 @@ textarea {
 @media (max-width: 700px) {
   .research-facts { grid-template-columns: minmax(0, 1fr); }
 }
+.radar-price-freshness {
+  display: none;
+}
+@media (min-width: 701px) and (max-width: 1100px) {
+  .radar-desktop .radar-price-freshness {
+    display: block;
+  }
+}
