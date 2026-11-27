@@ -34,11 +34,11 @@ test("market observations retain distinct clocks and partial research links, wit
     await expect(row).toContainText("Stale / unavailable market");
     await expect(row.locator("td").nth(2)).toContainText("2.32");
     await expect(row.locator("td").nth(2)).not.toContainText("Alpha ticker");
-    await expect(row.locator("td").nth(2).locator("small")).toHaveAttribute(
+    await expect(row.locator("td").nth(2).getByText("USDT", { exact: true })).toHaveAttribute(
       "title",
       new RegExp(provider),
     );
-    await expect(row.locator("td").nth(2).locator("small")).toHaveAttribute(
+    await expect(row.locator("td").nth(2).getByText("USDT", { exact: true })).toHaveAttribute(
       "title",
       new RegExp(collected),
     );
