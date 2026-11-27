@@ -20,6 +20,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
       - run: pnpm typecheck && pnpm lint && pnpm test && pnpm build
+      - name: Smoke test the packaged Telegram CLI
+        run: |
+          docker build -f Dockerfile.worker -t flownix-worker:ci .
+          exit_code=0
+          output=$(docker run --rm --network none flownix-worker:ci node --import tsx scripts/telegram-test.ts 2>&1) || exit_code=$?
+          printf '%s\n' "$output"
+          test "$exit_code" -eq 2
+          [[ "$output" == "Usage: telegram-test.ts --status UUID"* ]]
+          docker run --rm --network host -e DATABASE_URL -e TELEGRAM_ENABLED=false flownix-worker:ci \
+            node --import tsx scripts/telegram-test.ts --status 3e6e67a8-06b5-4c42-9d40-a50b04e5680a |
+            jq -e '.id == "telegram-test:3e6e67a8-06b5-4c42-9d40-a50b04e5680a" and .status == "not_found"'
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - name: Retain synthetic integration screenshots for visual acceptance

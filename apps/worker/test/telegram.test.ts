@@ -77,6 +77,8 @@ it.skipIf(!process.env.DATABASE_URL)(
           );
         fixture.client = tx as unknown as typeof sql;
         await tx`INSERT INTO notification_deliveries(id,channel,status,payload) VALUES('historical','telegram','queued','{"text":"must not send"}')`;
+        await tx`UPDATE notification_deliveries SET created_at=now()-interval '1 day' WHERE id='historical'`;
+        await tx`INSERT INTO notification_deliveries(id,channel,status,payload) VALUES('genuine','telegram','queued','{"text":"genuine research alert"}')`;
         await deliverNotifications();
         await queueResearchAlerts();
         expect(fixture.sends).toBe(0);
@@ -96,10 +98,11 @@ it.skipIf(!process.env.DATABASE_URL)(
           privateTargetMatches: true,
         });
         expect(
-          (
-            await tx`SELECT status FROM notification_deliveries WHERE id='historical'`
-          )[0].status,
-        ).toBe("queued");
+          await tx`SELECT id,status,attempts FROM notification_deliveries WHERE id IN ('genuine','historical') ORDER BY id`,
+        ).toEqual([
+          { id: "genuine", status: "queued", attempts: 0 },
+          { id: "historical", status: "queued", attempts: 0 },
+        ]);
         fixture.private = false;
         await expect(enqueueTelegramTest(randomUUID())).rejects.toBeDefined();
         fixture.private = true;
@@ -107,6 +110,10 @@ it.skipIf(!process.env.DATABASE_URL)(
         const uncertain = await enqueueTelegramTest(randomUUID());
         await deliverNotifications(uncertain);
         await deliverNotifications(uncertain);
+        expect(fixture.sends).toBe(2);
+        const interrupted = await enqueueTelegramTest(randomUUID());
+        await tx`UPDATE notification_deliveries SET status='sending',attempts=1 WHERE id=${interrupted}`;
+        await deliverNotifications(interrupted);
         expect(fixture.sends).toBe(2);
         expect(
           (

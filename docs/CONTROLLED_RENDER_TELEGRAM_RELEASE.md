@@ -1,6 +1,6 @@
 # Manual Render release and one-message Telegram acceptance
 
-This plan supersedes the earlier readiness-only handoff. No Render deployment, genuine Telegram activation, second collector or billing change is authorized by this document. No migration is needed. The original untracked handoff was preserved locally at `/tmp/flownix-controlled-render-release-before-integration.md` before this revision.
+The worker image includes the Telegram test command. This release needs no database migration.
 
 ## Release the verified commit manually
 
@@ -20,11 +20,18 @@ This plan supersedes the earlier readiness-only handoff. No Render deployment, g
    Require successful idle duty state, future nextAt and zero locks. A stopped child heartbeat alone does not prove host liveness or Neon suspension.
 
 4. Use Render **Manual Deploy → Deploy a specific commit**, with the verified full SHA from step 1. Do not change the start command, clear checkpoints, create another service or run `worker:once`/`worker:duty` yourself.
-5. In the new Shell, require `git rev-parse HEAD` (if Git metadata is present) or `printenv RENDER_GIT_COMMIT` to equal that SHA, and verify the same SHA in Render's deployment details. Require `duty_reservation` with `run:false`, `reason:planned_idle` and unchanged future nextAt; rerun the local health check to confirm sleeping. Save-only environment values become available when the deployment applies them.
+5. After deployment, open a new Shell and run `printenv RENDER_GIT_COMMIT`. Match it to the SHA in Render's deployment details. Look for `duty_reservation` with `run:false` and `reason:planned_idle` in the logs. Rerun the health check and confirm the worker is sleeping with the same future `nextAt`.
 
 ## Send exactly one application-generated test, while genuine alerts stay OFF
 
-This is an explicit owner Shell command, not a public endpoint and not a worker startup hook. Personally confirm that Render contains your independently verified bot and private destination. The code checks `getMe`, `getChat`, matching bot identity and a positive numeric private chat ID; it cannot infer who owns a different valid private chat. It never accepts a destination from the command line.
+Under **flownix-worker → Environment**, verify that the service has `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` directly or through a group listed under **Linked Environment Groups**. Values saved with **Save only** take effect on the next deploy. Verify presence in the new worker Shell without displaying either secret:
+
+```sh
+cd /app
+node -e 'const e=process.env; console.log({botTokenPresent:!!e.TELEGRAM_BOT_TOKEN,chatIdPresent:!!e.TELEGRAM_CHAT_ID,alertsOff:e.TELEGRAM_ENABLED==="false",digestsOff:(e.TELEGRAM_RESEARCH_DIGEST_ENABLED??"false")==="false"})'
+```
+
+Continue when all four values are `true`. Confirm that you saved the intended bot and private chat. The command verifies the configured bot identity and private chat through Telegram.
 
 Generate one UUID and **record it**:
 
@@ -40,12 +47,10 @@ node --import tsx scripts/telegram-test.ts --send-one YOUR_RECORDED_UUID --confi
 
 Keep `TELEGRAM_ENABLED=false`. The command refuses genuine-alert mode, inserts/deduplicates one `telegram-test:UUID` row, and invokes the same delivery function used by the scheduled notification job with an exact test-row selector. It sends only `FLOWNIX TEST ONLY`, never drains other rows and never starts a collector. There is no need to wake the scheduled worker or move secrets to Vercel.
 
-Inspect its receipt:
+Read the result from Render Shell using the same UUID. This command only queries PostgreSQL and works without `psql` or Telegram credentials:
 
-```sql
-SELECT id,status,attempts,created_at,delivered_at,receipt,error,payload->>'test' AS test
-FROM notification_deliveries
-WHERE id='telegram-test:YOUR_RECORDED_UUID';
+```sh
+node --import tsx scripts/telegram-test.ts --status YOUR_RECORDED_UUID
 ```
 
 Acceptance requires your private Telegram chat visibly receiving **one** marked message and that same row showing `delivered`, `attempts=1`, timestamp, and a JSON receipt containing `ok:true`, `message_id`, Telegram `date`, `privateTargetMatches:true` and response hash. The receipt deliberately omits token/chat ID and personal profile data. Do not paste credentials or entire environment output.
